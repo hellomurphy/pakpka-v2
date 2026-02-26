@@ -1,0 +1,55 @@
+🚀 Nuxt 4 Monorepo & Cloudflare Master Rules (v2.0)
+🏗 Architecture & Structure
+Strict Nuxt 4: Everything frontend lives in app/. Server logic lives in server/. Routing: Use file-based routing in app/pages/. DO NOT use app/routes/ to maintain consistency across the monorepo.
+
+Backend Hub (Admin Only): apps/admin is the Primary Server. All core API endpoints and backend business logic MUST reside in apps/admin/server/. CORS: apps/admin MUST allow cross-origin requests from client and landing (e.g. server middleware that sets Access-Control-Allow-Origin from an allowlist; do not use a single comma-separated list in the header).
+
+API Boundary: apps/client and apps/landing are Consumers. They MUST NOT contain database/auth business logic in server/api. They fetch data via $fetch using useRuntimeConfig().public.apiBase. All /api/auth/* (including dev-login) live only in apps/admin. Consumer apps may have server/api only for thin proxies or non-business endpoints; all data and auth come from $fetch to admin.
+
+Monorepo Imports: Use @repo/db for database logic and @repo/ui for shared components. Use workspace:* for internal deps. Always run pnpm from the repo root (e.g. pnpm --filter admin dev). Single Source of Truth: Database schemas MUST only exist in packages/database/schema.ts. Use @repo/db for all database/schema imports.
+
+🗄️ Database & Local Dev (Critical)
+Single Connection Point: ONLY apps/admin connects to the D1 database.
+
+Avoid "Database has no schema" (503): Do NOT let NuxtHub use the default .data/db/sqlite.db in dev. Use the same SQLite file as root .wrangler (where migrations run).
+
+In apps/admin/nuxt.config.ts: (1) At top level, resolve relative DATABASE_URL to absolute from apps/admin dir (path.resolve). (2) Set hub.db so that in development with DATABASE_URL set, NuxtHub uses libsql with connection: {} (empty). That triggers NuxtHub’s lazy template that reads process.env.DATABASE_URL at runtime. Do NOT pass connection.url or connectionString—NuxtHub would overwrite or merge and the app would point at the wrong DB. (3) Use this only when NODE_ENV === 'development' && process.env.DATABASE_URL; otherwise hub.db must be 'sqlite' so production (Cloudflare) uses D1 Binding, not DATABASE_URL.
+
+Example (do not hardcode path; use .env):
+  hub: {
+    db: process.env.NODE_ENV === 'development' && process.env.DATABASE_URL
+      ? { dialect: 'sqlite', driver: 'libsql', connection: {} }
+      : 'sqlite',
+  }
+
+In apps/admin/.env: Set DATABASE_URL=file:../../.wrangler/state/v3/d1/miniflare-D1DatabaseObject/<hash>.sqlite (copy from .env.example; if hash changes run ls .wrangler/state/v3/d1/miniflare-D1DatabaseObject/ from root).
+
+Schema Source: packages/database/schema.ts is the ONLY source of truth. apps/admin/server/db/schema.ts MUST re-export from @repo/db so NuxtHub picks it up. Access db via import { db, schema } from '@nuxthub/db'.
+
+Migration Flow: (1) Schema changes → pnpm --filter @repo/db run db:generate (from root). (2) Apply to local D1: pnpm --filter @repo/db run db:migrate:local (or npx wrangler d1 execute pakpak-db --local --file=./packages/database/drizzle/xxxx.sql from root). (3) Restart apps/admin dev after changing hub.db or DATABASE_URL so @nuxthub/db regenerates.
+
+☁️ Cloudflare & Edge
+Edge Runtime: Assume Cloudflare Workers. Avoid Node.js-only APIs (fs, path, process.nextTick). Use NuxtHub v0.10+ and @nuxthub/db (not deprecated hubDatabase()). Prefer Drizzle Relational Query API. Use hubKV()/hubBlob() for cache/blob. apps/admin must have @repo/db, drizzle-orm, @libsql/client.
+
+🎨 Frontend & UI (Nuxt UI)
+Component First: Use Nuxt UI components (UButton, UCard, etc.) before custom HTML. Icons: Use i-lucide-<name>. Layouts: app/layouts/, responsive with Tailwind.
+
+UI Architecture: Global/base components in packages/ui; app-specific in apps/*/app/components. Prefer Nuxt UI primitives inside @repo/ui; do not introduce a second design system.
+
+Migration from Headless UI + Heroicons: Do NOT do line-by-line editing. (1) Delete legacy component content. (2) Rewrite the entire file with Nuxt UI components. (3) Keep business logic/props, map to Nuxt UI primitives. Map Heroicons to i-lucide-<name> or i-heroicons-<name>. For 50+ files, offer "Full File Rewrite" to save time and tokens.
+
+🛡️ Code Quality & Patterns
+Type Safety: TypeScript strictly. No any. Validation: Use Zod; use readValidatedBody(event, schema) / getValidatedQuery(event, schema) (Nitro auto-imports, first arg is event). State: Pinia for global state. Secrets: useRuntimeConfig(); never hardcode.
+
+🔐 Auth & Security
+Auth Hub: All /api/auth/* only in apps/admin. Use nuxt-auth-utils. Session: useUserSession() (frontend), getUserSession(event) (server). LINE Login (OAuth2) in apps/admin for admin; LINE LIFF for client. Dev: /api/auth/dev-login in apps/admin for local bypass. Cross-app session/cookies TBD; do not add custom token exchange endpoints.
+
+🛠 Development & Debugging
+Commands: Prefer pnpm from root with --filter or npx. If "Table not found" or 503: (1) Verify local D1 has tables: npx wrangler d1 execute pakpak-db --local --command="SELECT name FROM sqlite_master WHERE type='table';" from root. (2) Ensure apps/admin/.env has DATABASE_URL pointing to root .wrangler and restart dev. Tunnels: For real LINE callbacks use npx untun@latest dev or cloudflared.
+
+🚨 Critical Instructions for Cursor
+No Redundant Servers: If asked to create an API in apps/client or apps/landing, create it in apps/admin/server/api/ instead and provide the $fetch usage for the consumer.
+
+No Line-by-Line UI Refactor: For large UI migrations (e.g. 50+ files), offer Full File Rewrite with Nuxt UI, not incremental edits.
+
+Drizzle: On schema changes remind to run pnpm --filter @repo/db run db:generate; applying to D1 (wrangler d1 execute or deploy) is separate. Nuxt 4: Refactor legacy Nuxt 3 root pages/components into app/ when relevant.

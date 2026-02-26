@@ -4,9 +4,12 @@
 node_modules
 .pnp
 .pnp.js
+.pnpm-store/
 
 # Local env files
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -20,6 +23,11 @@ coverage
 
 # Vercel
 .vercel
+
+# Cloudflare / Wrangler (local state, D1 SQLite, secrets)
+.wrangler/
+.dev.vars
+.dev.vars.*
 
 # Build Outputs
 .next/
@@ -36,3 +44,8 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+apps/admin/.data
+packages/database/.data
+packages/database/*.sqlite
+wrangler.toml

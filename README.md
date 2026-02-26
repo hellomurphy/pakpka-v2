@@ -1,135 +1,99 @@
-# Turborepo starter
+# 🏠 Edge-Native Property Management System (PMS)
+> **A high-performance, monorepo-based SaaS engineered for financial accuracy and global low-latency property operations.**
 
-This Turborepo starter is maintained by the Turborepo core team.
+[![Framework: Nuxt 4](https://img.shields.io/badge/Framework-Nuxt_4-00DC82?style=flat-square&logo=nuxt.js)](https://nuxt.com/)
+[![Runtime: Cloudflare Workers](https://img.shields.io/badge/Runtime-Cloudflare_Workers-F38020?style=flat-square&logo=cloudflare)](https://workers.cloudflare.com/)
+[![Database: Cloudflare D1](https://img.shields.io/badge/Database-Cloudflare_D1-F38020?style=flat-square&logo=cloudflare)](https://www.cloudflare.com/products/workers/d1/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-## Using this example
+---
 
-Run the following command:
+## 🔗 Live Demo & Deployment
+* **Production Dashboard (v1):** [https://demo.pakpak.app](https://demo.pakpak.app) *(Stable Node.js Architecture)*
+* **Edge-Native Source (v2):** [https://github.com/hellomurphy/pakpka-v2](https://github.com/hellomurphy/pakpka-v2) *(Current Migration Target)*
+* **Tenant Portal (LIFF):** Accessible via LINE Official Account (Access available upon request for demo purposes)
 
-```sh
-npx create-turbo@latest
+---
+
+## 🚀 Engineering Vision: Reliability at the Edge
+This project solves operational bottlenecks for high-density dormitory management (200+ rooms). Unlike generic platforms, this system is architected for **Extreme Financial Integrity** and **Operational Agility**.
+
+### Core Philosophy:
+- **Accuracy over Automation:** Focus on eliminating human error in auditing and billing before layering IoT complexity.
+- **Edge-First Architecture:** Built on Cloudflare’s global network to ensure sub-second response times and 100% availability without cold starts.
+- **Mobile-First Auditing:** Optimized for "Smart Entry" meter reading, allowing staff to audit and sync data directly from the field.
+
+---
+
+## 🏗 System Architecture (The Hub-and-Spoke Model)
+
+The project utilizes a **Monorepo Strategy** to maintain a Single Source of Truth for schemas and business logic across multiple applications.
+
+### 1. The Hub (`apps/admin`)
+The centralized **API Gateway** and logic engine.
+- **Smart Billing Engine:** Batch process 200+ invoices in a single transaction with complex utility delta calculations.
+- **Anomaly Detection:** Real-time validation system to flag utility consumption spikes (detecting leaks or meter malfunctions).
+
+### 2. The Spokes (`apps/client`, `apps/landing`)
+Decoupled applications focused on User Experience.
+- **Tenant Portal:** Integrated via **LINE LIFF** for a frictionless, app-less user journey.
+- **Self-Onboarding:** Automated identity matching via phone numbers, syncing tenant data with the Hub in real-time.
+
+### 3. Shared Core (`packages/*`)
+- **`@repo/db`:** Shared Drizzle schemas and migrations.
+- **`@repo/ui`:** Unified Design System for consistent brand UX across apps.
+
+---
+
+## 🛠 Technical Challenges & Decisions
+
+### **1. Migration to Edge Runtime (Architectural Evolution)**
+* **Problem:** V1 (Node.js/Postgres) faced scalability and cost issues during idle times.
+* **Solution:** Migrated to **Nuxt 4 + Cloudflare Workers**. This required refactoring all backend logic to be Web Standard compliant, moving away from Node-native dependencies.
+* **Result:** Reduced operational costs and achieved near-zero latency for global users.
+
+### **2. Distributed Monorepo Governance**
+* Implemented **pnpm workspaces** to manage shared dependencies.
+* Enforced strict type-safety by sharing Zod schemas between the Hub and Spoke applications, ensuring API contracts never break.
+
+### **3. Data Persistence with Cloudflare D1**
+* Optimized SQL sub-queries to handle relational data efficiently within SQLite's execution limits.
+* Implemented automated migration pipelines from the `@repo/db` package to production D1 instances.
+
+---
+
+## 📐 Tech Stack
+
+-   **Frontend/Backend:** Nuxt 4 (Full-stack)
+-   **Database:** Cloudflare D1 (SQLite) with Drizzle ORM
+-   **Security:** `nuxt-auth-utils` (Session-based), LINE OAuth2, and LIFF API
+-   **State Management:** Pinia & Nuxt Composables
+-   **Storage/Cache:** NuxtHub (KV for caching, Blob for slip storage)
+-   **Validation:** Zod (Strict API request/response validation)
+
+---
+
+## 📈 Roadmap
+
+- [x] **Phase 1:** Core Billing & Admin Dashboard (Manual Entry Optimized for 200+ Rooms)
+- [ ] **Phase 2:** Engineering Excellence (Integration of Vitest for core billing logic and CI/CD pipelines)
+- [ ] **Phase 3:** AI OCR Integration (Automated utility reading via camera)
+- [ ] **Phase 4:** IoT Smart Meter direct integration
+
+---
+
+## 🛠 Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start Admin Dashboard
+pnpm --filter admin dev
+
+# Start Tenant Portal
+pnpm --filter client dev
 ```
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+---
+*Developed with a focus on Engineering Excellence and User Experience.*
