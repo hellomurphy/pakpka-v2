@@ -9,9 +9,19 @@
 ---
 
 ## 🔗 Live Demo & Deployment
-* **Production Dashboard (v1):** [https://demo.pakpak.app](https://demo.pakpak.app) *(Stable Node.js Architecture)*
-* **Edge-Native Source (v2):** [https://github.com/hellomurphy/pakpka-v2](https://github.com/hellomurphy/pakpka-v2) *(Current Migration Target)*
-* **Tenant Portal (LIFF):** Accessible via LINE Official Account (Access available upon request for demo purposes)
+
+| Platform | Access Link | Status |
+| :--- | :--- | :--- |
+| **Production Admin (v1)** | [https://demo.pakpak.app](https://demo.pakpak.app) | 🟢 Live (Node.js) |
+| **Edge-Native Source (v2)** | [hellomurphy/pakpka-v2](https://github.com/hellomurphy/pakpka-v2) | 🛠️ In-Migration (This Repo) |
+| **Tenant Portal (LIFF)** | [Private Access] | 🔒 On-Request |
+
+### 🔑 Demo Credentials
+To explore the **Production Dashboard (v1)**, please use the following testing account:
+- **Username:** `admin01`
+- **Password:** `password`
+
+> **Note:** The Tenant Portal is integrated with LINE LIFF and requires phone number whitelisting. A live demonstration can be provided during the technical interview.
 
 ---
 
@@ -70,6 +80,15 @@ Decoupled applications focused on User Experience.
 -   **State Management:** Pinia & Nuxt Composables
 -   **Storage/Cache:** NuxtHub (KV for caching, Blob for slip storage)
 -   **Validation:** Zod (Strict API request/response validation)
+
+---
+
+## 🛠 Development Workflow
+This project utilizes a modern **AI-Augmented Development** workflow to achieve high velocity without compromising architectural integrity:
+
+- **Tooling:** Developed using **Cursor AI** with custom `.cursorrules` configured to enforce strict Nuxt 4 patterns and Edge-native standards.
+- **Consistency:** Leveraged AI-driven linting and pattern enforcement to maintain a clean Monorepo structure and ensure type safety across all packages.
+- **Velocity:** Optimized for rapid iteration from V1 to V2, focusing on refactoring core business logic into scalable, Edge-ready modules.
 
 ---
 
