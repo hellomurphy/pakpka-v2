@@ -1,0 +1,168 @@
+// stores/invoices.ts
+import { defineStore } from "pinia";
+import type { Invoice, Payment } from "~/types";
+
+export const useInvoicesStore = defineStore("invoices", {
+  state: () => ({
+    invoices: [] as Invoice[],
+    currentInvoice: null as Invoice | null,
+    payments: [] as Payment[],
+    status: "idle" as "idle" | "pending" | "success" | "error",
+    paymentStatus: "idle" as "idle" | "pending" | "success" | "error",
+  }),
+
+  getters: {
+    isLoading: (state) => state.status === "pending",
+    isSubmittingPayment: (state) => state.paymentStatus === "pending",
+
+    /**
+     * ใบแจ้งหนี้ที่ค้างชำระ
+     */
+    unpaidInvoices: (state) =>
+      state.invoices.filter(
+        (inv) => inv.status === "UNPAID" || inv.status === "OVERDUE"
+      ),
+
+    /**
+     * ยอดค้างชำระรวม
+     */
+    totalOutstanding: (state) =>
+      state.invoices
+        .filter((inv) => inv.status === "UNPAID" || inv.status === "OVERDUE")
+        .reduce((sum, inv) => sum + inv.totalAmount, 0),
+
+    /**
+     * ใบแจ้งหนี้ที่เกินกำหนด
+     */
+    overdueInvoices: (state) =>
+      state.invoices.filter((inv) => inv.status === "OVERDUE"),
+  },
+
+  actions: {
+    /**
+     * ดึงรายการใบแจ้งหนี้ทั้งหมด
+     */
+    async fetchInvoices(params?: { year?: string; status?: string }) {
+      const api = useApi();
+      this.status = "pending";
+
+      try {
+        // ถ้า status มีหลายค่า (เช่น "UNPAID,OVERDUE") ให้แยกเป็นหลาย request
+        if (params?.status?.includes(",")) {
+          const statuses = params.status.split(",");
+          const responses = await Promise.all(
+            statuses.map((status) =>
+              api.invoices.getMy({ ...params, status: status.trim() })
+            )
+          );
+
+          // รวม invoices จากทุก response
+          this.invoices = responses.flatMap((res) => res.data?.invoices || []);
+        } else {
+          const response = await api.invoices.getMy(params);
+          this.invoices = response.data?.invoices || [];
+        }
+
+        console.log("📋 Fetched invoices:", this.invoices);
+        this.status = "success";
+      } catch (error) {
+        this.status = "error";
+        this.invoices = [];
+        console.error("Failed to fetch invoices:", error);
+      }
+    },
+
+    /**
+     * ดึงใบแจ้งหนี้ปัจจุบันที่ค้างชำระ
+     */
+    async fetchCurrentInvoice() {
+      const api = useApi();
+      this.status = "pending";
+
+      try {
+        const response = await api.invoices.getCurrent();
+        this.currentInvoice = response.data;
+        this.status = "success";
+      } catch (error) {
+        this.status = "error";
+        this.currentInvoice = null;
+        console.error("Failed to fetch current invoice:", error);
+      }
+    },
+
+    /**
+     * ดึงข้อมูลใบแจ้งหนี้เฉพาะ ID
+     */
+    async fetchInvoice(invoiceId: string) {
+      const api = useApi();
+      this.status = "pending";
+
+      try {
+        const response = await api.invoices.get(invoiceId);
+        this.currentInvoice = response.data;
+        this.status = "success";
+      } catch (error) {
+        this.status = "error";
+        this.currentInvoice = null;
+        console.error("Failed to fetch invoice:", error);
+      }
+    },
+
+    /**
+     * ส่งหลักฐานการชำระเงิน (สลิป)
+     */
+    async submitPayment(data: {
+      invoiceId: string;
+      amount: number;
+      slipUrl: string;
+    }) {
+      const api = useApi();
+      const uiStore = useUiStore();
+      this.paymentStatus = "pending";
+
+      try {
+        await api.payments.submit(data);
+        this.paymentStatus = "success";
+
+        // แสดง notification สำเร็จ
+        uiStore.showNotification({
+          type: "success",
+          message: "ส่งหลักฐานการชำระเงินเรียบร้อยแล้ว",
+        });
+
+        // Refresh invoice data
+        await this.fetchInvoice(data.invoiceId);
+      } catch (error) {
+        this.paymentStatus = "error";
+        console.error("Failed to submit payment:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * ดึงประวัติการชำระเงิน
+     */
+    async fetchPaymentHistory(params?: { year?: string; status?: string }) {
+      const api = useApi();
+
+      try {
+        const response = await api.payments.getHistory(params);
+        this.payments = response.data || [];
+      } catch (error) {
+        this.payments = [];
+        console.error("Failed to fetch payment history:", error);
+      }
+    },
+
+    /**
+     * Clear state เมื่อ logout
+     */
+    clearInvoices() {
+      this.invoices = [];
+      this.currentInvoice = null;
+      this.payments = [];
+      this.status = "idle";
+      this.paymentStatus = "idle";
+    },
+  },
+});

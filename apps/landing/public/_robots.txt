@@ -1,0 +1,10 @@
+# Allow all user agents to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow specific paths if necessary (optional)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Point to the sitemap (very important)
+Sitemap: https://pakpak.app/sitemap.xml

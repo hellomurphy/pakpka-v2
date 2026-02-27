@@ -1,18 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai&display=swap");
 @import "tailwindcss";
-@import "@nuxt/ui";
+@plugin "@tailwindcss/typography";
 
-@theme static {
-  --font-sans: 'Public Sans', sans-serif;
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
 
-  --color-green-50: #EFFDF5;
-  --color-green-100: #D9FBE8;
-  --color-green-200: #B3F5D1;
-  --color-green-300: #75EDAE;
-  --color-green-400: #00DC82;
-  --color-green-500: #00C16A;
-  --color-green-600: #00A155;
-  --color-green-700: #007F45;
-  --color-green-800: #016538;
-  --color-green-900: #0A5331;
-  --color-green-950: #052E16;
+  /* ตั้งค่า Text Wrapping สำหรับแท็กเนื้อหาหลัก */
+  p,
+  li,
+  blockquote,
+  dd,
+  dt {
+    text-wrap: pretty;
+  }
+}
+
+/* ตั้งค่า Transition สำหรับ Dark/Light Mode */
+/* เราไม่ใส่ใน @layer base เพราะต้องการให้มันทำงานกับ Utility classes ของ Tailwind ด้วย */
+body,
+div,
+main,
+header,
+footer,
+section {
+  transition: background-color 0.3s, color 0.3s;
+  font-family: "IBM Plex Sans Thai", sans-serif;
 }
