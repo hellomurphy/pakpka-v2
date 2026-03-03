@@ -17,10 +17,13 @@ export function errorResponse(event: H3Event, error: unknown) {
 
   setResponseStatus(event, statusCode);
 
-  console.error(`API Error: ${statusCode} - ${statusMessage}`, {
-    path: event.path,
-    cause: err.cause ?? err.message,
-  });
+  // Log only server errors (5xx); 4xx are expected (validation, auth) and clutter test output
+  if (statusCode >= 500) {
+    console.error(`API Error: ${statusCode} - ${statusMessage}`, {
+      path: event.path,
+      cause: err.cause ?? err.message
+    });
+  }
 
   return {
     success: false,

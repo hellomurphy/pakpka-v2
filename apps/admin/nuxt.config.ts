@@ -13,7 +13,7 @@ if (dbUrl?.startsWith('file:')) {
 }
 
 export default defineNuxtConfig({
-  modules: ['@nuxthub/core', '@nuxt/eslint', '@nuxt/ui', '@vueuse/nuxt', '@pinia/nuxt', 'nuxt-auth-utils', 'vue-sonner/nuxt'],
+  modules: ['@nuxthub/core', '@nuxt/eslint', '@nuxt/ui', '@nuxt/test-utils/module', '@vueuse/nuxt', '@pinia/nuxt', 'nuxt-auth-utils', 'vue-sonner/nuxt'],
 
   runtimeConfig: {
     public: {

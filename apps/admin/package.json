@@ -8,7 +8,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@floating-ui/vue": "^1.1.10",
@@ -42,9 +44,14 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.1",
+    "@nuxt/test-utils": "^4.0.0",
+    "@vue/test-utils": "^2.4.2",
     "drizzle-kit": "^0.31.9",
     "eslint": "^10.0.0",
+    "happy-dom": "^20.7.0",
+    "playwright-core": "^1.58.2",
     "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
     "vue-tsc": "^3.2.4"
   },
   "packageManager": "pnpm@10.29.3"
