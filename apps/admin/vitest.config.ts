@@ -11,8 +11,8 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['test/unit/**/*.{test,spec}.ts'],
-          environment: 'node'
-        }
+          environment: 'node',
+        },
       },
       {
         test: {
@@ -21,8 +21,8 @@ export default defineConfig({
           environment: 'node',
           setupTimeout: 120_000,
           hookTimeout: 180_000,
-          fileParallelism: false
-        }
+          fileParallelism: false,
+        },
       },
       {
         test: {
@@ -31,16 +31,16 @@ export default defineConfig({
           environment: 'node',
           setupTimeout: 120_000,
           hookTimeout: 180_000,
-          fileParallelism: false
-        }
+          fileParallelism: false,
+        },
       },
       await defineVitestProject({
         test: {
           name: 'nuxt',
           include: ['test/nuxt/*.{test,spec}.ts'],
-          environment: 'nuxt'
-        }
-      })
-    ]
-  }
+          environment: 'nuxt',
+        },
+      }),
+    ],
+  },
 })

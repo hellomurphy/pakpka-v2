@@ -1,12 +1,6 @@
 import { z } from 'zod'
 import { eq, and, lte, gte, inArray } from 'drizzle-orm'
-import {
-  TenantStatus,
-  ContractStatus,
-  BillingType,
-  RoomStatus,
-  ReservationStatus
-} from '@repo/db'
+import { TenantStatus, ContractStatus, BillingType, RoomStatus, ReservationStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 import { hasOverlappingDateRanges } from '~~/server/utils/date-overlap'
 
@@ -19,14 +13,11 @@ const waitingListSchema = z.object({
     .regex(/^0[0-9]{8,9}$/, 'เบอร์โทรไม่ถูกต้อง')
     .optional()
     .or(z.literal('')),
-  desiredRoomTypeId: z.string().optional()
+  desiredRoomTypeId: z.string().optional(),
 })
 
 const createContractSchema = z.object({
-  status: z.union([
-    z.literal(TenantStatus.ACTIVE),
-    z.literal(TenantStatus.UPCOMING)
-  ]),
+  status: z.union([z.literal(TenantStatus.ACTIVE), z.literal(TenantStatus.UPCOMING)]),
   propertyId: z.string().min(1),
   tenantName: z.string().min(1, 'ต้องระบุชื่อผู้เช่า'),
   tenantPhone: z
@@ -51,24 +42,22 @@ const createContractSchema = z.object({
         serviceId: z.string().min(1),
         price: z.coerce.number().min(0),
         name: z.string(),
-        isOptional: z.boolean()
-      })
+        isOptional: z.boolean(),
+      }),
     )
-    .optional()
+    .optional(),
 })
 
 const tenantCreationSchema = z.union([waitingListSchema, createContractSchema])
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readValidatedBody(event, data =>
-      tenantCreationSchema.safeParse(data)
-    )
+    const body = await readValidatedBody(event, (data) => tenantCreationSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
     const data = body.data
@@ -84,7 +73,7 @@ export default defineEventHandler(async (event) => {
           name: data.tenantName,
           phone: data.tenantPhone || null,
           status: data.status,
-          propertyId: data.propertyId
+          propertyId: data.propertyId,
         })
         .returning()
       return successResponse(newTenant, 'เพิ่มผู้เช่าใน Waiting List สำเร็จ')
@@ -99,7 +88,7 @@ export default defineEventHandler(async (event) => {
       if (!room) {
         throw createError({
           statusCode: 404,
-          statusMessage: 'ไม่พบห้องพักนี้'
+          statusMessage: 'ไม่พบห้องพักนี้',
         })
       }
 
@@ -109,20 +98,17 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.contract.roomId, data.roomId),
-            inArray(schema.contract.status, [
-              ContractStatus.ACTIVE,
-              ContractStatus.PENDING
-            ]),
+            inArray(schema.contract.status, [ContractStatus.ACTIVE, ContractStatus.PENDING]),
             and(
               lte(schema.contract.startDate, data.endDate),
-              gte(schema.contract.endDate, data.startDate)
-            )
-          )
+              gte(schema.contract.endDate, data.startDate),
+            ),
+          ),
         )
       if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingContracts)) {
         throw createError({
           statusCode: 409,
-          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับสัญญาที่มีอยู่แล้ว'
+          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับสัญญาที่มีอยู่แล้ว',
         })
       }
 
@@ -134,18 +120,18 @@ export default defineEventHandler(async (event) => {
             eq(schema.reservation.roomId, data.roomId),
             inArray(schema.reservation.status, [
               ReservationStatus.PENDING,
-              ReservationStatus.CONFIRMED
+              ReservationStatus.CONFIRMED,
             ]),
             and(
               lte(schema.reservation.startDate, data.endDate),
-              gte(schema.reservation.endDate, data.startDate)
-            )
-          )
+              gte(schema.reservation.endDate, data.startDate),
+            ),
+          ),
         )
       if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingReservations)) {
         throw createError({
           statusCode: 409,
-          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับการจองห้องที่มีอยู่แล้ว'
+          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับการจองห้องที่มีอยู่แล้ว',
         })
       }
 
@@ -155,7 +141,7 @@ export default defineEventHandler(async (event) => {
         name: data.tenantName,
         phone: data.tenantPhone || null,
         status: data.status,
-        propertyId: data.propertyId
+        propertyId: data.propertyId,
       })
 
       const contractId = crypto.randomUUID()
@@ -173,7 +159,7 @@ export default defineEventHandler(async (event) => {
         waterMinimumCharge: String(data.waterMinimumCharge),
         electricityBillingType: data.electricityBillingType,
         electricityRate: String(data.electricityRate),
-        electricityMinimumCharge: String(data.electricityMinimumCharge)
+        electricityMinimumCharge: String(data.electricityMinimumCharge),
       })
 
       if (data.services?.length) {
@@ -183,7 +169,7 @@ export default defineEventHandler(async (event) => {
             contractId,
             serviceId: svc.serviceId,
             startDate: data.startDate,
-            customPrice: String(svc.price)
+            customPrice: String(svc.price),
           })
         }
       }
@@ -191,7 +177,7 @@ export default defineEventHandler(async (event) => {
       await tx.insert(schema.contractTenant).values({
         contractId,
         tenantId,
-        isPrimary: true
+        isPrimary: true,
       })
 
       if (data.depositAmount > 0) {
@@ -199,15 +185,13 @@ export default defineEventHandler(async (event) => {
           id: crypto.randomUUID(),
           contractId,
           amount: String(data.depositAmount),
-          receivedDate: new Date()
+          receivedDate: new Date(),
         })
       }
 
       if (room.status === RoomStatus.AVAILABLE) {
-        const newRoomStatus
-          = data.status === TenantStatus.UPCOMING
-            ? RoomStatus.RESERVED
-            : RoomStatus.OCCUPIED
+        const newRoomStatus =
+          data.status === TenantStatus.UPCOMING ? RoomStatus.RESERVED : RoomStatus.OCCUPIED
         await tx
           .update(schema.room)
           .set({ status: newRoomStatus })
@@ -222,10 +206,7 @@ export default defineEventHandler(async (event) => {
       return tenant
     })
 
-    return successResponse(
-      newTenantInContract,
-      'สร้างสัญญาและเพิ่มผู้เช่าใหม่สำเร็จ'
-    )
+    return successResponse(newTenantInContract, 'สร้างสัญญาและเพิ่มผู้เช่าใหม่สำเร็จ')
   } catch (error) {
     return errorResponse(event, error)
   }

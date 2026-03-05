@@ -14,7 +14,7 @@ const validMin = {
   waterMinimumCharge: 0,
   electricityBillingType: 'FLAT_RATE',
   electricityRate: 0,
-  electricityMinimumCharge: 0
+  electricityMinimumCharge: 0,
 }
 
 describe('createContractSchema', () => {
@@ -26,21 +26,15 @@ describe('createContractSchema', () => {
   })
 
   it('rejects empty tenantId', () => {
-    expect(() =>
-      createContractSchema.parse({ ...validMin, tenantId: '' })
-    ).toThrow()
+    expect(() => createContractSchema.parse({ ...validMin, tenantId: '' })).toThrow()
   })
 
   it('rejects invalid waterBillingType enum', () => {
-    expect(() =>
-      createContractSchema.parse({ ...validMin, waterBillingType: 'INVALID' })
-    ).toThrow()
+    expect(() => createContractSchema.parse({ ...validMin, waterBillingType: 'INVALID' })).toThrow()
   })
 
   it('rejects non-positive rentAmount', () => {
-    expect(() =>
-      createContractSchema.parse({ ...validMin, rentAmount: 0 })
-    ).toThrow()
+    expect(() => createContractSchema.parse({ ...validMin, rentAmount: 0 })).toThrow()
   })
 
   it('rejects missing required fields', () => {

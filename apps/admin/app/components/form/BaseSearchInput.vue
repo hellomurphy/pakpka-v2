@@ -8,8 +8,8 @@ const props = defineProps({
   debounce: {
     type: [Number, String],
     default: 300,
-    validator: (v) => !isNaN(Number(v))
-  }
+    validator: (v) => !isNaN(Number(v)),
+  },
 })
 
 const debounceMs = computed(() => Number(props.debounce))

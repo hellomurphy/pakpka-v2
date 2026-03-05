@@ -9,14 +9,14 @@ import { getSessionCookie } from '../../helpers'
 describe('Integration – POST /api/payments (approve & reject)', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   describe('POST /api/payments/:id/approve', () => {
     it('returns 401 when not authenticated', async () => {
       try {
         await $fetch('/api/payments/00000000-0000-0000-0000-000000000000/approve', {
-          method: 'POST'
+          method: 'POST',
         })
         expect.fail('Expected 401')
       } catch (err: unknown) {
@@ -32,7 +32,7 @@ describe('Integration – POST /api/payments (approve & reject)', async () => {
       try {
         await $fetch(`/api/payments/${fakeId}/approve`, {
           method: 'POST',
-          headers: { Cookie: cookie }
+          headers: { Cookie: cookie },
         })
         expect.fail('Expected 404')
       } catch (err: unknown) {
@@ -47,7 +47,7 @@ describe('Integration – POST /api/payments (approve & reject)', async () => {
       try {
         await $fetch('/api/payments/00000000-0000-0000-0000-000000000000/reject', {
           method: 'POST',
-          body: {}
+          body: {},
         })
         expect.fail('Expected 401')
       } catch (err: unknown) {
@@ -64,7 +64,7 @@ describe('Integration – POST /api/payments (approve & reject)', async () => {
         await $fetch(`/api/payments/${fakeId}/reject`, {
           method: 'POST',
           headers: { Cookie: cookie },
-          body: {}
+          body: {},
         })
         expect.fail('Expected 404')
       } catch (err: unknown) {

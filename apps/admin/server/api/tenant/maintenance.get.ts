@@ -6,18 +6,18 @@ import { requireSession } from '~~/server/utils/auth'
 const querySchema = z.object({
   status: z.enum(Object.values(MaintenanceStatus) as [string, ...string[]]).optional(),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(15)
+  limit: z.coerce.number().int().min(1).max(100).default(15),
 })
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireSession(event)
 
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ข้อมูล Query ไม่ถูกต้อง'
+        statusMessage: 'ข้อมูล Query ไม่ถูกต้อง',
       })
     }
     const { status, page, limit } = query.data
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     if (!tenantRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -42,14 +42,14 @@ export default defineEventHandler(async (event) => {
     if (contractIds.length === 0) {
       return successResponse(
         { maintenanceRequests: [], total: 0, page, limit },
-        'ดึงรายการแจ้งซ่อมสำเร็จ'
+        'ดึงรายการแจ้งซ่อมสำเร็จ',
       )
     }
 
     const whereCondition = status
       ? and(
           inArray(schema.maintenanceRequest.reportedByContractId, contractIds),
-          eq(schema.maintenanceRequest.status, status)
+          eq(schema.maintenanceRequest.status, status),
         )
       : inArray(schema.maintenanceRequest.reportedByContractId, contractIds)
 
@@ -67,35 +67,39 @@ export default defineEventHandler(async (event) => {
       .limit(limit)
       .offset((page - 1) * limit)
 
-    const roomIds = [...new Set(requests.map(r => r.roomId))]
+    const roomIds = [...new Set(requests.map((r) => r.roomId))]
     const roomRows = await db.select().from(schema.room).where(inArray(schema.room.id, roomIds))
-    const roomMap = Object.fromEntries(roomRows.map(r => [r.id, r]))
-    const roomTypeIds = [...new Set(roomRows.map(r => r.roomTypeId))]
-    const roomTypeRows = await db.select().from(schema.roomType).where(inArray(schema.roomType.id, roomTypeIds))
-    const rtMap = Object.fromEntries(roomTypeRows.map(rt => [rt.id, rt]))
+    const roomMap = Object.fromEntries(roomRows.map((r) => [r.id, r]))
+    const roomTypeIds = [...new Set(roomRows.map((r) => r.roomTypeId))]
+    const roomTypeRows = await db
+      .select()
+      .from(schema.roomType)
+      .where(inArray(schema.roomType.id, roomTypeIds))
+    const rtMap = Object.fromEntries(roomTypeRows.map((rt) => [rt.id, rt]))
 
-    const contractIdsFromRequests = [...new Set(requests.map(r => r.reportedByContractId))]
+    const contractIdsFromRequests = [...new Set(requests.map((r) => r.reportedByContractId))]
     const primaryTenants = await db
       .select()
       .from(schema.contractTenant)
       .where(
         and(
           inArray(schema.contractTenant.contractId, contractIdsFromRequests),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
-    const tenantIds = primaryTenants.map(pt => pt.tenantId)
-    const tenantRows = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
-    const tenantMap = Object.fromEntries(tenantRows.map(t => [t.id, t]))
-    const primaryByContract: Record<string, { id: string, name: string }> = {}
+    const tenantIds = primaryTenants.map((pt) => pt.tenantId)
+    const tenantRows =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
+    const tenantMap = Object.fromEntries(tenantRows.map((t) => [t.id, t]))
+    const primaryByContract: Record<string, { id: string; name: string }> = {}
     for (const pt of primaryTenants) {
       const t = tenantMap[pt.tenantId]
       if (t) primaryByContract[pt.contractId] = { id: t.id, name: t.name }
     }
 
-    const formattedRequests = requests.map(req => {
+    const formattedRequests = requests.map((req) => {
       const room = roomMap[req.roomId]
       const roomType = room ? rtMap[room.roomTypeId] : null
       const reportedBy = primaryByContract[req.reportedByContractId]
@@ -110,18 +114,18 @@ export default defineEventHandler(async (event) => {
           ? {
               id: room.id,
               roomNumber: room.roomNumber,
-              roomType: roomType ? { id: roomType.id, name: roomType.name } : null
+              roomType: roomType ? { id: roomType.id, name: roomType.name } : null,
             }
           : null,
         reportedBy: reportedBy ?? null,
         createdAt: req.createdAt,
-        updatedAt: req.updatedAt
+        updatedAt: req.updatedAt,
       }
     })
 
     return successResponse(
       { maintenanceRequests: formattedRequests, total, page, limit },
-      'ดึงรายการแจ้งซ่อมสำเร็จ'
+      'ดึงรายการแจ้งซ่อมสำเร็จ',
     )
   } catch (error) {
     return errorResponse(event, error)

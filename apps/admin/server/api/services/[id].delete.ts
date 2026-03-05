@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     if (!serviceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Service ID'
+        statusMessage: 'ต้องระบุ Service ID',
       })
     }
 
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     if (!existing) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบบริการที่ต้องการลบ'
+        statusMessage: 'ไม่พบบริการที่ต้องการลบ',
       })
     }
     await requirePropertyStaff(event, existing.propertyId)
@@ -31,13 +31,13 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.contractService.serviceId, serviceId),
-          eq(schema.contractService.status, ContractServiceStatus.ACTIVE)
-        )
+          eq(schema.contractService.status, ContractServiceStatus.ACTIVE),
+        ),
       )
     if (activeContractServices.length > 0) {
       throw createError({
         statusCode: 409,
-        statusMessage: `ไม่สามารถลบได้ เนื่องจากยังมี ${activeContractServices.length} สัญญาที่ใช้บริการนี้อยู่`
+        statusMessage: `ไม่สามารถลบได้ เนื่องจากยังมี ${activeContractServices.length} สัญญาที่ใช้บริการนี้อยู่`,
       })
     }
 
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
     if (deleted.length === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบบริการที่ต้องการลบ'
+        statusMessage: 'ไม่พบบริการที่ต้องการลบ',
       })
     }
 

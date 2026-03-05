@@ -1,11 +1,11 @@
 <script setup>
-import { computed, ref } from "vue";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
-import BaseButton from "~/components/ui/BaseButton.vue";
+import { computed, ref } from 'vue'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid'
+import BaseButton from '~/components/ui/BaseButton.vue'
 
 // ✨ 1. ใช้ defineModel เพื่อให้ v-model:currentPage ทำงาน
-const currentPage = defineModel("currentPage", { type: Number, default: 1 });
-const selectedIndex = ref(null);
+const currentPage = defineModel('currentPage', { type: Number, default: 1 })
+const selectedIndex = ref(null)
 
 const props = defineProps({
   columns: { type: Array, required: true },
@@ -14,29 +14,27 @@ const props = defineProps({
   totalItems: { type: Number, default: 0 },
   itemsPerPage: { type: Number, default: 10 },
   height: { type: Number, default: 600 },
-});
+})
 
 // --- Computed & Methods ---
 const totalPages = computed(() => {
-  if (props.itemsPerPage === 0) return 1;
-  return Math.ceil(props.totalItems / props.itemsPerPage);
-});
+  if (props.itemsPerPage === 0) return 1
+  return Math.ceil(props.totalItems / props.itemsPerPage)
+})
 
 // ✨ 2. ย้าย Logic การคำนวณ start/end item มาไว้ที่นี่ เพราะเป็นเรื่องของการแสดงผล
 const startItem = computed(() =>
-  props.totalItems === 0 ? 0 : (currentPage.value - 1) * props.itemsPerPage + 1
-);
-const endItem = computed(() =>
-  Math.min(currentPage.value * props.itemsPerPage, props.totalItems)
-);
+  props.totalItems === 0 ? 0 : (currentPage.value - 1) * props.itemsPerPage + 1,
+)
+const endItem = computed(() => Math.min(currentPage.value * props.itemsPerPage, props.totalItems))
 
 // ✨ 3. Methods จะอัปเดต v-model โดยตรง
 const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--;
-};
+  if (currentPage.value > 1) currentPage.value--
+}
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++;
-};
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
 </script>
 
 <template>
@@ -66,7 +64,7 @@ const nextPage = () => {
           <template v-if="loading">
             <tr v-for="n in 5" :key="`skel-${n}`" class="animate-pulse">
               <td :colspan="columns.length" class="py-1 px-6">
-                <div class="h-6 bg-gray-200 rounded-md"></div>
+                <div class="h-6 bg-gray-200 rounded-md" />
               </td>
             </tr>
           </template>
@@ -93,17 +91,17 @@ const nextPage = () => {
                   </slot>
 
                   <h3 class="mt-2 text-sm font-semibold text-gray-900">
-                    <slot name="empty-title">ไม่พบข้อมูล</slot>
+                    <slot name="empty-title"> ไม่พบข้อมูล </slot>
                   </h3>
 
                   <p class="mt-1 text-sm text-gray-500">
-                    <slot name="empty-description"
-                      >ลองปรับเงื่อนไขการค้นหา หรือเพิ่มข้อมูลใหม่</slot
-                    >
+                    <slot name="empty-description">
+                      ลองปรับเงื่อนไขการค้นหา หรือเพิ่มข้อมูลใหม่
+                    </slot>
                   </p>
 
                   <div class="mt-6">
-                    <slot name="empty-action"></slot>
+                    <slot name="empty-action" />
                   </div>
                 </div>
               </td>
@@ -121,20 +119,13 @@ const nextPage = () => {
                 v-for="column in columns"
                 :key="column.key"
                 class="whitespace-nowrap px-6 py-2.5 text-sm relative"
-                :class="[
-                  column.cellClass,
-                  selectedIndex === index ? 'bg-blue-50/50' : '',
-                ]"
+                :class="[column.cellClass, selectedIndex === index ? 'bg-blue-50/50' : '']"
               >
                 <div
                   v-if="selectedIndex === index"
                   class="absolute inset-y-0 left-0 w-1 bg-blue-500"
-                ></div>
-                <slot
-                  :name="`cell-${column.key}`"
-                  :item="item"
-                  :value="item[column.key]"
-                >
+                />
+                <slot :name="`cell-${column.key}`" :item="item" :value="item[column.key]">
                   <span class="text-gray-700">{{ item[column.key] }}</span>
                 </slot>
               </td>
@@ -157,21 +148,16 @@ const nextPage = () => {
           </p>
         </div>
         <div class="flex items-center justify-between sm:justify-end gap-x-2">
-          <BaseButton
-            @click="prevPage"
-            :disabled="currentPage === 1"
-            variant="secondary"
-            size="sm"
-          >
+          <BaseButton :disabled="currentPage === 1" variant="secondary" size="sm" @click="prevPage">
             <ChevronLeftIcon class="h-5 w-5" />
             ก่อนหน้า
           </BaseButton>
           <BaseButton
-            @click="nextPage"
             :disabled="currentPage >= totalPages"
             variant="secondary"
             size="sm"
             icon-position="right"
+            @click="nextPage"
           >
             ถัดไป
             <ChevronRightIcon class="h-5 w-5" />

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  canChangeStaffRole,
-  canDeleteStaffMember
-} from '../../../../server/utils/staff-rules'
+import { canChangeStaffRole, canDeleteStaffMember } from '../../../../server/utils/staff-rules'
 import { Role } from '@repo/db'
 
 describe('staff-rules', () => {

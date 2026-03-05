@@ -9,7 +9,7 @@ export function isInvoiceMeterReady(
   electricityBillingType: string,
   waterBillingType: string,
   hasElectricityReading: boolean,
-  hasWaterReading: boolean
+  hasWaterReading: boolean,
 ): boolean {
   if (electricityBillingType === BillingType.PER_UNIT && !hasElectricityReading) return false
   if (waterBillingType === BillingType.PER_UNIT && !hasWaterReading) return false

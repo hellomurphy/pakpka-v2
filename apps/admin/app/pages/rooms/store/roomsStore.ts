@@ -1,13 +1,13 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
 
 interface RoomUpdateData {
-  floorId?: string;
-  roomNumber?: string;
-  roomTypeId?: string;
-  propertyId?: string; // สำหรับการสร้างห้องใหม่
+  floorId?: string
+  roomNumber?: string
+  roomTypeId?: string
+  propertyId?: string // สำหรับการสร้างห้องใหม่
 }
 
-export const useRoomsStore = defineStore("rooms", {
+export const useRoomsStore = defineStore('rooms', {
   state: () => {
     return {
       floors: [],
@@ -15,7 +15,7 @@ export const useRoomsStore = defineStore("rooms", {
       roomTypes: [],
       isLoading: false,
       initialFloorId: null as string | null,
-    };
+    }
   },
 
   getters: {
@@ -28,27 +28,24 @@ export const useRoomsStore = defineStore("rooms", {
      * ✨ Action 1: ดึงข้อมูลเริ่มต้นสำหรับหน้า (ทำครั้งเดียว)
      */
     async fetchInitialPageData(propertyId: string) {
-      if (!propertyId) return;
+      if (!propertyId) return
 
-      this.isLoading = true;
+      this.isLoading = true
       try {
-        const response = await useApiFetch(
-          `/api/rooms/page-init?propertyId=${propertyId}`,
-          {
-            showNotification: false,
-          }
-        );
+        const response = await useApiFetch(`/api/rooms/page-init?propertyId=${propertyId}`, {
+          showNotification: false,
+        })
 
         if (response.data) {
-          this.floors = response.data.floors;
-          this.roomTypes = response.data.roomTypes;
-          this.rooms = response.data.rooms;
-          this.initialFloorId = response.data.initialFloorId;
+          this.floors = response.data.floors
+          this.roomTypes = response.data.roomTypes
+          this.rooms = response.data.rooms
+          this.initialFloorId = response.data.initialFloorId
         }
-      } catch (error) {
-        useNotification().showError("ไม่สามารถโหลดข้อมูลเริ่มต้นได้");
+      } catch {
+        useNotification().showError('ไม่สามารถโหลดข้อมูลเริ่มต้นได้')
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
@@ -56,24 +53,24 @@ export const useRoomsStore = defineStore("rooms", {
      * ✨ Action 2: ดึงข้อมูลห้องสำหรับชั้นที่เลือก
      */
     async fetchRoomsForFloor(propertyId: string, floorId: string) {
-      if (!propertyId || !floorId) return;
+      if (!propertyId || !floorId) return
 
-      this.isLoading = true;
+      this.isLoading = true
       try {
         const response = await useApiFetch(
           `/api/rooms?propertyId=${propertyId}&floorId=${floorId}`,
           {
             showNotification: false,
-          }
-        );
+          },
+        )
 
         if (response.data) {
-          this.rooms = response.data || [];
+          this.rooms = response.data || []
         }
-      } catch (error) {
-        useNotification().showError("ไม่สามารถโหลดข้อมูลห้องได้");
+      } catch {
+        useNotification().showError('ไม่สามารถโหลดข้อมูลห้องได้')
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
@@ -84,17 +81,17 @@ export const useRoomsStore = defineStore("rooms", {
      */
     async addRoom(roomData: RoomUpdateData, propertyId: string) {
       // ✨ ใช้ useApiFetch เพื่อยิง API และจัดการ Notification
-      await useApiFetch("/api/rooms", {
-        method: "POST",
+      await useApiFetch('/api/rooms', {
+        method: 'POST',
         body: {
           ...roomData,
           propertyId: propertyId,
         },
-      });
+      })
 
       // ✨ Best Practice: หลังจากสร้างสำเร็จ ให้ดึงข้อมูลใหม่ทั้งหมด
       // เพื่อให้ UI อัปเดตถูกต้อง 100% (รวมถึงการเรียงลำดับ)
-      await this.fetchRoomsForFloor(propertyId, roomData.floorId);
+      await this.fetchRoomsForFloor(propertyId, roomData.floorId)
     },
 
     /**
@@ -108,15 +105,15 @@ export const useRoomsStore = defineStore("rooms", {
       roomId: string,
       roomData: RoomUpdateData,
       propertyId: string,
-      currentFloorId: string
+      currentFloorId: string,
     ) {
       await useApiFetch(`/api/rooms/${roomId}`, {
-        method: "PUT",
+        method: 'PUT',
         body: roomData,
-      });
+      })
 
       // ✨ Re-fetch ข้อมูลของชั้นที่กำลังดูอยู่เพื่อให้ UI อัปเดต
-      await this.fetchRoomsForFloor(propertyId, currentFloorId);
+      await this.fetchRoomsForFloor(propertyId, currentFloorId)
     },
 
     /**
@@ -125,34 +122,30 @@ export const useRoomsStore = defineStore("rooms", {
      * @param propertyId - ID ของ Property ปัจจุบัน
      * @param currentFloorId - ID ของชั้นที่กำลังดูอยู่ (สำหรับ re-fetch)
      */
-    async deleteRoom(
-      roomId: string,
-      propertyId: string,
-      currentFloorId: string
-    ) {
+    async deleteRoom(roomId: string, propertyId: string, currentFloorId: string) {
       await useApiFetch(`/api/rooms/${roomId}`, {
-        method: "DELETE",
-        successMessage: "ลบห้องพักสำเร็จ",
-      });
+        method: 'DELETE',
+        successMessage: 'ลบห้องพักสำเร็จ',
+      })
 
       // ✨ Re-fetch ข้อมูลของชั้นที่กำลังดูอยู่เพื่อให้ UI อัปเดต
-      await this.fetchRoomsForFloor(propertyId, currentFloorId);
+      await this.fetchRoomsForFloor(propertyId, currentFloorId)
     },
 
     async updateRoomStatus(
       roomId: string,
       status: RoomStatus,
       propertyId: string,
-      currentFloorId: string
+      currentFloorId: string,
     ) {
       await useApiFetch(`/api/rooms/${roomId}/status`, {
-        method: "PUT",
+        method: 'PUT',
         body: { status },
         successMessage: `อัปเดตสถานะห้องเป็น "${status.toLowerCase()}" สำเร็จ`,
-      });
+      })
 
       // Re-fetch ข้อมูลเพื่อให้ UI อัปเดต
-      await this.fetchRoomsForFloor(propertyId, currentFloorId);
+      await this.fetchRoomsForFloor(propertyId, currentFloorId)
     },
 
     /**
@@ -160,13 +153,13 @@ export const useRoomsStore = defineStore("rooms", {
      * @param propertyId - ID ของ Property
      * @param floorsData - Array ของ floors พร้อม rooms ที่เป็น "พิมพ์เขียว"
      */
-    async syncRooms(propertyId: string, floorsData: any[]) {
+    async syncRooms(propertyId: string, floorsData: Record<string, unknown>[]) {
       return await useApiFetch(`/api/properties/${propertyId}/sync-rooms`, {
-        method: "POST",
+        method: 'POST',
         body: {
           floors: floorsData,
         },
-      });
+      })
     },
   },
-});
+})

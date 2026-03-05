@@ -6,8 +6,8 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const noticeSchema = z.object({
   noticeDate: z.coerce.date().min(dayjs().startOf('day').toDate(), {
-    message: 'วันที่ต้องไม่ใช่วันในอดีต'
-  })
+    message: 'วันที่ต้องไม่ใช่วันในอดีต',
+  }),
 })
 
 export default defineEventHandler(async (event) => {
@@ -16,15 +16,15 @@ export default defineEventHandler(async (event) => {
     if (!contractId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Contract ID'
+        statusMessage: 'ต้องระบุ Contract ID',
       })
     }
-    const body = await readValidatedBody(event, data => noticeSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => noticeSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
     const { noticeDate } = body.data
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
         .select({ tenantId: schema.contractTenant.tenantId })
         .from(schema.contractTenant)
         .where(eq(schema.contractTenant.contractId, contractId))
-      const tenantIds = links.map(ct => ct.tenantId)
+      const tenantIds = links.map((ct) => ct.tenantId)
       for (const tid of tenantIds) {
         await tx
           .update(schema.tenant)

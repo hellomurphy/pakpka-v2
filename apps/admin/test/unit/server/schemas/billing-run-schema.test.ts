@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createBillingRunSchema,
-  billingRunPeriodSchema
+  billingRunPeriodSchema,
 } from '../../../../server/utils/schemas/billing-run'
 
 describe('billingRunPeriodSchema', () => {
@@ -21,22 +21,18 @@ describe('createBillingRunSchema', () => {
   it('parses valid body', () => {
     const result = createBillingRunSchema.parse({
       propertyId: 'prop-1',
-      period: '2025-01'
+      period: '2025-01',
     })
     expect(result.propertyId).toBe('prop-1')
     expect(result.period).toBe('2025-01')
   })
 
   it('rejects empty propertyId', () => {
-    expect(() =>
-      createBillingRunSchema.parse({ propertyId: '', period: '2025-01' })
-    ).toThrow()
+    expect(() => createBillingRunSchema.parse({ propertyId: '', period: '2025-01' })).toThrow()
   })
 
   it('rejects invalid period', () => {
-    expect(() =>
-      createBillingRunSchema.parse({ propertyId: 'p', period: 'bad' })
-    ).toThrow()
+    expect(() => createBillingRunSchema.parse({ propertyId: 'p', period: 'bad' })).toThrow()
   })
 
   it('rejects missing fields', () => {

@@ -6,9 +6,9 @@ import { useAppAuth } from '~/composables/useAppAuth'
 definePageMeta({
   auth: {
     unauthenticatedOnly: true,
-    navigateAuthenticatedTo: '/'
+    navigateAuthenticatedTo: '/',
   },
-  layout: 'blank'
+  layout: 'blank',
 })
 
 const { signIn, fetchSession } = useAppAuth()
@@ -22,13 +22,21 @@ async function handleDevLogin() {
   isLoadingDev.value = true
   devError.value = null
   try {
-    await $fetch<{ ok: boolean; user?: { id: string; name?: string; email?: string; image?: string } }>('/api/auth/dev-login')
+    await $fetch<{
+      ok: boolean
+      user?: { id: string; name?: string; email?: string; image?: string }
+    }>('/api/auth/dev-login')
     await fetchSession()
     await navigateTo('/')
   } catch (e: unknown) {
-    const msg = e && typeof e === 'object' && 'data' in e && e.data && typeof (e.data as { statusMessage?: string }).statusMessage === 'string'
-      ? (e.data as { statusMessage: string }).statusMessage
-      : 'Dev login failed'
+    const msg =
+      e &&
+      typeof e === 'object' &&
+      'data' in e &&
+      e.data &&
+      typeof (e.data as { statusMessage?: string }).statusMessage === 'string'
+        ? (e.data as { statusMessage: string }).statusMessage
+        : 'Dev login failed'
     devError.value = msg
   } finally {
     isLoadingDev.value = false
@@ -43,9 +51,7 @@ async function handleLineLogin() {
 </script>
 
 <template>
-  <div
-    class="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6 py-12"
-  >
+  <div class="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6 py-12">
     <div class="w-full max-w-sm">
       <div class="flex flex-col items-center text-center">
         <div
@@ -53,12 +59,8 @@ async function handleLineLogin() {
         >
           <HomeModernIcon class="w-8 h-8 text-white" />
         </div>
-        <h1 class="mt-4 text-2xl font-bold text-gray-800 tracking-tight">
-          ยินดีต้อนรับสู่ PakPak
-        </h1>
-        <p class="mt-2 text-sm text-gray-500">
-          ระบบจัดการหอพักสำหรับคุณ
-        </p>
+        <h1 class="mt-4 text-2xl font-bold text-gray-800 tracking-tight">ยินดีต้อนรับสู่ PakPak</h1>
+        <p class="mt-2 text-sm text-gray-500">ระบบจัดการหอพักสำหรับคุณ</p>
       </div>
 
       <div class="mt-10 space-y-3">
@@ -84,12 +86,7 @@ async function handleLineLogin() {
           class="flex w-full items-center justify-center gap-3 rounded-lg bg-[#06C755] px-4 py-3 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#05b34d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#06C755] disabled:opacity-70 disabled:cursor-not-allowed"
           @click="handleLineLogin"
         >
-          <svg
-            class="h-6 w-6"
-            viewBox="0 0 48 48"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg class="h-6 w-6" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M38.8256 0.00195312H9.22754C4.13086 0.00195312 0 4.13281 0 9.22949V38.8271C0 43.9238 4.13086 48.0547 9.22754 48.0547H38.8256C43.9223 48.0547 48.0532 43.9238 48.0532 38.8271V9.22949C48.0532 4.13281 43.9223 0.00195312 38.8256 0.00195312Z"
               fill="white"

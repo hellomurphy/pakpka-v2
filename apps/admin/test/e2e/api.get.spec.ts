@@ -4,12 +4,14 @@ import { $fetch, setup } from '@nuxt/test-utils/e2e'
 describe('Server API (e2e)', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   describe('GET /api/dev/check-env', () => {
     it('returns database env info', async () => {
-      const data = await $fetch<{ databaseUrlSet: boolean, hint: string, suggestion: string }>('/api/dev/check-env')
+      const data = await $fetch<{ databaseUrlSet: boolean; hint: string; suggestion: string }>(
+        '/api/dev/check-env',
+      )
       expect(data).toBeDefined()
       expect(typeof data.databaseUrlSet).toBe('boolean')
       expect(data).toHaveProperty('hint')
@@ -20,7 +22,7 @@ describe('Server API (e2e)', async () => {
   describe('GET /api/auth/dev-login', () => {
     it('returns 403 when not in development or 200/404 when in dev', async () => {
       try {
-        const data = await $fetch<{ ok?: boolean, user?: unknown }>('/api/auth/dev-login')
+        const data = await $fetch<{ ok?: boolean; user?: unknown }>('/api/auth/dev-login')
         // In development with users: { ok: true, user }
         expect(data).toBeDefined()
         if (data.ok === true) {
@@ -28,7 +30,7 @@ describe('Server API (e2e)', async () => {
           expect(data.user).toHaveProperty('id')
         }
       } catch (err: unknown) {
-        const e = err as { statusCode?: number, data?: unknown }
+        const e = err as { statusCode?: number; data?: unknown }
         // Not in dev -> 403; no user in DB -> 404
         expect([403, 404]).toContain(e.statusCode)
       }

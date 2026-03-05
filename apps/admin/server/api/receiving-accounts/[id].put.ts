@@ -4,7 +4,7 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const updateAccountSchema = z.object({
   details: z.any().optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -13,15 +13,15 @@ export default defineEventHandler(async (event) => {
     if (!accountId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Account ID is required'
+        statusMessage: 'Account ID is required',
       })
     }
-    const body = await readValidatedBody(event, data => updateAccountSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateAccountSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
 

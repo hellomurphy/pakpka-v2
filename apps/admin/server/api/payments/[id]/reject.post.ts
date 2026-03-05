@@ -4,7 +4,7 @@ import { PaymentStatus } from '@repo/db'
 import { requirePropertyStaff, requireSession } from '~~/server/utils/auth'
 
 const rejectSchema = z.object({
-  reason: z.string().min(1, 'ต้องระบุเหตุผล').optional()
+  reason: z.string().min(1, 'ต้องระบุเหตุผล').optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (!paymentId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Payment ID' })
     }
-    const body = await readValidatedBody(event, data => rejectSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => rejectSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
       .set({
         status: PaymentStatus.REJECTED,
         notes: body.data.reason ?? null,
-        verifiedByUserId: session.id
+        verifiedByUserId: session.id,
       })
       .where(eq(schema.payment.id, paymentId))
 

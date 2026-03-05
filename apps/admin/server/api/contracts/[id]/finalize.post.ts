@@ -5,7 +5,7 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const finalizeSchema = z.object({
   deductions: z.number().min(0, 'ยอดหักต้องไม่ติดลบ').default(0),
-  deductionNotes: z.string().optional()
+  deductionNotes: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -14,10 +14,10 @@ export default defineEventHandler(async (event) => {
     if (!contractId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Contract ID'
+        statusMessage: 'ต้องระบุ Contract ID',
       })
     }
-    const body = await readValidatedBody(event, data => finalizeSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => finalizeSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -40,8 +40,8 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.contractTenant.contractId, contractId),
-            eq(schema.contractTenant.isPrimary, true)
-          )
+            eq(schema.contractTenant.isPrimary, true),
+          ),
         )
       const primaryTenantId = primaryLinks[0]?.tenantId
       if (!primaryTenantId) {
@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
             deductions: String(deductions),
             deductionNotes: deductionNotes ?? null,
             refundedDate: new Date(),
-            clearanceStatus: DepositClearanceStatus.REFUNDED
+            clearanceStatus: DepositClearanceStatus.REFUNDED,
           })
           .where(eq(schema.deposit.id, existingDeposit.id))
       } else {
@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
           refundedDate: new Date(),
           deductions: String(deductions),
           deductionNotes: deductionNotes ?? null,
-          clearanceStatus: DepositClearanceStatus.REFUNDED
+          clearanceStatus: DepositClearanceStatus.REFUNDED,
         })
       }
 
@@ -99,10 +99,7 @@ export default defineEventHandler(async (event) => {
       return { roomNumber: room?.roomNumber ?? '' }
     })
 
-    return successResponse(
-      result,
-      `ยืนยันการย้ายออกของห้อง ${result.roomNumber} สำเร็จ`
-    )
+    return successResponse(result, `ยืนยันการย้ายออกของห้อง ${result.roomNumber} สำเร็จ`)
   } catch (error) {
     return errorResponse(event, error)
   }

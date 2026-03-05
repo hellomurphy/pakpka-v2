@@ -8,12 +8,12 @@ import { createBillingRunSchema } from '~~/server/utils/schemas/billing-run'
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireSession(event)
-    const body = await readValidatedBody(event, data => createBillingRunSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => createBillingRunSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
     const { propertyId, period } = body.data
@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.propertyStaff.userId, session.id),
-          eq(schema.propertyStaff.propertyId, propertyId)
-        )
+          eq(schema.propertyStaff.propertyId, propertyId),
+        ),
       )
       .limit(1)
     if (!staff || !canCreateBillingRun(staff.role)) {
@@ -38,16 +38,13 @@ export default defineEventHandler(async (event) => {
         .select()
         .from(schema.billingRun)
         .where(
-          and(
-            eq(schema.billingRun.propertyId, propertyId),
-            eq(schema.billingRun.period, period)
-          )
+          and(eq(schema.billingRun.propertyId, propertyId), eq(schema.billingRun.period, period)),
         )
         .limit(1)
       if (existing) {
         throw createError({
           statusCode: 409,
-          statusMessage: `รอบบิลสำหรับ ${period} ถูกสร้างไปแล้ว`
+          statusMessage: `รอบบิลสำหรับ ${period} ถูกสร้างไปแล้ว`,
         })
       }
 
@@ -70,13 +67,13 @@ export default defineEventHandler(async (event) => {
           and(
             eq(schema.contract.propertyId, propertyId),
             eq(schema.contract.status, ContractStatus.ACTIVE),
-            lte(schema.contract.startDate, cutoffDate)
-          )
+            lte(schema.contract.startDate, cutoffDate),
+          ),
         )
       if (activeContracts.length === 0) {
         throw createError({
           statusCode: 400,
-          statusMessage: 'ไม่พบสัญญาที่ยัง Active อยู่เพื่อสร้างรอบบิล'
+          statusMessage: 'ไม่พบสัญญาที่ยัง Active อยู่เพื่อสร้างรอบบิล',
         })
       }
 
@@ -92,12 +89,12 @@ export default defineEventHandler(async (event) => {
         status: BillingRunStatus.PENDING_METER_READING,
         executedById: session.id,
         totalContracts: activeContracts.length,
-        meterReadingRequired: activeContracts.length
+        meterReadingRequired: activeContracts.length,
       })
 
-      const roomIds = activeContracts.map(c => c.roomId)
+      const roomIds = activeContracts.map((c) => c.roomId)
       const rooms = await tx.select().from(schema.room).where(inArray(schema.room.id, roomIds))
-      const roomMap = Object.fromEntries(rooms.map(r => [r.id, r]))
+      const roomMap = Object.fromEntries(rooms.map((r) => [r.id, r]))
 
       for (const contract of activeContracts) {
         const room = roomMap[contract.roomId]
@@ -111,13 +108,13 @@ export default defineEventHandler(async (event) => {
           period,
           status: InvoiceStatus.DRAFT,
           dueDate,
-          totalAmount: contract.rentAmount
+          totalAmount: contract.rentAmount,
         })
         await tx.insert(schema.invoiceItem).values({
           id: itemId,
           invoiceId,
           description: `ค่าเช่าห้อง ${room?.roomNumber ?? '-'}`,
-          amount: contract.rentAmount
+          amount: contract.rentAmount,
         })
       }
 

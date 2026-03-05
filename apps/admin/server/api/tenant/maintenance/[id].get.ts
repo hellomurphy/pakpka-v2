@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     if (!maintenanceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Maintenance ID is required'
+        statusMessage: 'Maintenance ID is required',
       })
     }
 
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     if (!tenantRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     if (contractIds.length === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบการแจ้งซ่อมนี้หรือคุณไม่มีสิทธิ์เข้าถึง'
+        statusMessage: 'ไม่พบการแจ้งซ่อมนี้หรือคุณไม่มีสิทธิ์เข้าถึง',
       })
     }
 
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
     if (!maintenanceRow || !contractIds.includes(maintenanceRow.reportedByContractId)) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบการแจ้งซ่อมนี้หรือคุณไม่มีสิทธิ์เข้าถึง'
+        statusMessage: 'ไม่พบการแจ้งซ่อมนี้หรือคุณไม่มีสิทธิ์เข้าถึง',
       })
     }
 
@@ -55,7 +55,12 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.room.id, maintenanceRow.roomId))
       .limit(1)
     const roomTypeRow = roomRow
-      ? await db.select().from(schema.roomType).where(eq(schema.roomType.id, roomRow.roomTypeId)).limit(1).then(rows => rows[0] ?? null)
+      ? await db
+          .select()
+          .from(schema.roomType)
+          .where(eq(schema.roomType.id, roomRow.roomTypeId))
+          .limit(1)
+          .then((rows) => rows[0] ?? null)
       : null
     const [floorRow] = roomRow?.floorId
       ? await db.select().from(schema.floor).where(eq(schema.floor.id, roomRow.floorId)).limit(1)
@@ -65,11 +70,12 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(schema.contractTenant)
       .where(eq(schema.contractTenant.contractId, maintenanceRow.reportedByContractId))
-    const tenantIds = contractTenants.map(ct => ct.tenantId)
-    const tenantRows = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
-    const tenantMap = Object.fromEntries(tenantRows.map(t => [t.id, t]))
+    const tenantIds = contractTenants.map((ct) => ct.tenantId)
+    const tenantRows =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
+    const tenantMap = Object.fromEntries(tenantRows.map((t) => [t.id, t]))
 
     const [contractRow] = await db
       .select()
@@ -90,7 +96,9 @@ export default defineEventHandler(async (event) => {
             roomNumber: roomRow.roomNumber,
             status: roomRow.status,
             roomType: roomTypeRow ? { id: roomTypeRow.id, name: roomTypeRow.name } : null,
-            floor: floorRow ? { id: floorRow.id, name: floorRow.name, floorNumber: floorRow.floorNumber } : null
+            floor: floorRow
+              ? { id: floorRow.id, name: floorRow.name, floorNumber: floorRow.floorNumber }
+              : null,
           }
         : null,
       reportedByContract: contractRow
@@ -98,16 +106,20 @@ export default defineEventHandler(async (event) => {
             id: contractRow.id,
             startDate: contractRow.startDate,
             endDate: contractRow.endDate,
-            tenants: contractTenants.map(ct => ({
+            tenants: contractTenants.map((ct) => ({
               isPrimary: ct.isPrimary,
               tenant: tenantMap[ct.tenantId]
-                ? { id: tenantMap[ct.tenantId].id, name: tenantMap[ct.tenantId].name, phone: tenantMap[ct.tenantId].phone }
-                : null
-            }))
+                ? {
+                    id: tenantMap[ct.tenantId].id,
+                    name: tenantMap[ct.tenantId].name,
+                    phone: tenantMap[ct.tenantId].phone,
+                  }
+                : null,
+            })),
           }
         : null,
       createdAt: maintenanceRow.createdAt,
-      updatedAt: maintenanceRow.updatedAt
+      updatedAt: maintenanceRow.updatedAt,
     }
 
     return successResponse(maintenanceRequest, 'ดึงรายละเอียดการแจ้งซ่อมสำเร็จ')

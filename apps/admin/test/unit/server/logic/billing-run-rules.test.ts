@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   isValidBillingRunPeriod,
   canCreateBillingRun,
-  isPeriodDuplicate
+  isPeriodDuplicate,
 } from '../../../../server/utils/billing-run-rules'
 
 describe('billing-run-rules', () => {

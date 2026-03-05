@@ -1,4 +1,4 @@
-import { eq, and, gt, inArray, desc } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!propertyId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Property ID'
+        statusMessage: 'ต้องระบุ Property ID',
       })
     }
     await requirePropertyStaff(event, propertyId)
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.floor)
       .where(eq(schema.floor.propertyId, propertyId))
       .orderBy(schema.floor.floorNumber)
-    const floorIds = floors.map(f => f.id)
+    const floorIds = floors.map((f) => f.id)
     const rooms =
       floorIds.length > 0
         ? await db
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
     for (const r of rooms) {
       if (r.floorId && roomsByFloor[r.floorId]) roomsByFloor[r.floorId].push(r)
     }
-    const floorsWithRooms = floors.map(f => ({ ...f, rooms: roomsByFloor[f.id] ?? [] }))
+    const floorsWithRooms = floors.map((f) => ({ ...f, rooms: roomsByFloor[f.id] ?? [] }))
 
     const roomTypes = await db
       .select()
@@ -52,29 +52,22 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(schema.propertyStaff)
       .where(eq(schema.propertyStaff.propertyId, propertyId))
-    const userIds = staffRows.map(s => s.userId)
+    const userIds = staffRows.map((s) => s.userId)
     const users =
       userIds.length > 0
         ? await db.select().from(schema.user).where(inArray(schema.user.id, userIds))
         : []
-    const userMap = Object.fromEntries(users.map(u => [u.id, u]))
-    const staff = staffRows.map(s => ({
+    const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
+    const staff = staffRows.map((s) => ({
       ...s,
-      user: userMap[s.userId] ? { id: userMap[s.userId].id, name: userMap[s.userId].name, avatarUrl: userMap[s.userId].avatarUrl } : null
+      user: userMap[s.userId]
+        ? {
+            id: userMap[s.userId].id,
+            name: userMap[s.userId].name,
+            avatarUrl: userMap[s.userId].avatarUrl,
+          }
+        : null,
     }))
-
-    const now = new Date()
-    const invitations = await db
-      .select()
-      .from(schema.invitation)
-      .where(
-        and(
-          eq(schema.invitation.propertyId, propertyId),
-          eq(schema.invitation.status, 'PENDING'),
-          gt(schema.invitation.expiresAt, now)
-        )
-      )
-      .orderBy(desc(schema.invitation.createdAt))
 
     const receivingAccounts = await db
       .select()
@@ -101,28 +94,28 @@ export default defineEventHandler(async (event) => {
           water: {
             type: prop.defaultWaterBillingType,
             rate: prop.defaultWaterRate,
-            minimumCharge: prop.defaultWaterMinimumCharge
+            minimumCharge: prop.defaultWaterMinimumCharge,
           },
           electricity: {
             type: prop.defaultElectricityBillingType,
             rate: prop.defaultElectricityRate,
-            minimumCharge: prop.defaultElectricityMinimumCharge
-          }
+            minimumCharge: prop.defaultElectricityMinimumCharge,
+          },
         },
         lateFee: {
           enabled: prop.lateFeeEnabled,
           type: prop.lateFeeType,
-          value: prop.lateFeeValue
+          value: prop.lateFeeValue,
         },
         billingCycle: {
           cutoffDay: prop.defaultBillingCutoffDay,
-          dueDays: prop.defaultPaymentDueDays
+          dueDays: prop.defaultPaymentDueDays,
         },
-        services
+        services,
       },
       payment: {
-        receivingAccounts
-      }
+        receivingAccounts,
+      },
     }
 
     return successResponse(settings, 'ดึงข้อมูลการตั้งค่าสำเร็จ')

@@ -1,8 +1,9 @@
 <script setup>
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
+/* eslint-disable vue/require-prop-types -- model type from defineModel */
 const model = defineModel()
 
 defineProps({
@@ -10,16 +11,12 @@ defineProps({
   placeholder: { type: String, default: '' },
   type: { type: String, default: 'text' },
   required: { type: Boolean, default: false },
-  error: { type: String, default: '' }
+  error: { type: String, default: '' },
 })
 </script>
 
 <template>
-  <UFormField
-    :label="label"
-    :error="error"
-    :required="required"
-  >
+  <UFormField :label="label" :error="error" :required="required">
     <UInput
       v-model="model"
       v-bind="$attrs"

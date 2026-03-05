@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
         .set({
           status: PaymentStatus.VERIFIED,
           verifiedByUserId: session.id,
-          paymentDate: new Date()
+          paymentDate: new Date(),
         })
         .where(eq(schema.payment.id, paymentId))
       await tx

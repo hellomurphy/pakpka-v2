@@ -1,9 +1,9 @@
-import { defineStore } from "pinia";
-import { usePropertyStore } from "~/store/propertyStore";
-import { useApiFetch } from "~/composables/useApiFetch";
-import { useRoomsStore } from "~/pages/rooms/store/roomsStore";
+import { defineStore } from 'pinia'
+import { usePropertyStore } from '~/store/propertyStore'
+import { useApiFetch } from '~/composables/useApiFetch'
+import { useRoomsStore } from '~/pages/rooms/store/roomsStore'
 
-export const useSettingsStore = defineStore("settings", {
+export const useSettingsStore = defineStore('settings', {
   state: () => ({
     settings: null,
     initialSettings: null,
@@ -14,10 +14,8 @@ export const useSettingsStore = defineStore("settings", {
 
   getters: {
     isDirty: (state): boolean => {
-      if (!state.settings || !state.initialSettings) return false;
-      return (
-        JSON.stringify(state.settings) !== JSON.stringify(state.initialSettings)
-      );
+      if (!state.settings || !state.initialSettings) return false
+      return JSON.stringify(state.settings) !== JSON.stringify(state.initialSettings)
     },
   },
 
@@ -26,31 +24,28 @@ export const useSettingsStore = defineStore("settings", {
      * ดึงข้อมูลการตั้งค่าทั้งหมดของ Property
      */
     async fetchSettings() {
-      const propertyStore = usePropertyStore();
-      const propertyId = propertyStore.propertyId;
-      if (!propertyId) return;
+      const propertyStore = usePropertyStore()
+      const propertyId = propertyStore.propertyId
+      if (!propertyId) return
 
-      this.isLoading = true;
+      this.isLoading = true
       try {
         // ✨ 2. เปลี่ยนมาใช้ useApiFetch
-        const response = await useApiFetch(
-          `/api/properties/${propertyId}/settings`,
-          {
-            showNotification: false, // การ fetch ข้อมูลปกติ ไม่ต้องแสดง notification
-          }
-        );
+        const response = await useApiFetch(`/api/properties/${propertyId}/settings`, {
+          showNotification: false, // การ fetch ข้อมูลปกติ ไม่ต้องแสดง notification
+        })
 
         if (response) {
-          this.settings = response.data;
-          this.initialSettings = JSON.parse(JSON.stringify(response.data));
+          this.settings = response.data
+          this.initialSettings = JSON.parse(JSON.stringify(response.data))
         }
-      } catch (error) {
+      } catch {
         // useApiFetch จะแสดง Error toast ให้แล้ว
         // เราอาจจะแค่เคลียร์ค่าถ้าต้องการ
-        this.settings = null;
-        this.initialSettings = null;
+        this.settings = null
+        this.initialSettings = null
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
@@ -58,67 +53,69 @@ export const useSettingsStore = defineStore("settings", {
      * บันทึกการเปลี่ยนแปลงทั้งหมด
      */
     async saveSettings() {
-      if (!this.isDirty || !this.settings || !this.initialSettings) return;
+      if (!this.isDirty || !this.settings || !this.initialSettings) return
 
-      const propertyStore = usePropertyStore();
-      const propertyId = propertyStore.propertyId;
-      if (!propertyId) return;
+      const propertyStore = usePropertyStore()
+      const propertyId = propertyStore.propertyId
+      if (!propertyId) return
 
-      this.isSaving = true;
-      const { showSuccess, showError } = useNotification();
-      const promises = [];
+      this.isSaving = true
+      const { showSuccess } = useNotification()
+      const promises = []
 
       // ✨ 1. สร้างฟังก์ชัน "ตัวแปลง" ข้อมูล
-      const transformSettingsForApi = (settingsObject: any) => {
+      type SettingsShape = {
+        name?: string
+        roomNamingFormat?: string
+        roomTurnoverDays?: number
+        finance: {
+          utilities: {
+            water: { type: string; rate: string; minimumCharge: string }
+            electricity: { type: string; rate: string; minimumCharge: string }
+          }
+          lateFee: { enabled: boolean; type: string; value: string }
+          billingCycle: { cutoffDay: number; dueDays: number }
+        }
+      }
+      const transformSettingsForApi = (settingsObject: Record<string, unknown>) => {
+        const s = settingsObject as SettingsShape
         return {
-          name: settingsObject.name,
-          roomNamingFormat: settingsObject.roomNamingFormat,
-          roomTurnoverDays: settingsObject.roomTurnoverDays,
-          // --- แปลงข้อมูล Finance ---
-          defaultWaterBillingType: settingsObject.finance.utilities.water.type,
-          defaultWaterRate: settingsObject.finance.utilities.water.rate,
-          defaultWaterMinimumCharge:
-            settingsObject.finance.utilities.water.minimumCharge,
+          name: s.name,
+          roomNamingFormat: s.roomNamingFormat,
+          roomTurnoverDays: s.roomTurnoverDays,
+          defaultWaterBillingType: s.finance?.utilities?.water?.type,
+          defaultWaterRate: s.finance?.utilities?.water?.rate,
+          defaultWaterMinimumCharge: s.finance?.utilities?.water?.minimumCharge,
+          defaultElectricityBillingType: s.finance?.utilities?.electricity?.type,
+          defaultElectricityRate: s.finance?.utilities?.electricity?.rate,
+          defaultElectricityMinimumCharge: s.finance?.utilities?.electricity?.minimumCharge,
+          lateFeeEnabled: s.finance?.lateFee?.enabled,
+          lateFeeType: s.finance?.lateFee?.type,
+          lateFeeValue: s.finance?.lateFee?.value,
+          defaultBillingCutoffDay: s.finance?.billingCycle?.cutoffDay,
+          defaultPaymentDueDays: s.finance?.billingCycle?.dueDays,
+        }
+      }
 
-          defaultElectricityBillingType:
-            settingsObject.finance.utilities.electricity.type,
-          defaultElectricityRate:
-            settingsObject.finance.utilities.electricity.rate,
-          defaultElectricityMinimumCharge:
-            settingsObject.finance.utilities.electricity.minimumCharge,
+      const initialInfoPayload = transformSettingsForApi(this.initialSettings)
+      const currentInfoPayload = transformSettingsForApi(this.settings)
 
-          lateFeeEnabled: settingsObject.finance.lateFee.enabled,
-          lateFeeType: settingsObject.finance.lateFee.type,
-          lateFeeValue: settingsObject.finance.lateFee.value,
-
-          defaultBillingCutoffDay:
-            settingsObject.finance.billingCycle.cutoffDay,
-          defaultPaymentDueDays: settingsObject.finance.billingCycle.dueDays,
-        };
-      };
-
-      const initialInfoPayload = transformSettingsForApi(this.initialSettings);
-      const currentInfoPayload = transformSettingsForApi(this.settings);
-
-      if (
-        JSON.stringify(initialInfoPayload) !==
-        JSON.stringify(currentInfoPayload)
-      ) {
+      if (JSON.stringify(initialInfoPayload) !== JSON.stringify(currentInfoPayload)) {
         promises.push(
           useApiFetch(`/api/properties/${propertyId}`, {
-            method: "PUT",
+            method: 'PUT',
             body: currentInfoPayload,
-          })
-        );
+          }),
+        )
       }
 
       // ✨ 3. เปรียบเทียบข้อมูลโครงสร้างห้อง (Floors & Rooms)
-      const roomsStore = useRoomsStore();
-      const initialFloors = JSON.stringify(this.initialSettings.floors);
-      const currentFloors = JSON.stringify(this.settings.floors);
+      const roomsStore = useRoomsStore()
+      const initialFloors = JSON.stringify(this.initialSettings.floors)
+      const currentFloors = JSON.stringify(this.settings.floors)
 
       if (initialFloors !== currentFloors) {
-        promises.push(roomsStore.syncRooms(propertyId, this.settings.floors));
+        promises.push(roomsStore.syncRooms(propertyId, this.settings.floors))
       }
 
       // --- (สามารถเพิ่มการเปรียบเทียบส่วนอื่นๆ ได้ที่นี่) ---
@@ -126,43 +123,40 @@ export const useSettingsStore = defineStore("settings", {
       try {
         if (promises.length === 0) {
           // กรณีนี้ไม่ควรเกิดขึ้นเพราะมี isDirty check อยู่แล้ว แต่ใส่ไว้เพื่อความปลอดภัย
-          showSuccess("ไม่มีอะไรเปลี่ยนแปลง");
-          return;
+          showSuccess('ไม่มีอะไรเปลี่ยนแปลง')
+          return
         }
 
         // ✨ 4. รันทุก "งาน" ที่มีการเปลี่ยนแปลงพร้อมกัน
-        const results = await Promise.all(promises);
+        const results = await Promise.all(promises)
 
         // เช็คว่าทุก promise สำเร็จหรือไม่
         if (results.every((res) => res.success)) {
           // เมื่อทุกอย่างสำเร็จ ให้ fetch ข้อมูลทั้งหมดมาใหม่เพื่อรีเซ็ต isDirty
-          await this.fetchSettings();
+          await this.fetchSettings()
         }
       } catch (error) {
         // useApiFetch จะแสดง Notification เอง แต่เราอาจจะ log error เพิ่มเติม
-        console.error("Failed to save settings:", error);
+        console.error('Failed to save settings:', error)
       } finally {
-        this.isSaving = false;
+        this.isSaving = false
       }
     },
 
     async updateFloorStructure(propertyId: string, totalFloors: number) {
-      this.isSaving = true; // ใช้ isSaving ร่วมกันได้
+      this.isSaving = true // ใช้ isSaving ร่วมกันได้
       try {
-        const response = await useApiFetch(
-          `/api/properties/${propertyId}/floors`,
-          {
-            method: "POST",
-            body: { totalFloors },
-          }
-        );
+        const response = await useApiFetch(`/api/properties/${propertyId}/floors`, {
+          method: 'POST',
+          body: { totalFloors },
+        })
 
         if (response.success) {
-          await this.fetchSettings();
+          await this.fetchSettings()
         }
-        return response;
+        return response
       } finally {
-        this.isSaving = false;
+        this.isSaving = false
       }
     },
 
@@ -170,15 +164,15 @@ export const useSettingsStore = defineStore("settings", {
      * เพิ่มประเภทห้องใหม่
      */
     async addRoomType(roomTypeData: object) {
-      const propertyStore = usePropertyStore();
+      const propertyStore = usePropertyStore()
       try {
-        await useApiFetch("/api/room-types", {
-          method: "POST",
+        await useApiFetch('/api/room-types', {
+          method: 'POST',
           body: { ...roomTypeData, propertyId: propertyStore.propertyId },
-          successMessage: "เพิ่มประเภทห้องใหม่สำเร็จ",
-        });
-        await this.fetchSettings(); // ดึงข้อมูลใหม่ทั้งหมดเพื่อให้ UI อัปเดต
-      } catch (error) {
+          successMessage: 'เพิ่มประเภทห้องใหม่สำเร็จ',
+        })
+        await this.fetchSettings() // ดึงข้อมูลใหม่ทั้งหมดเพื่อให้ UI อัปเดต
+      } catch {
         /* Error handled by useApiFetch */
       }
     },
@@ -189,12 +183,12 @@ export const useSettingsStore = defineStore("settings", {
     async updateRoomType(roomTypeId: string, roomTypeData: object) {
       try {
         await useApiFetch(`/api/room-types/${roomTypeId}`, {
-          method: "PUT",
+          method: 'PUT',
           body: roomTypeData,
-          successMessage: "แก้ไขประเภทห้องสำเร็จ",
-        });
-        await this.fetchSettings();
-      } catch (error) {
+          successMessage: 'แก้ไขประเภทห้องสำเร็จ',
+        })
+        await this.fetchSettings()
+      } catch {
         /* Error handled by useApiFetch */
       }
     },
@@ -205,28 +199,28 @@ export const useSettingsStore = defineStore("settings", {
     async deleteRoomType(roomTypeId: string) {
       try {
         await useApiFetch(`/api/room-types/${roomTypeId}`, {
-          method: "DELETE",
-          successMessage: "ลบประเภทห้องสำเร็จ",
-        });
-        await this.fetchSettings();
-      } catch (error) {
+          method: 'DELETE',
+          successMessage: 'ลบประเภทห้องสำเร็จ',
+        })
+        await this.fetchSettings()
+      } catch {
         /* Error handled by useApiFetch */
       }
     },
 
     revertChanges() {
       if (this.initialSettings) {
-        this.settings = JSON.parse(JSON.stringify(this.initialSettings));
+        this.settings = JSON.parse(JSON.stringify(this.initialSettings))
       }
     },
 
     clearSettings() {
-      this.settings = null;
-      this.initialSettings = null;
+      this.settings = null
+      this.initialSettings = null
     },
 
     setShowSaveFooter(shouldShow: boolean) {
-      this.showSaveFooter = shouldShow;
+      this.showSaveFooter = shouldShow
     },
   },
-});
+})

@@ -14,28 +14,30 @@ export default defineEventHandler(async (event) => {
       .from(schema.propertyStaff)
       .where(eq(schema.propertyStaff.propertyId, propertyId))
       .orderBy(schema.propertyStaff.role)
-    const userIds = staffRows.map(s => s.userId)
+    const userIds = staffRows.map((s) => s.userId)
     const users =
       userIds.length > 0
         ? await db.select().from(schema.user).where(inArray(schema.user.id, userIds))
         : []
-    const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+    const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
 
-    const staff = staffRows.map(s => ({
+    const staff = staffRows.map((s) => ({
       ...s,
       user: userMap[s.userId]
         ? {
             name: userMap[s.userId].name,
             avatarUrl: userMap[s.userId].avatarUrl,
-            email: userMap[s.userId].email
+            email: userMap[s.userId].email,
           }
-        : null
+        : null,
     }))
 
     const invitations = await db
       .select()
       .from(schema.invitation)
-      .where(and(eq(schema.invitation.propertyId, propertyId), eq(schema.invitation.status, 'PENDING')))
+      .where(
+        and(eq(schema.invitation.propertyId, propertyId), eq(schema.invitation.status, 'PENDING')),
+      )
       .orderBy(desc(schema.invitation.createdAt))
 
     return successResponse({ staff, invitations })

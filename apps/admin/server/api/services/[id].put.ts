@@ -7,7 +7,7 @@ const updateServiceSchema = z.object({
   name: z.string().min(1, 'ต้องระบุชื่อบริการ').optional(),
   defaultPrice: z.coerce.number().min(0).optional(),
   billingCycle: z.enum(Object.values(BillingCycle) as [string, ...string[]]).optional(),
-  isOptional: z.boolean().optional()
+  isOptional: z.boolean().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -16,11 +16,11 @@ export default defineEventHandler(async (event) => {
     if (!serviceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Service ID'
+        statusMessage: 'ต้องระบุ Service ID',
       })
     }
 
-    const body = await readValidatedBody(event, data => updateServiceSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateServiceSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     if (!existing) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบบริการนี้'
+        statusMessage: 'ไม่พบบริการนี้',
       })
     }
     await requirePropertyStaff(event, existing.propertyId)

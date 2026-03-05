@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!invoiceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invoice ID is required'
+        statusMessage: 'Invoice ID is required',
       })
     }
 
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (!invoiceRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบใบแจ้งหนี้นี้'
+        statusMessage: 'ไม่พบใบแจ้งหนี้นี้',
       })
     }
 
@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.propertyStaff.userId, session.id),
-          eq(schema.propertyStaff.propertyId, invoiceRow.propertyId)
-        )
+          eq(schema.propertyStaff.propertyId, invoiceRow.propertyId),
+        ),
       )
       .limit(1)
     let isTenantOwner = false
@@ -48,8 +48,8 @@ export default defineEventHandler(async (event) => {
           .where(
             and(
               eq(schema.contractTenant.contractId, invoiceRow.contractId),
-              eq(schema.contractTenant.tenantId, tenantRow.id)
-            )
+              eq(schema.contractTenant.tenantId, tenantRow.id),
+            ),
           )
           .limit(1)
         isTenantOwner = !!link
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     if (!staff && !isTenantOwner) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้'
+        statusMessage: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้',
       })
     }
 
@@ -81,15 +81,16 @@ export default defineEventHandler(async (event) => {
           .where(
             and(
               eq(schema.contractTenant.contractId, contractRow.id),
-              eq(schema.contractTenant.isPrimary, true)
-            )
+              eq(schema.contractTenant.isPrimary, true),
+            ),
           )
       : []
-    const tenantIds = primaryTenants.map(pt => pt.tenantId)
-    const tenants = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
-    const tenantMap = Object.fromEntries(tenants.map(t => [t.id, t]))
+    const tenantIds = primaryTenants.map((pt) => pt.tenantId)
+    const tenants =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
+    const tenantMap = Object.fromEntries(tenants.map((t) => [t.id, t]))
 
     const invoice = {
       id: invoiceRow.id,
@@ -100,22 +101,29 @@ export default defineEventHandler(async (event) => {
       contractId: invoiceRow.contractId,
       billingRunId: invoiceRow.billingRunId,
       propertyId: invoiceRow.propertyId,
-      items: items.map(it => ({ id: it.id, description: it.description, amount: it.amount })),
-      contract: contractRow && roomRow
-        ? {
-            id: contractRow.id,
-            rentAmount: contractRow.rentAmount,
-            waterBillingType: contractRow.waterBillingType,
-            electricityBillingType: contractRow.electricityBillingType,
-            room: { id: roomRow.id, roomNumber: roomRow.roomNumber },
-            tenants: primaryTenants.map(pt => ({
-              isPrimary: true,
-              tenant: tenantMap[pt.tenantId]
-                ? { id: tenantMap[pt.tenantId].id, name: tenantMap[pt.tenantId].name, phone: tenantMap[pt.tenantId].phone }
-                : null
-            })).filter(t => t.tenant)
-          }
-        : null
+      items: items.map((it) => ({ id: it.id, description: it.description, amount: it.amount })),
+      contract:
+        contractRow && roomRow
+          ? {
+              id: contractRow.id,
+              rentAmount: contractRow.rentAmount,
+              waterBillingType: contractRow.waterBillingType,
+              electricityBillingType: contractRow.electricityBillingType,
+              room: { id: roomRow.id, roomNumber: roomRow.roomNumber },
+              tenants: primaryTenants
+                .map((pt) => ({
+                  isPrimary: true,
+                  tenant: tenantMap[pt.tenantId]
+                    ? {
+                        id: tenantMap[pt.tenantId].id,
+                        name: tenantMap[pt.tenantId].name,
+                        phone: tenantMap[pt.tenantId].phone,
+                      }
+                    : null,
+                }))
+                .filter((t) => t.tenant),
+            }
+          : null,
     }
 
     return successResponse(invoice)

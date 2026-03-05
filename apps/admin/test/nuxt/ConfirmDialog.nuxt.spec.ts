@@ -5,7 +5,7 @@ import ConfirmDialog from '~/components/ConfirmDialog.vue'
 
 const { confirmMock, cancelMock } = vi.hoisted(() => ({
   confirmMock: vi.fn(),
-  cancelMock: vi.fn()
+  cancelMock: vi.fn(),
 }))
 
 mockNuxtImport('useConfirm', () => () => ({
@@ -15,10 +15,10 @@ mockNuxtImport('useConfirm', () => () => ({
     message: 'Test message',
     confirmText: 'ยืนยัน',
     cancelText: 'ยกเลิก',
-    intent: 'info'
+    intent: 'info',
   },
   confirm: confirmMock,
-  cancel: cancelMock
+  cancel: cancelMock,
 }))
 
 // UModal (inside BaseModal) renders content in a portal, so we stub BaseModal to render
@@ -27,17 +27,19 @@ const BaseModalStub = defineComponent({
   props: { modelValue: Boolean, maxWidth: String },
   setup(props, { slots }) {
     return () =>
-      props.modelValue ? h('div', { 'data-testid': 'confirm-dialog-content' }, slots.default?.()) : null
-  }
+      props.modelValue
+        ? h('div', { 'data-testid': 'confirm-dialog-content' }, slots.default?.())
+        : null
+  },
 })
 
 describe('ConfirmDialog', () => {
   const mountOptions = {
     global: {
       stubs: {
-        BaseModal: BaseModalStub
-      }
-    }
+        BaseModal: BaseModalStub,
+      },
+    },
   }
 
   it('renders title and message from useConfirm state', async () => {

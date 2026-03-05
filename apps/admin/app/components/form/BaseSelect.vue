@@ -2,9 +2,10 @@
 import { computed } from 'vue'
 
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
+/* eslint-disable vue/require-prop-types -- model type from defineModel */
 const model = defineModel()
 
 const props = defineProps({
@@ -16,7 +17,7 @@ const props = defineProps({
   optionLabel: { type: String, default: 'label' },
   grouped: { type: Boolean, default: false },
   placeholder: { type: String, default: 'กรุณาเลือก' },
-  disabled: { type: Boolean, default: false }
+  disabled: { type: Boolean, default: false },
 })
 
 const getOptionValue = (option) => {
@@ -34,13 +35,13 @@ const selectItems = computed(() => {
     return props.options.map((group) =>
       (group.options || []).map((opt) => ({
         label: getOptionLabel(opt),
-        value: getOptionValue(opt)
-      }))
+        value: getOptionValue(opt),
+      })),
     )
   }
   return props.options.map((opt) => ({
     label: getOptionLabel(opt),
-    value: getOptionValue(opt)
+    value: getOptionValue(opt),
   }))
 })
 

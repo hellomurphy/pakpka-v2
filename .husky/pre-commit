@@ -1,2 +1,6 @@
+# Format staged files (Prettier)
 npx lint-staged
-pnpm lint
+
+# Lint and test: admin only for now (uncomment below to run for all apps)
+# pnpm lint
+pnpm turbo run lint --filter=admin

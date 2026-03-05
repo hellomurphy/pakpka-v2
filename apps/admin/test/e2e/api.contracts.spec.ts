@@ -8,7 +8,7 @@ import { $fetch, setup } from '@nuxt/test-utils/e2e'
 describe('Server API – Contracts (e2e)', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   async function getSessionCookie(): Promise<string | null> {
@@ -44,8 +44,8 @@ describe('Server API – Contracts (e2e)', async () => {
             waterMinimumCharge: 0,
             electricityBillingType: 'FLAT_RATE',
             electricityRate: 0,
-            electricityMinimumCharge: 0
-          }
+            electricityMinimumCharge: 0,
+          },
         })
         expect.fail('Expected 401')
       } catch (err: unknown) {
@@ -76,8 +76,8 @@ describe('Server API – Contracts (e2e)', async () => {
             waterMinimumCharge: 0,
             electricityBillingType: 'FLAT_RATE',
             electricityRate: 0,
-            electricityMinimumCharge: 0
-          }
+            electricityMinimumCharge: 0,
+          },
         })
         expect.fail('Expected 403')
       } catch (err: unknown) {

@@ -3,7 +3,7 @@
  * Used by contracts, reservations, and tenants create flows.
  * Unit-testable without DB/Nitro.
  */
-export type DateRange = { startDate: Date | string, endDate: Date | string }
+export type DateRange = { startDate: Date | string; endDate: Date | string }
 
 function toDate(d: Date | string): Date {
   return d instanceof Date ? d : new Date(d)
@@ -15,7 +15,7 @@ function toDate(d: Date | string): Date {
 export function hasOverlappingDateRanges(
   newStart: Date | string,
   newEnd: Date | string,
-  existing: DateRange[]
+  existing: DateRange[],
 ): boolean {
   const a1 = toDate(newStart).getTime()
   const a2 = toDate(newEnd).getTime()

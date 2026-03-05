@@ -6,11 +6,11 @@ const querySchema = z.object({ propertyId: z.string().min(1) })
 
 export default defineEventHandler(async (event) => {
   try {
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invalid property ID'
+        statusMessage: 'Invalid property ID',
       })
     }
     await requirePropertyStaff(event, query.data.propertyId)

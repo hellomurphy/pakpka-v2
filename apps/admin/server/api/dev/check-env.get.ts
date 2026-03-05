@@ -15,6 +15,6 @@ export default defineEventHandler(() => {
     hint: isSet ? hint : 'DATABASE_URL not set — NuxtHub will use default local DB',
     suggestion: isSet
       ? 'App is using the same SQLite file as root .wrangler (migrated DB).'
-      : 'Set DATABASE_URL in apps/admin/.env (copy from .env.example, uncomment) to use the migrated DB at root/.wrangler.'
+      : 'Set DATABASE_URL in apps/admin/.env (copy from .env.example, uncomment) to use the migrated DB at root/.wrangler.',
   }
 })

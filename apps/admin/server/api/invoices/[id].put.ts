@@ -5,12 +5,12 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 const invoiceItemSchema = z.object({
   id: z.string(),
   description: z.string(),
-  amount: z.coerce.number()
+  amount: z.coerce.number(),
 })
 const updateInvoiceSchema = z.object({
   totalAmount: z.coerce.number(),
   dueDate: z.coerce.date(),
-  items: z.array(invoiceItemSchema)
+  items: z.array(invoiceItemSchema),
 })
 
 export default defineEventHandler(async (event) => {
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (!invoiceId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Invoice ID' })
     }
-    const body = await readValidatedBody(event, data => updateInvoiceSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateInvoiceSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -40,23 +40,23 @@ export default defineEventHandler(async (event) => {
         .select({ id: schema.invoiceItem.id })
         .from(schema.invoiceItem)
         .where(eq(schema.invoiceItem.invoiceId, invoiceId))
-      const existingItemIds = new Set(existingItems.map(item => item.id))
+      const existingItemIds = new Set(existingItems.map((item) => item.id))
       const newItemIds = new Set(
-        newItems.filter(item => !item.id.startsWith('temp-')).map(item => item.id)
+        newItems.filter((item) => !item.id.startsWith('temp-')).map((item) => item.id),
       )
 
-      const itemsToDelete = [...existingItemIds].filter(id => !newItemIds.has(id))
+      const itemsToDelete = [...existingItemIds].filter((id) => !newItemIds.has(id))
       if (itemsToDelete.length > 0) {
         await tx.delete(schema.invoiceItem).where(inArray(schema.invoiceItem.id, itemsToDelete))
       }
 
-      const itemsToCreate = newItems.filter(item => item.id.startsWith('temp-'))
+      const itemsToCreate = newItems.filter((item) => item.id.startsWith('temp-'))
       for (const item of itemsToCreate) {
         await tx.insert(schema.invoiceItem).values({
           id: crypto.randomUUID(),
           invoiceId,
           description: item.description,
-          amount: String(item.amount)
+          amount: String(item.amount),
         })
       }
 
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
         .update(schema.invoice)
         .set({
           totalAmount: String(totalAmount),
-          dueDate
+          dueDate,
         })
         .where(eq(schema.invoice.id, invoiceId))
     })

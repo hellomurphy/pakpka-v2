@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     if (!contractId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Contract ID'
+        statusMessage: 'ต้องระบุ Contract ID',
       })
     }
 
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
         .select({ tenantId: schema.contractTenant.tenantId })
         .from(schema.contractTenant)
         .where(eq(schema.contractTenant.contractId, contractId))
-      const tenantIds = links.map(ct => ct.tenantId)
+      const tenantIds = links.map((ct) => ct.tenantId)
       for (const tid of tenantIds) {
         await tx
           .update(schema.tenant)

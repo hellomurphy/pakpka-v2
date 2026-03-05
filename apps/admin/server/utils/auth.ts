@@ -33,16 +33,16 @@ export async function requirePropertyStaff(event: H3Event, propertyId: string) {
     .where(
       and(
         eq(schema.propertyStaff.userId, session.id),
-        eq(schema.propertyStaff.propertyId, propertyId)
-      )
+        eq(schema.propertyStaff.propertyId, propertyId),
+      ),
     )
     .limit(1)
-    .then(rows => rows[0] ?? null)
+    .then((rows) => rows[0] ?? null)
 
   if (!staff) {
     throw createError({
       statusCode: 403,
-      statusMessage: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้'
+      statusMessage: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้',
     })
   }
   return staff

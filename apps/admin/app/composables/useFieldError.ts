@@ -1,9 +1,5 @@
 import { computed } from 'vue'
-import {
-  useFieldError as useVeeFieldError,
-  useIsFieldTouched,
-  useSubmitCount
-} from 'vee-validate'
+import { useFieldError as useVeeFieldError, useIsFieldTouched, useSubmitCount } from 'vee-validate'
 
 /**
  * Returns a computed error message for a field that only shows when the field
@@ -16,6 +12,6 @@ export function useDelayedFieldError(fieldName: string) {
   const isTouched = useIsFieldTouched(fieldName)
   const submitCount = useSubmitCount()
   return computed(
-    () => (isTouched.value || submitCount.value > 0 ? (errorMessage.value ?? '') : '') as string
+    () => (isTouched.value || submitCount.value > 0 ? (errorMessage.value ?? '') : '') as string,
   )
 }

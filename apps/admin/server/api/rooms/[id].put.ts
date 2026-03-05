@@ -5,7 +5,7 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 const updateRoomSchema = z.object({
   roomNumber: z.string().min(1).optional(),
   roomTypeId: z.string().min(1).optional(),
-  floorId: z.string().min(1).optional()
+  floorId: z.string().min(1).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -15,17 +15,21 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Room ID' })
     }
 
-    const body = await readValidatedBody(event, data => updateRoomSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateRoomSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
 
     const [room] = await db
-      .select({ id: schema.room.id, propertyId: schema.room.propertyId, roomNumber: schema.room.roomNumber })
+      .select({
+        id: schema.room.id,
+        propertyId: schema.room.propertyId,
+        roomNumber: schema.room.roomNumber,
+      })
       .from(schema.room)
       .where(eq(schema.room.id, roomId))
       .limit(1)
@@ -41,14 +45,14 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.room.propertyId, room.propertyId),
-            eq(schema.room.roomNumber, body.data.roomNumber)
-          )
+            eq(schema.room.roomNumber, body.data.roomNumber),
+          ),
         )
         .limit(1)
       if (existing && existing.id !== roomId) {
         throw createError({
           statusCode: 409,
-          statusMessage: `ห้อง ${body.data.roomNumber} มีอยู่ในระบบแล้ว`
+          statusMessage: `ห้อง ${body.data.roomNumber} มีอยู่ในระบบแล้ว`,
         })
       }
     }
@@ -74,10 +78,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     const updatedRoom = roomType ? { ...updated, roomType } : updated
 
-    return successResponse(
-      updatedRoom,
-      `อัปเดตห้อง ${updated.roomNumber} สำเร็จ`
-    )
+    return successResponse(updatedRoom, `อัปเดตห้อง ${updated.roomNumber} สำเร็จ`)
   } catch (error) {
     return errorResponse(event, error)
   }
