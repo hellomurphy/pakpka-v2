@@ -89,46 +89,8 @@ jobs:
       - name: Test (unit shard ${{ matrix.shard }})
         run: pnpm --filter admin exec vitest run --project unit --shard=${{ matrix.shard }}
 
-  # Each job runs on a fresh runner (no shared disk). We use:
-  # - cache: 'pnpm' in setup-node → fast install from GitHub cache
-  # - actions/cache for .turbo → Turbo can reuse task outputs from previous CI runs (same key).
-  # For even faster builds, add Turbo Remote Cache (TURBO_TOKEN / TURBO_TEAM) so build can pull cache from remote.
-  test-integration-e2e:
-    needs: [validate, unit-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Cache turbo
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
-
-      - name: Test (integration)
-        run: pnpm --filter admin run test:int
-
-      - name: Test (e2e)
-        run: pnpm --filter admin run test:e2e
-
-  # Build reuses Turbo local cache from previous runs (same lockfile key). Remote cache (TURBO_TOKEN) would speed this up further.
   build:
-    needs: [test-integration-e2e]
+    needs: [validate, unit-test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -156,3 +118,56 @@ jobs:
 
       - name: Build
         run: pnpm turbo run build --filter=admin
+
+      - name: Upload admin .output
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-output
+          path: apps/admin/.output
+          retention-days: 1
+
+  test-integration-e2e:
+    needs: [build]
+    runs-on: ubuntu-latest
+    # NODE_ENV=development so hub.db uses DATABASE_URL (nuxt.config) and dev-login is allowed (auth). Preview still serves production build.
+    env:
+      DATABASE_URL: file:${{ runner.temp }}/pakpak-test.sqlite
+      NODE_ENV: development
+      NUXT_SESSION_PASSWORD: dev-session-secret-min-32-chars-long-for-sealed-cookie
+      TEST_HOST: http://localhost:3000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download admin .output
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-output
+          path: apps/admin/.output
+
+      - name: Prepare DB (migrate once)
+        run: |
+          cat packages/database/drizzle/*.sql | sqlite3 "$RUNNER_TEMP/pakpak-test.sqlite"
+
+      - name: Start Preview Server
+        run: |
+          pnpm --filter admin run preview &
+          npx wait-on http://localhost:3000/api/health --timeout 60000
+
+      - name: Test (integration)
+        run: pnpm --filter admin run test:int
+
+      - name: Test (e2e)
+        run: pnpm --filter admin run test:e2e

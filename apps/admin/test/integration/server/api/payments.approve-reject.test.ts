@@ -4,13 +4,10 @@
  */
 import { describe, expect, it } from 'vitest'
 import { $fetch, setup } from '@nuxt/test-utils/e2e'
-import { getSessionCookie } from '../../helpers'
+import { getE2ESetupOptions, getSessionCookie } from '../../helpers'
 
 describe('Integration – POST /api/payments (approve & reject)', async () => {
-  await setup({
-    rootDir: '.',
-    setupTimeout: 60000,
-  })
+  await setup(getE2ESetupOptions())
 
   describe('POST /api/payments/:id/approve', () => {
     it('returns 401 when not authenticated', async () => {

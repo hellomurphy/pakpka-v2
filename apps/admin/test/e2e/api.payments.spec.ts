@@ -4,12 +4,10 @@
  */
 import { describe, expect, it } from 'vitest'
 import { $fetch, setup } from '@nuxt/test-utils/e2e'
+import { getE2ESetupOptions } from '../integration/helpers'
 
 describe('Server API – Payments (e2e)', async () => {
-  await setup({
-    rootDir: '.',
-    setupTimeout: 60000,
-  })
+  await setup(getE2ESetupOptions())
 
   describe('POST /api/payments/:id/approve', () => {
     it('returns 401 when no session (auth middleware)', async () => {

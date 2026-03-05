@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { $fetch, setup } from '@nuxt/test-utils/e2e'
+import { getE2ESetupOptions } from '../integration/helpers'
 
 describe('Server API (e2e)', async () => {
-  await setup({
-    rootDir: '.',
-    setupTimeout: 60000,
-  })
+  await setup(getE2ESetupOptions())
 
   describe('GET /api/dev/check-env', () => {
     it('returns database env info', async () => {
