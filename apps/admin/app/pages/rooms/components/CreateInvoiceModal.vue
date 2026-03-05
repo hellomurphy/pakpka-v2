@@ -1,149 +1,147 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { BaseModal, BaseButton } from "~/components/ui";
-import { BaseSelect, BaseInput, BaseDatePicker } from "~/components/form";
-import dayjs from "dayjs";
+import { ref, computed } from 'vue'
+import { BaseModal, BaseButton } from '~/components/ui'
+import { BaseSelect, BaseInput, BaseDatePicker } from '~/components/form'
+import dayjs from 'dayjs'
 
-const emit = defineEmits(["success"]);
+const emit = defineEmits(['success'])
 
 // --- State ---
-const isModalOpen = ref(false);
-const roomData = ref<any>(null);
-const isLoading = ref(false);
+const isModalOpen = ref(false)
+const roomData = ref<Record<string, unknown> | null>(null)
+const isLoading = ref(false)
 
 // Invoice Type
-const invoiceType = ref<string>("");
+const invoiceType = ref<string>('')
 const invoiceTypeOptions = [
-  { label: "ค่าเช่าแรกเข้า (Move-in)", value: "MOVE_IN" },
-  { label: "ค่าซ่อมแซม / ปรับ (Damages/Fines)", value: "DAMAGES" },
-  { label: "ค่าบริการอื่นๆ (Miscellaneous)", value: "MISCELLANEOUS" },
-  { label: "ค่าเช่าประจำเดือน (Manual Monthly)", value: "MANUAL_MONTHLY" },
-];
+  { label: 'ค่าเช่าแรกเข้า (Move-in)', value: 'MOVE_IN' },
+  { label: 'ค่าซ่อมแซม / ปรับ (Damages/Fines)', value: 'DAMAGES' },
+  { label: 'ค่าบริการอื่นๆ (Miscellaneous)', value: 'MISCELLANEOUS' },
+  { label: 'ค่าเช่าประจำเดือน (Manual Monthly)', value: 'MANUAL_MONTHLY' },
+]
 
 // --- Move-in Fields ---
-const moveInDate = ref<Date>(new Date());
-const proratedRent = ref<number>(0);
-const depositAmount = ref<number>(0);
-const advanceAmount = ref<number>(0);
+const moveInDate = ref<Date>(new Date())
+const proratedRent = ref<number>(0)
+const depositAmount = ref<number>(0)
+const advanceAmount = ref<number>(0)
 
 // --- Damages/Fines Fields ---
-const damageDescription = ref<string>("");
-const damageAmount = ref<number>(0);
-const damageProof = ref<File | null>(null);
+const damageDescription = ref<string>('')
+const damageAmount = ref<number>(0)
+const damageProof = ref<File | null>(null)
 
 // --- Miscellaneous Fields ---
 const miscItems = ref<Array<{ description: string; amount: number }>>([
-  { description: "", amount: 0 },
-]);
+  { description: '', amount: 0 },
+])
 
 // --- Manual Monthly Fields ---
-const billingPeriod = ref<Date>(new Date());
-const monthlyRent = ref<number>(0);
-const electricityPrevious = ref<number>(0);
-const electricityCurrent = ref<number>(0);
-const waterPrevious = ref<number>(0);
-const waterCurrent = ref<number>(0);
+const billingPeriod = ref<Date>(new Date())
+const monthlyRent = ref<number>(0)
+const electricityPrevious = ref<number>(0)
+const electricityCurrent = ref<number>(0)
+const waterPrevious = ref<number>(0)
+const waterCurrent = ref<number>(0)
 
 // --- Computed ---
 const electricityUsage = computed(() => {
-  const usage = electricityCurrent.value - electricityPrevious.value;
-  return usage > 0 ? usage : 0;
-});
+  const usage = electricityCurrent.value - electricityPrevious.value
+  return usage > 0 ? usage : 0
+})
 
 const waterUsage = computed(() => {
-  const usage = waterCurrent.value - waterPrevious.value;
-  return usage > 0 ? usage : 0;
-});
+  const usage = waterCurrent.value - waterPrevious.value
+  return usage > 0 ? usage : 0
+})
 
 const electricityAmount = computed(() => {
-  if (!roomData.value?.currentContract) return 0;
-  const rate = roomData.value.currentContract.electricityRate || 0;
-  const minCharge = roomData.value.currentContract.electricityMinimumCharge || 0;
-  const calculated = electricityUsage.value * rate;
-  return Math.max(calculated, minCharge);
-});
+  if (!roomData.value?.currentContract) return 0
+  const rate = roomData.value.currentContract.electricityRate || 0
+  const minCharge = roomData.value.currentContract.electricityMinimumCharge || 0
+  const calculated = electricityUsage.value * rate
+  return Math.max(calculated, minCharge)
+})
 
 const waterAmount = computed(() => {
-  if (!roomData.value?.currentContract) return 0;
-  const rate = roomData.value.currentContract.waterRate || 0;
-  const minCharge = roomData.value.currentContract.waterMinimumCharge || 0;
-  const calculated = waterUsage.value * rate;
-  return Math.max(calculated, minCharge);
-});
+  if (!roomData.value?.currentContract) return 0
+  const rate = roomData.value.currentContract.waterRate || 0
+  const minCharge = roomData.value.currentContract.waterMinimumCharge || 0
+  const calculated = waterUsage.value * rate
+  return Math.max(calculated, minCharge)
+})
 
 const totalAmount = computed(() => {
   switch (invoiceType.value) {
-    case "MOVE_IN":
-      return proratedRent.value + depositAmount.value + advanceAmount.value;
-    case "DAMAGES":
-      return damageAmount.value;
-    case "MISCELLANEOUS":
-      return miscItems.value.reduce((sum, item) => sum + (item.amount || 0), 0);
-    case "MANUAL_MONTHLY":
-      return monthlyRent.value + electricityAmount.value + waterAmount.value;
+    case 'MOVE_IN':
+      return proratedRent.value + depositAmount.value + advanceAmount.value
+    case 'DAMAGES':
+      return damageAmount.value
+    case 'MISCELLANEOUS':
+      return miscItems.value.reduce((sum, item) => sum + (item.amount || 0), 0)
+    case 'MANUAL_MONTHLY':
+      return monthlyRent.value + electricityAmount.value + waterAmount.value
     default:
-      return 0;
+      return 0
   }
-});
+})
 
 // --- Methods ---
 const calculateProratedRent = () => {
-  if (!roomData.value?.currentContract?.rentAmount || !moveInDate.value) return;
+  if (!roomData.value?.currentContract?.rentAmount || !moveInDate.value) return
 
-  const daysInMonth = dayjs(moveInDate.value).daysInMonth();
-  const startDay = dayjs(moveInDate.value).date();
-  const remainingDays = daysInMonth - startDay + 1;
-  const fullRent = roomData.value.currentContract.rentAmount;
+  const daysInMonth = dayjs(moveInDate.value).daysInMonth()
+  const startDay = dayjs(moveInDate.value).date()
+  const remainingDays = daysInMonth - startDay + 1
+  const fullRent = roomData.value.currentContract.rentAmount
 
-  proratedRent.value = Math.round((fullRent / daysInMonth) * remainingDays);
-};
+  proratedRent.value = Math.round((fullRent / daysInMonth) * remainingDays)
+}
 
 const addMiscItem = () => {
-  miscItems.value.push({ description: "", amount: 0 });
-};
+  miscItems.value.push({ description: '', amount: 0 })
+}
 
 const removeMiscItem = (index: number) => {
-  miscItems.value.splice(index, 1);
-};
+  miscItems.value.splice(index, 1)
+}
 
 const onSubmit = async () => {
-  isLoading.value = true;
+  isLoading.value = true
   try {
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       roomId: roomData.value.id,
       type: invoiceType.value,
-    };
+    }
 
     switch (invoiceType.value) {
-      case "MOVE_IN":
-        payload.moveInDate = moveInDate.value;
+      case 'MOVE_IN':
+        payload.moveInDate = moveInDate.value
         payload.items = [
-          { description: "ค่าเช่าเดือนแรก (Prorated)", amount: proratedRent.value },
-          { description: "เงินประกัน", amount: depositAmount.value },
-          { description: "ค่าเช่าล่วงหน้า", amount: advanceAmount.value },
-        ];
-        break;
-      case "DAMAGES":
+          { description: 'ค่าเช่าเดือนแรก (Prorated)', amount: proratedRent.value },
+          { description: 'เงินประกัน', amount: depositAmount.value },
+          { description: 'ค่าเช่าล่วงหน้า', amount: advanceAmount.value },
+        ]
+        break
+      case 'DAMAGES':
+        payload.items = [{ description: damageDescription.value, amount: damageAmount.value }]
+        break
+      case 'MISCELLANEOUS':
+        payload.items = miscItems.value
+        break
+      case 'MANUAL_MONTHLY':
+        payload.billingPeriod = billingPeriod.value
         payload.items = [
-          { description: damageDescription.value, amount: damageAmount.value },
-        ];
-        break;
-      case "MISCELLANEOUS":
-        payload.items = miscItems.value;
-        break;
-      case "MANUAL_MONTHLY":
-        payload.billingPeriod = billingPeriod.value;
-        payload.items = [
-          { description: "ค่าเช่าห้อง", amount: monthlyRent.value },
+          { description: 'ค่าเช่าห้อง', amount: monthlyRent.value },
           {
             description: `ค่าไฟฟ้า (${electricityUsage.value} หน่วย)`,
-            amount: electricityAmount.value
+            amount: electricityAmount.value,
           },
           {
             description: `ค่าน้ำประปา (${waterUsage.value} หน่วย)`,
-            amount: waterAmount.value
+            amount: waterAmount.value,
           },
-        ];
+        ]
         payload.meterReadings = {
           electricity: {
             previous: electricityPrevious.value,
@@ -153,78 +151,80 @@ const onSubmit = async () => {
             previous: waterPrevious.value,
             current: waterCurrent.value,
           },
-        };
-        break;
+        }
+        break
     }
 
     // TODO: Call API to create invoice
-    console.log("Creating invoice:", payload);
+    console.log('Creating invoice:', payload)
 
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    emit("success");
-    closeModal();
+    emit('success')
+    closeModal()
   } catch (error) {
-    console.error("Failed to create invoice:", error);
+    console.error('Failed to create invoice:', error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
-const open = (room: any) => {
-  roomData.value = room;
-  resetForm();
+const open = (room: Record<string, unknown>) => {
+  roomData.value = room
+  resetForm()
 
   // Auto-fill some default values
-  if (room.currentContract) {
-    depositAmount.value = room.currentContract.depositAmount || 0;
-    advanceAmount.value = room.currentContract.advancePayment || 0;
-    monthlyRent.value = room.currentContract.rentAmount || 0;
+  const currentContract = room.currentContract as Record<string, unknown> | undefined
+  if (currentContract) {
+    depositAmount.value = (currentContract.depositAmount as number) || 0
+    advanceAmount.value = (currentContract.advancePayment as number) || 0
+    monthlyRent.value = (currentContract.rentAmount as number) || 0
   }
 
-  if (room.lastMeterReading) {
-    electricityPrevious.value = room.lastMeterReading.electricity?.value || 0;
-    waterPrevious.value = room.lastMeterReading.water?.value || 0;
+  const lastMeterReading = room.lastMeterReading as
+    | { electricity?: { value?: number }; water?: { value?: number } }
+    | undefined
+  if (lastMeterReading) {
+    electricityPrevious.value = lastMeterReading.electricity?.value || 0
+    waterPrevious.value = lastMeterReading.water?.value || 0
   }
 
-  isModalOpen.value = true;
-};
+  isModalOpen.value = true
+}
 
 const closeModal = () => {
-  isModalOpen.value = false;
-  resetForm();
-};
+  isModalOpen.value = false
+  resetForm()
+}
 
 const resetForm = () => {
-  invoiceType.value = "";
-  moveInDate.value = new Date();
-  proratedRent.value = 0;
-  depositAmount.value = 0;
-  advanceAmount.value = 0;
-  damageDescription.value = "";
-  damageAmount.value = 0;
-  damageProof.value = null;
-  miscItems.value = [{ description: "", amount: 0 }];
-  billingPeriod.value = new Date();
-  monthlyRent.value = 0;
-  electricityPrevious.value = 0;
-  electricityCurrent.value = 0;
-  waterPrevious.value = 0;
-  waterCurrent.value = 0;
-};
+  invoiceType.value = ''
+  moveInDate.value = new Date()
+  proratedRent.value = 0
+  depositAmount.value = 0
+  advanceAmount.value = 0
+  damageDescription.value = ''
+  damageAmount.value = 0
+  damageProof.value = null
+  miscItems.value = [{ description: '', amount: 0 }]
+  billingPeriod.value = new Date()
+  monthlyRent.value = 0
+  electricityPrevious.value = 0
+  electricityCurrent.value = 0
+  waterPrevious.value = 0
+  waterCurrent.value = 0
+}
 
-defineExpose({ open });
+defineExpose({ open })
 </script>
 
 <template>
-  <BaseModal v-model="isModalOpen" maxWidth="2xl" :persistent="isLoading">
-    <template #title>
-      สร้างใบแจ้งหนี้ใหม่ (ห้อง {{ roomData?.roomNumber }})
-    </template>
+  <BaseModal v-model="isModalOpen" max-width="2xl" :persistent="isLoading">
+    <template #title> สร้างใบแจ้งหนี้ใหม่ (ห้อง {{ roomData?.roomNumber }}) </template>
 
     <div class="mt-4">
-      <form id="invoice-form" @submit.prevent="onSubmit" class="space-y-6">
+      <form id="invoice-form" class="space-y-6" @submit.prevent="onSubmit">
         <!-- Invoice Type Selection -->
         <BaseSelect
           v-model="invoiceType"
@@ -241,8 +241,8 @@ defineExpose({ open });
           <BaseDatePicker
             v-model="moveInDate"
             label="วันที่เข้าพัก"
-            @update:model-value="calculateProratedRent"
             required
+            @update:model-value="calculateProratedRent"
           />
 
           <BaseInput
@@ -290,14 +290,12 @@ defineExpose({ open });
           />
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              หลักฐาน (Optional)
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2"> หลักฐาน (Optional) </label>
             <input
               type="file"
               accept="image/*"
-              @change="(e) => damageProof = (e.target as HTMLInputElement).files?.[0] || null"
               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200"
+              @change="(e) => (damageProof = (e.target as HTMLInputElement).files?.[0] || null)"
             />
           </div>
         </div>
@@ -308,18 +306,14 @@ defineExpose({ open });
             <h4 class="font-semibold text-purple-900">ค่าบริการอื่นๆ</h4>
             <button
               type="button"
-              @click="addMiscItem"
               class="text-sm text-purple-600 hover:text-purple-700 font-medium"
+              @click="addMiscItem"
             >
               + เพิ่มรายการ
             </button>
           </div>
 
-          <div
-            v-for="(item, index) in miscItems"
-            :key="index"
-            class="flex gap-2 items-start"
-          >
+          <div v-for="(item, index) in miscItems" :key="index" class="flex gap-2 items-start">
             <div class="flex-1">
               <BaseInput
                 v-model="item.description"
@@ -340,8 +334,8 @@ defineExpose({ open });
             <button
               v-if="miscItems.length > 1"
               type="button"
-              @click="removeMiscItem(index)"
               :class="['mt-7 text-red-500 hover:text-red-700']"
+              @click="removeMiscItem(index)"
             >
               ×
             </button>
@@ -352,12 +346,7 @@ defineExpose({ open });
         <div v-if="invoiceType === 'MANUAL_MONTHLY'" class="space-y-4 p-4 bg-green-50 rounded-lg">
           <h4 class="font-semibold text-green-900">ค่าเช่าประจำเดือน</h4>
 
-          <BaseDatePicker
-            v-model="billingPeriod"
-            label="รอบบิล (เดือน)"
-            mode="month"
-            required
-          />
+          <BaseDatePicker v-model="billingPeriod" label="รอบบิล (เดือน)" mode="month" required />
 
           <BaseInput
             v-model.number="monthlyRent"
@@ -429,7 +418,7 @@ defineExpose({ open });
           </div>
         </div>
         <div class="flex justify-end gap-x-3">
-          <BaseButton @click="closeModal" variant="secondary" :disabled="isLoading">
+          <BaseButton variant="secondary" :disabled="isLoading" @click="closeModal">
             ยกเลิก
           </BaseButton>
           <BaseButton

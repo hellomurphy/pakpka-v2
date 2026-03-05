@@ -4,7 +4,7 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const addServiceSchema = z.object({
   serviceId: z.string().min(1, 'ต้องระบุ Service'),
-  customPrice: z.coerce.number().optional()
+  customPrice: z.coerce.number().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -13,10 +13,10 @@ export default defineEventHandler(async (event) => {
     if (!contractId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Contract ID'
+        statusMessage: 'ต้องระบุ Contract ID',
       })
     }
-    const body = await readValidatedBody(event, data => addServiceSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => addServiceSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
         contractId,
         serviceId: body.data.serviceId,
         customPrice: body.data.customPrice != null ? String(body.data.customPrice) : null,
-        startDate: now
+        startDate: now,
       })
       .returning()
     if (!newContractService) {

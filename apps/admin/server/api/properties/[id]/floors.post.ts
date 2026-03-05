@@ -4,7 +4,7 @@ import { ContractStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const updateFloorsSchema = z.object({
-  totalFloors: z.number().int().min(1)
+  totalFloors: z.number().int().min(1),
 })
 
 export default defineEventHandler(async (event) => {
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     if (!propertyId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Property ID' })
     }
-    const body = await readValidatedBody(event, data => updateFloorsSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateFloorsSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -35,18 +35,18 @@ export default defineEventHandler(async (event) => {
           id: crypto.randomUUID(),
           name: `ชั้น ${floorNumber}`,
           floorNumber,
-          propertyId
+          propertyId,
         })
       }
     } else if (totalFloors < currentFloorCount) {
-      const floorsToRemove = currentFloors.filter(f => f.floorNumber > totalFloors)
-      const floorIdsToRemove = floorsToRemove.map(f => f.id)
+      const floorsToRemove = currentFloors.filter((f) => f.floorNumber > totalFloors)
+      const floorIdsToRemove = floorsToRemove.map((f) => f.id)
       if (floorIdsToRemove.length > 0) {
         const roomsOnFloors = await db
           .select()
           .from(schema.room)
           .where(inArray(schema.room.floorId, floorIdsToRemove))
-        const roomIdsOnFloors = roomsOnFloors.map(r => r.id)
+        const roomIdsOnFloors = roomsOnFloors.map((r) => r.id)
         const activeOnFloors =
           roomIdsOnFloors.length > 0
             ? await db
@@ -55,15 +55,15 @@ export default defineEventHandler(async (event) => {
                 .where(
                   and(
                     inArray(schema.contract.roomId, roomIdsOnFloors),
-                    eq(schema.contract.status, ContractStatus.ACTIVE)
-                  )
+                    eq(schema.contract.status, ContractStatus.ACTIVE),
+                  ),
                 )
                 .limit(1)
             : []
         if (activeOnFloors.length > 0) {
           throw createError({
             statusCode: 409,
-            statusMessage: 'ไม่สามารถลดจำนวนชั้นได้'
+            statusMessage: 'ไม่สามารถลดจำนวนชั้นได้',
           })
         }
         await db.delete(schema.floor).where(inArray(schema.floor.id, floorIdsToRemove))

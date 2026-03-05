@@ -14,7 +14,7 @@ export const createContractSchema = z.object({
   waterMinimumCharge: z.coerce.number().min(0).default(0),
   electricityBillingType: z.enum(Object.values(BillingType) as [string, ...string[]]),
   electricityRate: z.coerce.number().min(0),
-  electricityMinimumCharge: z.coerce.number().min(0).default(0)
+  electricityMinimumCharge: z.coerce.number().min(0).default(0),
 })
 
 export type CreateContractInput = z.infer<typeof createContractSchema>

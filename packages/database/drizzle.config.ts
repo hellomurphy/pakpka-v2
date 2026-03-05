@@ -12,7 +12,8 @@ import { defineConfig } from 'drizzle-kit'
  * Override: set DATABASE_URL (e.g. file:/path/to/other.sqlite) to point Studio elsewhere.
  * If the local D1 file hash changes: ls .wrangler/state/v3/d1/miniflare-D1DatabaseObject/
  */
-const wranglerD1Path = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject/2745d5729486eded0d5c46a716e77d229e8e2423b6797adb34288688958525b6.sqlite'
+const wranglerD1Path =
+  '.wrangler/state/v3/d1/miniflare-D1DatabaseObject/2745d5729486eded0d5c46a716e77d229e8e2423b6797adb34288688958525b6.sqlite'
 
 export default defineConfig({
   dialect: 'sqlite',

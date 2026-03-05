@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!contractServiceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Contract Service ID is required'
+        statusMessage: 'Contract Service ID is required',
       })
     }
 
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (!cs) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบบริการเสริมในสัญญานี้'
+        statusMessage: 'ไม่พบบริการเสริมในสัญญานี้',
       })
     }
 
@@ -34,16 +34,15 @@ export default defineEventHandler(async (event) => {
     await requirePropertyStaff(event, contract.propertyId)
 
     await db.transaction(async (tx) => {
-      await tx.delete(schema.contractService).where(eq(schema.contractService.id, contractServiceId))
+      await tx
+        .delete(schema.contractService)
+        .where(eq(schema.contractService.id, contractServiceId))
 
       const [draftInv] = await tx
         .select()
         .from(schema.invoice)
         .where(
-          and(
-            eq(schema.invoice.contractId, cs.contractId),
-            eq(schema.invoice.status, 'DRAFT')
-          )
+          and(eq(schema.invoice.contractId, cs.contractId), eq(schema.invoice.status, 'DRAFT')),
         )
         .limit(1)
       if (draftInv) {

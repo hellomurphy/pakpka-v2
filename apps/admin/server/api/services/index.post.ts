@@ -7,14 +7,18 @@ const createServiceSchema = z.object({
   defaultPrice: z.coerce.number().min(0),
   billingCycle: z.enum(Object.values(BillingCycle) as [string, ...string[]]),
   isOptional: z.boolean().default(true),
-  propertyId: z.string().min(1)
+  propertyId: z.string().min(1),
 })
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readValidatedBody(event, data => createServiceSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => createServiceSchema.safeParse(data))
     if (!body.success) {
-      throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง', data: body.error.errors })
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'ข้อมูลไม่ถูกต้อง',
+        data: body.error.errors,
+      })
     }
     await requirePropertyStaff(event, body.data.propertyId)
 
@@ -27,7 +31,7 @@ export default defineEventHandler(async (event) => {
         defaultPrice: String(body.data.defaultPrice),
         billingCycle: body.data.billingCycle,
         isOptional: body.data.isOptional,
-        propertyId: body.data.propertyId
+        propertyId: body.data.propertyId,
       })
       .returning()
     if (!newService) throw createError({ statusCode: 500, statusMessage: 'สร้างบริการไม่สำเร็จ' })

@@ -23,15 +23,15 @@ export default defineEventHandler(async (event) => {
       const activeContracts = await tx
         .select({
           contractId: schema.contract.id,
-          roomId: schema.contract.roomId
+          roomId: schema.contract.roomId,
         })
         .from(schema.contract)
         .innerJoin(schema.contractTenant, eq(schema.contractTenant.contractId, schema.contract.id))
         .where(
           and(
             eq(schema.contractTenant.tenantId, tenantId),
-            eq(schema.contract.status, ContractStatus.ACTIVE)
-          )
+            eq(schema.contract.status, ContractStatus.ACTIVE),
+          ),
         )
         .limit(1)
 
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
           .update(schema.contract)
           .set({
             status: ContractStatus.TERMINATED,
-            endDate: new Date()
+            endDate: new Date(),
           })
           .where(eq(schema.contract.id, contractRow.contractId))
 

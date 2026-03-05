@@ -25,20 +25,17 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.contract.roomId, roomId),
-          inArray(schema.contract.status, [ContractStatus.ACTIVE, ContractStatus.PENDING])
-        )
+          inArray(schema.contract.status, [ContractStatus.ACTIVE, ContractStatus.PENDING]),
+        ),
       )
     if (activeContracts.length > 0) {
       throw createError({
         statusCode: 409,
-        statusMessage: 'ไม่สามารถลบห้องได้ เนื่องจากยังมีสัญญาที่กำลังใช้งานอยู่'
+        statusMessage: 'ไม่สามารถลบห้องได้ เนื่องจากยังมีสัญญาที่กำลังใช้งานอยู่',
       })
     }
 
-    const deleted = await db
-      .delete(schema.room)
-      .where(eq(schema.room.id, roomId))
-      .returning()
+    const deleted = await db.delete(schema.room).where(eq(schema.room.id, roomId)).returning()
     if (deleted.length === 0) {
       throw createError({ statusCode: 404, statusMessage: 'ไม่พบข้อมูลห้องพัก' })
     }

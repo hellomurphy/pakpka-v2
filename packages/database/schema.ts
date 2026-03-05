@@ -60,8 +60,7 @@ export const MaintenanceStatus = {
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
 } as const
-export type MaintenanceStatus =
-  (typeof MaintenanceStatus)[keyof typeof MaintenanceStatus]
+export type MaintenanceStatus = (typeof MaintenanceStatus)[keyof typeof MaintenanceStatus]
 
 export const ReservationStatus = {
   PENDING: 'PENDING',
@@ -69,8 +68,7 @@ export const ReservationStatus = {
   CANCELLED: 'CANCELLED',
   NO_SHOW: 'NO_SHOW',
 } as const
-export type ReservationStatus =
-  (typeof ReservationStatus)[keyof typeof ReservationStatus]
+export type ReservationStatus = (typeof ReservationStatus)[keyof typeof ReservationStatus]
 
 export const BillingCycle = {
   ONETIME: 'ONETIME',
@@ -86,8 +84,7 @@ export const ContractStatus = {
   EXPIRED: 'EXPIRED',
   TERMINATED: 'TERMINATED',
 } as const
-export type ContractStatus =
-  (typeof ContractStatus)[keyof typeof ContractStatus]
+export type ContractStatus = (typeof ContractStatus)[keyof typeof ContractStatus]
 
 export const PaymentMethod = {
   BANK_TRANSFER: 'BANK_TRANSFER',
@@ -95,8 +92,7 @@ export const PaymentMethod = {
   CREDIT_CARD: 'CREDIT_CARD',
   QR_PROMPTAY: 'QR_PROMPTAY',
 } as const
-export type PaymentMethod =
-  (typeof PaymentMethod)[keyof typeof PaymentMethod]
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 export const UtilityType = {
   ELECTRICITY: 'ELECTRICITY',
@@ -122,8 +118,7 @@ export const RoomNameFormat = {
   ALPHA_NUMERIC: 'ALPHA_NUMERIC',
   NUMERIC: 'NUMERIC',
 } as const
-export type RoomNameFormat =
-  (typeof RoomNameFormat)[keyof typeof RoomNameFormat]
+export type RoomNameFormat = (typeof RoomNameFormat)[keyof typeof RoomNameFormat]
 
 export const LateFeeType = {
   FIXED: 'FIXED',
@@ -152,16 +147,14 @@ export const BillingRunStatus = {
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',
 } as const
-export type BillingRunStatus =
-  (typeof BillingRunStatus)[keyof typeof BillingRunStatus]
+export type BillingRunStatus = (typeof BillingRunStatus)[keyof typeof BillingRunStatus]
 
 export const InvitationStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
   EXPIRED: 'EXPIRED',
 } as const
-export type InvitationStatus =
-  (typeof InvitationStatus)[keyof typeof InvitationStatus]
+export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
 
 // Decimal stored as text for precision (SQLite)
 const decimal = () => text()
@@ -214,8 +207,12 @@ export const user = sqliteTable('user', {
   avatarUrl: text('avatar_url'),
   image: text('image'),
   password: text('password'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 })
 
 // ===================================
@@ -231,7 +228,9 @@ export const property = sqliteTable('property', {
   defaultWaterBillingType: text('default_water_billing_type').default(BillingType.FLAT_RATE),
   defaultWaterRate: decimal().default('150'),
   defaultWaterMinimumCharge: decimal().default('100'),
-  defaultElectricityBillingType: text('default_electricity_billing_type').default(BillingType.PER_UNIT),
+  defaultElectricityBillingType: text('default_electricity_billing_type').default(
+    BillingType.PER_UNIT,
+  ),
   defaultElectricityRate: decimal().default('8'),
   defaultElectricityMinimumCharge: decimal().default('0'),
   defaultBillingCutoffDay: integer('default_billing_cutoff_day').default(28),
@@ -239,8 +238,12 @@ export const property = sqliteTable('property', {
   lateFeeEnabled: integer('late_fee_enabled', { mode: 'boolean' }).default(true),
   lateFeeType: text('late_fee_type').default(LateFeeType.FIXED),
   lateFeeValue: decimal().default('100'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 })
 
 export const propertyStaff = sqliteTable(
@@ -250,9 +253,7 @@ export const propertyStaff = sqliteTable(
     propertyId: text('property_id').notNull(),
     role: text('role').default(Role.STAFF),
   },
-  (t) => [
-    primaryKey({ columns: [t.userId, t.propertyId] }),
-  ],
+  (t) => [primaryKey({ columns: [t.userId, t.propertyId] })],
 )
 
 export const floor = sqliteTable(
@@ -262,8 +263,12 @@ export const floor = sqliteTable(
     name: text('name').notNull(),
     floorNumber: integer('floor_number').notNull(),
     propertyId: text('property_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [unique('floor_property_id_floor_number').on(t.propertyId, t.floorNumber)],
 )
@@ -271,7 +276,9 @@ export const floor = sqliteTable(
 export const amenity = sqliteTable('amenity', {
   id: text('id').primaryKey(),
   name: text('name').notNull().unique(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 })
 
 export const roomType = sqliteTable(
@@ -282,8 +289,12 @@ export const roomType = sqliteTable(
     basePrice: decimal().notNull(),
     deposit: decimal().notNull(),
     propertyId: text('property_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [index('room_type_property_id').on(t.propertyId)],
 )
@@ -306,8 +317,12 @@ export const room = sqliteTable(
     roomTypeId: text('room_type_id').notNull(),
     propertyId: text('property_id').notNull(),
     floorId: text('floor_id').default(''),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     unique('room_property_id_room_number').on(t.propertyId, t.roomNumber),
@@ -340,8 +355,12 @@ export const tenant = sqliteTable(
     propertyId: text('property_id').notNull(),
     userId: text('user_id').unique(),
     desiredRoomTypeId: text('desired_room_type_id'),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     index('tenant_desired_room_type_id').on(t.desiredRoomTypeId),
@@ -370,8 +389,12 @@ export const contract = sqliteTable(
     rentAmount: decimal().notNull(),
     roomId: text('room_id').notNull(),
     propertyId: text('property_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     index('contract_room_id').on(t.roomId),
@@ -413,8 +436,12 @@ export const service = sqliteTable(
     billingCycle: text('billing_cycle').notNull(),
     propertyId: text('property_id').notNull(),
     isOptional: integer('is_optional', { mode: 'boolean' }).default(true),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     unique('service_property_id_name').on(t.propertyId, t.name),
@@ -449,7 +476,9 @@ export const billingRun = sqliteTable(
     totalContracts: integer('total_contracts').notNull(),
     meterReadingRequired: integer('meter_reading_required').notNull(),
     executedById: text('executed_by_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     unique('billing_run_property_id_period').on(t.propertyId, t.period),
@@ -468,8 +497,12 @@ export const invoice = sqliteTable(
     status: text('status').default(InvoiceStatus.DRAFT),
     contractId: text('contract_id').notNull(),
     billingRunId: text('billing_run_id'),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     index('invoice_property_id').on(t.propertyId),
@@ -497,8 +530,12 @@ export const receivingAccount = sqliteTable(
     details: text('details', { mode: 'json' }).notNull(),
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
     propertyId: text('property_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [index('receiving_account_property_id').on(t.propertyId)],
 )
@@ -519,8 +556,12 @@ export const payment = sqliteTable(
     gatewayProvider: text('gateway_provider'),
     gatewayTransactionId: text('gateway_transaction_id').unique(),
     gatewayResponse: text('gateway_response', { mode: 'json' }),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     index('payment_invoice_id').on(t.invoiceId),
@@ -577,8 +618,12 @@ export const maintenanceRequest = sqliteTable(
     dueDate: integer('due_date', { mode: 'timestamp' }),
     roomId: text('room_id').notNull(),
     reportedByContractId: text('reported_by_contract_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     index('maintenance_request_room_id').on(t.roomId),
@@ -596,8 +641,12 @@ export const reservation = sqliteTable(
     propertyId: text('property_id').notNull(),
     roomId: text('room_id').notNull(),
     tenantId: text('tenant_id').notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (t) => [
     index('reservation_property_id').on(t.propertyId),
@@ -617,7 +666,9 @@ export const invitation = sqliteTable(
     nameForReference: text('name_for_reference'),
     invitedById: text('invited_by_id').notNull(),
     acceptedByUserId: text('accepted_by_user_id'),
-    createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
     expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
     acceptedAt: integer('accepted_at', { mode: 'timestamp' }),
   },

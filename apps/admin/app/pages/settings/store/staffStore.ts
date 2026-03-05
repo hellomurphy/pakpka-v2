@@ -1,11 +1,11 @@
-import { defineStore } from "pinia";
-import { useApiFetch } from "~/composables/useApiFetch";
-import { usePropertyStore } from "~/store/propertyStore";
+import { defineStore } from 'pinia'
+import { useApiFetch } from '~/composables/useApiFetch'
+import { usePropertyStore } from '~/store/propertyStore'
 
-export const useStaffStore = defineStore("staff", {
+export const useStaffStore = defineStore('staff', {
   state: () => ({
-    staff: [] as any[],
-    invitations: [] as any[],
+    staff: [] as Record<string, unknown>[],
+    invitations: [] as Record<string, unknown>[],
     isLoading: false,
   }),
   actions: {
@@ -13,40 +13,34 @@ export const useStaffStore = defineStore("staff", {
      * ดึงข้อมูลทีมงานและคำเชิญทั้งหมด
      */
     async fetchStaffAndInvitations(propertyId: string) {
-      if (!propertyId) return;
-      this.isLoading = true;
+      if (!propertyId) return
+      this.isLoading = true
       try {
-        const response = await useApiFetch(
-          `/api/properties/${propertyId}/staff`,
-          {
-            showNotification: false,
-          }
-        );
+        const response = await useApiFetch(`/api/properties/${propertyId}/staff`, {
+          showNotification: false,
+        })
         if (response.success && response.data) {
-          this.staff = response.data.staff;
-          this.invitations = response.data.invitations;
+          this.staff = response.data.staff
+          this.invitations = response.data.invitations
         }
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
     /**
      * สร้างคำเชิญใหม่
      */
-    async createInvitation(data: {
-      nameForReference: string;
-      role: "ADMIN" | "STAFF";
-    }) {
-      const propertyStore = usePropertyStore();
-      const response = await useApiFetch("/api/invitations", {
-        method: "POST",
+    async createInvitation(data: { nameForReference: string; role: 'ADMIN' | 'STAFF' }) {
+      const propertyStore = usePropertyStore()
+      const response = await useApiFetch('/api/invitations', {
+        method: 'POST',
         body: { ...data, propertyId: propertyStore.propertyId },
-      });
+      })
       if (response.success) {
-        this.invitations.push(response.data); // Optimistic UI
+        this.invitations.push(response.data) // Optimistic UI
       }
-      return response;
+      return response
     },
 
     /**
@@ -54,52 +48,50 @@ export const useStaffStore = defineStore("staff", {
      */
     async revokeInvitation(invitationId: string) {
       const response = await useApiFetch(`/api/invitations/${invitationId}`, {
-        method: "DELETE",
-      });
+        method: 'DELETE',
+      })
       if (response.success) {
-        this.invitations = this.invitations.filter(
-          (inv) => inv.id !== invitationId
-        ); // Optimistic UI
+        this.invitations = this.invitations.filter((inv) => inv.id !== invitationId) // Optimistic UI
       }
-      return response;
+      return response
     },
 
     /**
      * อัปเดต Role ของทีมงาน
      */
-    async updateStaffRole(userId: string, role: "ADMIN" | "STAFF") {
-      const propertyStore = usePropertyStore();
-      const response = await useApiFetch("/api/staff/role", {
-        method: "PUT",
+    async updateStaffRole(userId: string, role: 'ADMIN' | 'STAFF') {
+      const propertyStore = usePropertyStore()
+      const response = await useApiFetch('/api/staff/role', {
+        method: 'PUT',
         body: {
           propertyId: propertyStore.propertyId,
           userId: userId,
           role: role,
         },
-      });
+      })
       if (response.success) {
-        const member = this.staff.find((s) => s.userId === userId);
-        if (member) member.role = role;
+        const member = this.staff.find((s) => s.userId === userId)
+        if (member) member.role = role
       }
-      return response;
+      return response
     },
 
     /**
      * นำทีมงานออกจากหอพัก
      */
     async removeStaff(userId: string) {
-      const propertyStore = usePropertyStore();
-      const response = await useApiFetch("/api/staff", {
-        method: "DELETE",
+      const propertyStore = usePropertyStore()
+      const response = await useApiFetch('/api/staff', {
+        method: 'DELETE',
         body: {
           propertyId: propertyStore.propertyId,
           userId: userId,
         },
-      });
+      })
       if (response.success) {
-        this.staff = this.staff.filter((s) => s.userId !== userId); // Optimistic UI
+        this.staff = this.staff.filter((s) => s.userId !== userId) // Optimistic UI
       }
-      return response;
+      return response
     },
   },
-});
+})

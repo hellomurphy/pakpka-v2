@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     deleteCookie(event, STATE_COOKIE_NAME, { path: '/' })
     throw createError({
       statusCode: 400,
-      statusMessage: errorDesc ?? errorCode ?? 'LINE login failed'
+      statusMessage: errorDesc ?? errorCode ?? 'LINE login failed',
     })
   }
 
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   if (!code || !state) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Missing code or state from LINE callback'
+      statusMessage: 'Missing code or state from LINE callback',
     })
   }
 
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
   if (!savedState || savedState !== state) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Invalid state; possible CSRF. Try logging in again.'
+      statusMessage: 'Invalid state; possible CSRF. Try logging in again.',
     })
   }
 
@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
   if (!channelId || !channelSecret) {
     throw createError({
       statusCode: 503,
-      statusMessage: 'LINE Login is not configured.'
+      statusMessage: 'LINE Login is not configured.',
     })
   }
 
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
     code,
     redirect_uri: callbackUrl,
     client_id: channelId,
-    client_secret: channelSecret
+    client_secret: channelSecret,
   })
 
   const tokenRes = await $fetch<{
@@ -73,11 +73,11 @@ export default defineEventHandler(async (event) => {
   }>(LINE_TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: tokenBody.toString()
+    body: tokenBody.toString(),
   }).catch((err: { data?: { error_description?: string } }) => {
     throw createError({
       statusCode: 502,
-      statusMessage: err?.data?.error_description ?? 'LINE token exchange failed'
+      statusMessage: err?.data?.error_description ?? 'LINE token exchange failed',
     })
   })
 
@@ -85,7 +85,7 @@ export default defineEventHandler(async (event) => {
   if (!accessToken) {
     throw createError({
       statusCode: 502,
-      statusMessage: 'LINE did not return an access token'
+      statusMessage: 'LINE did not return an access token',
     })
   }
 
@@ -95,11 +95,11 @@ export default defineEventHandler(async (event) => {
     pictureUrl?: string
     statusMessage?: string
   }>(LINE_PROFILE_URL, {
-    headers: { Authorization: `Bearer ${accessToken}` }
+    headers: { Authorization: `Bearer ${accessToken}` },
   }).catch(() => {
     throw createError({
       statusCode: 502,
-      statusMessage: 'Failed to fetch LINE profile'
+      statusMessage: 'Failed to fetch LINE profile',
     })
   })
 
@@ -110,8 +110,8 @@ export default defineEventHandler(async (event) => {
     .where(
       and(
         eq(schema.account.provider, LINE_PROVIDER),
-        eq(schema.account.providerAccountId, providerAccountId)
-      )
+        eq(schema.account.providerAccountId, providerAccountId),
+      ),
     )
     .limit(1)
 
@@ -127,13 +127,13 @@ export default defineEventHandler(async (event) => {
       .set({
         accessToken: tokenRes.access_token ?? null,
         refreshToken: tokenRes.refresh_token ?? null,
-        expiresAt
+        expiresAt,
       })
       .where(
         and(
           eq(schema.account.provider, LINE_PROVIDER),
-          eq(schema.account.providerAccountId, providerAccountId)
-        )
+          eq(schema.account.providerAccountId, providerAccountId),
+        ),
       )
   } else {
     userId = crypto.randomUUID()
@@ -143,7 +143,7 @@ export default defineEventHandler(async (event) => {
       name: profile.displayName ?? null,
       image: profile.pictureUrl ?? null,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     })
     const accountExpiresAt = tokenRes.expires_in
       ? Math.floor(Date.now() / 1000) + tokenRes.expires_in
@@ -158,7 +158,7 @@ export default defineEventHandler(async (event) => {
       refreshToken: tokenRes.refresh_token ?? null,
       expiresAt: accountExpiresAt,
       tokenType: 'Bearer',
-      scope: tokenRes.scope ?? null
+      scope: tokenRes.scope ?? null,
     })
   }
 
@@ -171,7 +171,7 @@ export default defineEventHandler(async (event) => {
     id: sessionId,
     sessionToken,
     userId,
-    expires
+    expires,
   })
 
   setCookie(event, SESSION_COOKIE_NAME, sessionToken, {
@@ -179,7 +179,7 @@ export default defineEventHandler(async (event) => {
     secure: true,
     sameSite: 'lax',
     maxAge: SESSION_MAX_AGE_DAYS * 24 * 60 * 60,
-    path: '/'
+    path: '/',
   })
 
   const [userRow] = await db
@@ -188,7 +188,7 @@ export default defineEventHandler(async (event) => {
       name: schema.user.name,
       email: schema.user.email,
       image: schema.user.image,
-      avatarUrl: schema.user.avatarUrl
+      avatarUrl: schema.user.avatarUrl,
     })
     .from(schema.user)
     .where(eq(schema.user.id, userId))
@@ -200,8 +200,8 @@ export default defineEventHandler(async (event) => {
         id: userRow.id,
         name: userRow.name ?? undefined,
         email: userRow.email ?? undefined,
-        image: userRow.image ?? userRow.avatarUrl ?? undefined
-      }
+        image: userRow.image ?? userRow.avatarUrl ?? undefined,
+      },
     })
   }
 

@@ -1,69 +1,65 @@
 <script setup>
-import { ref, computed } from "vue";
-import { useForm } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
-import * as z from "zod";
-import { useInvoicesStore } from "~/store/invoicesStore";
-import BaseModal from "~/components/ui/BaseModal.vue";
-import BaseButton from "~/components/ui/BaseButton.vue";
-import { BoltIcon, CloudIcon } from "@heroicons/vue/24/outline";
+import { ref, computed } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import { useInvoicesStore } from '~/store/invoicesStore'
+import BaseModal from '~/components/ui/BaseModal.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import { BoltIcon, CloudIcon } from '@heroicons/vue/24/outline'
 
-const emit = defineEmits(["success"]);
-const invoicesStore = useInvoicesStore();
+const emit = defineEmits(['success'])
+const invoicesStore = useInvoicesStore()
 
-const isModalOpen = ref(false);
-const readingData = ref(null); // State สำหรับเก็บข้อมูล
+const isModalOpen = ref(false)
+const readingData = ref(null) // State สำหรับเก็บข้อมูล
 
 // --- Validation ---
-const { handleSubmit, defineField, resetForm, errors } = useForm();
-const [newValue, newValueAttrs] = defineField("newValue");
+const { handleSubmit, defineField, resetForm, errors } = useForm()
+const [newValue, newValueAttrs] = defineField('newValue')
 
 // --- Methods ---
 const onSubmit = handleSubmit(async (values) => {
-  if (!readingData.value) return;
+  if (!readingData.value) return
 
-  const response = await invoicesStore.updateMeterReading(
-    readingData.value.meterReadingId,
-    { readingValue: values.newValue }
-  );
+  const response = await invoicesStore.updateMeterReading(readingData.value.meterReadingId, {
+    readingValue: values.newValue,
+  })
 
   if (response.success) {
-    emit("success");
-    closeModal();
+    emit('success')
+    closeModal()
   }
-});
+})
 
 const open = (data) => {
-  readingData.value = { ...data };
+  readingData.value = { ...data }
   // สร้าง Zod schema แบบ dynamic เพื่อ validate ว่าเลขใหม่ต้องไม่น้อยกว่าเลขเก่า
   const schema = toTypedSchema(
     z.object({
       newValue: z.coerce
         .number()
-        .min(
-          data.oldValue,
-          `เลขมิเตอร์ใหม่ต้องไม่น้อยกว่าครั้งก่อน (${data.oldValue})`
-        ),
-    })
-  );
-  resetForm({ validationSchema: schema, values: { newValue: data.newValue } });
-  isModalOpen.value = true;
-};
+        .min(data.oldValue, `เลขมิเตอร์ใหม่ต้องไม่น้อยกว่าครั้งก่อน (${data.oldValue})`),
+    }),
+  )
+  resetForm({ validationSchema: schema, values: { newValue: data.newValue } })
+  isModalOpen.value = true
+}
 const closeModal = () => {
-  isModalOpen.value = false;
-};
-defineExpose({ open });
+  isModalOpen.value = false
+}
+defineExpose({ open })
 
 const utilityInfo = computed(() => {
-  if (readingData.value?.utilityType === "ELECTRICITY") {
-    return { label: "ค่าไฟฟ้า", icon: BoltIcon, iconClass: "text-yellow-500" };
+  if (readingData.value?.utilityType === 'ELECTRICITY') {
+    return { label: 'ค่าไฟฟ้า', icon: BoltIcon, iconClass: 'text-yellow-500' }
   }
-  return { label: "ค่าน้ำประปา", icon: CloudIcon, iconClass: "text-sky-500" };
-});
+  return { label: 'ค่าน้ำประปา', icon: CloudIcon, iconClass: 'text-sky-500' }
+})
 </script>
 
 <template>
-  <BaseModal v-if="readingData" v-model="isModalOpen" maxWidth="md">
+  <BaseModal v-if="readingData" v-model="isModalOpen" max-width="md">
     <template #title> แก้ไขการจดมิเตอร์: {{ utilityInfo.label }} </template>
     <div class="mt-4">
       <p class="text-sm text-gray-600 mb-4">
@@ -80,8 +76,8 @@ const utilityInfo = computed(() => {
           <p class="text-2xl text-gray-300">→</p>
           <div class="flex-1">
             <input
-              type="number"
               v-model.number="newValue"
+              type="number"
               v-bind="newValueAttrs"
               class="w-full text-center rounded-lg border-gray-300 shadow-sm text-lg p-3"
             />
@@ -94,12 +90,8 @@ const utilityInfo = computed(() => {
     </div>
     <template #footer>
       <div class="w-full flex justify-end gap-x-3">
-        <BaseButton @click="closeModal" variant="secondary">ยกเลิก</BaseButton>
-        <BaseButton
-          type="submit"
-          form="edit-meter-form"
-          :loading="invoicesStore.isLoading"
-        >
+        <BaseButton variant="secondary" @click="closeModal"> ยกเลิก </BaseButton>
+        <BaseButton type="submit" form="edit-meter-form" :loading="invoicesStore.isLoading">
           บันทึกและคำนวณใหม่
         </BaseButton>
       </div>

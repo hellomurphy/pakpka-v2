@@ -8,12 +8,13 @@ export default defineNitroPlugin(async () => {
   try {
     await db.run(sql`SELECT 1`)
     console.log('✅ [DB] Connection established successfully')
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err))
     console.error('❌ [DB] Connection failed!')
     console.error(`📝 Error: ${error.message}`)
 
     // ถ้าต่อติดแต่ query ผิดพลาด มันจะฟ้องที่นี่
-    if (error.message.includes('no such table')) {
+    if (error.message?.includes('no such table')) {
       console.warn('💡 Tip: The connection is fine, but the table "user" was not found.')
     }
   }

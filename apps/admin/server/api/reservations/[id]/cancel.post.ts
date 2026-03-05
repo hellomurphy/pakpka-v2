@@ -8,19 +8,24 @@ export default defineEventHandler(async (event) => {
     if (!reservationId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Reservation ID'
+        statusMessage: 'ต้องระบุ Reservation ID',
       })
     }
 
     const [reservation] = await db
-      .select({ id: schema.reservation.id, status: schema.reservation.status, roomId: schema.reservation.roomId, propertyId: schema.reservation.propertyId })
+      .select({
+        id: schema.reservation.id,
+        status: schema.reservation.status,
+        roomId: schema.reservation.roomId,
+        propertyId: schema.reservation.propertyId,
+      })
       .from(schema.reservation)
       .where(eq(schema.reservation.id, reservationId))
       .limit(1)
     if (!reservation) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลการจองที่ต้องการยกเลิก'
+        statusMessage: 'ไม่พบข้อมูลการจองที่ต้องการยกเลิก',
       })
     }
     await requirePropertyStaff(event, reservation.propertyId)
@@ -28,7 +33,7 @@ export default defineEventHandler(async (event) => {
     if (reservation.status === ReservationStatus.CANCELLED) {
       throw createError({
         statusCode: 409,
-        statusMessage: 'การจองนี้ถูกยกเลิกไปแล้ว'
+        statusMessage: 'การจองนี้ถูกยกเลิกไปแล้ว',
       })
     }
 

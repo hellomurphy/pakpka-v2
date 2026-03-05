@@ -10,7 +10,7 @@ import { getSessionCookie } from '../../helpers'
 describe('Integration – POST /api/contracts (handler + DB)', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   it('returns 401 when not authenticated', async () => {
@@ -32,8 +32,8 @@ describe('Integration – POST /api/contracts (handler + DB)', async () => {
           waterMinimumCharge: 0,
           electricityBillingType: 'FLAT_RATE',
           electricityRate: 0,
-          electricityMinimumCharge: 0
-        }
+          electricityMinimumCharge: 0,
+        },
       })
       expect.fail('Expected 401')
     } catch (err: unknown) {
@@ -73,8 +73,8 @@ describe('Integration – POST /api/contracts (handler + DB)', async () => {
           waterMinimumCharge: 0,
           electricityBillingType: 'FLAT_RATE',
           electricityRate: 0,
-          electricityMinimumCharge: 0
-        }
+          electricityMinimumCharge: 0,
+        },
       })
       expect.fail('Expected 403 or 404')
     } catch (err: unknown) {

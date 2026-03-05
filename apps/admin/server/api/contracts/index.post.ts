@@ -1,25 +1,29 @@
 import dayjs from 'dayjs'
 import { eq, and, lte, gte, inArray } from 'drizzle-orm'
-import { BillingType, ContractStatus, TenantStatus, RoomStatus, ReservationStatus } from '@repo/db'
+import { ContractStatus, TenantStatus, RoomStatus, ReservationStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 import { hasOverlappingDateRanges } from '~~/server/utils/date-overlap'
 import { createContractSchema } from '~~/server/utils/schemas/contract'
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readValidatedBody(event, data => createContractSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => createContractSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
     const data = body.data
     await requirePropertyStaff(event, data.propertyId)
 
     const newContract = await db.transaction(async (tx) => {
-      const [room] = await tx.select().from(schema.room).where(eq(schema.room.id, data.roomId)).limit(1)
+      const [room] = await tx
+        .select()
+        .from(schema.room)
+        .where(eq(schema.room.id, data.roomId))
+        .limit(1)
       if (!room) {
         throw createError({ statusCode: 404, statusMessage: 'ไม่พบห้องพักนี้' })
       }
@@ -33,14 +37,14 @@ export default defineEventHandler(async (event) => {
             inArray(schema.contract.status, [ContractStatus.ACTIVE, ContractStatus.PENDING]),
             and(
               lte(schema.contract.startDate, data.endDate),
-              gte(schema.contract.endDate, data.startDate)
-            )
-          )
+              gte(schema.contract.endDate, data.startDate),
+            ),
+          ),
         )
       if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingContracts)) {
         throw createError({
           statusCode: 409,
-          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับสัญญาที่มีอยู่แล้ว'
+          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับสัญญาที่มีอยู่แล้ว',
         })
       }
 
@@ -50,17 +54,20 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.reservation.roomId, data.roomId),
-            inArray(schema.reservation.status, [ReservationStatus.PENDING, ReservationStatus.CONFIRMED]),
+            inArray(schema.reservation.status, [
+              ReservationStatus.PENDING,
+              ReservationStatus.CONFIRMED,
+            ]),
             and(
               lte(schema.reservation.startDate, data.endDate),
-              gte(schema.reservation.endDate, data.startDate)
-            )
-          )
+              gte(schema.reservation.endDate, data.startDate),
+            ),
+          ),
         )
       if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingReservations)) {
         throw createError({
           statusCode: 409,
-          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับการจองห้องที่มีอยู่แล้ว'
+          statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับการจองห้องที่มีอยู่แล้ว',
         })
       }
 
@@ -78,13 +85,13 @@ export default defineEventHandler(async (event) => {
         waterMinimumCharge: String(data.waterMinimumCharge),
         electricityBillingType: data.electricityBillingType,
         electricityRate: String(data.electricityRate),
-        electricityMinimumCharge: String(data.electricityMinimumCharge)
+        electricityMinimumCharge: String(data.electricityMinimumCharge),
       })
 
       await tx.insert(schema.contractTenant).values({
         contractId,
         tenantId: data.tenantId,
-        isPrimary: true
+        isPrimary: true,
       })
 
       const newTenantStatus = dayjs(data.startDate).isAfter(dayjs(), 'day')
@@ -109,7 +116,7 @@ export default defineEventHandler(async (event) => {
           id: crypto.randomUUID(),
           contractId,
           amount: String(data.depositAmount),
-          receivedDate: new Date()
+          receivedDate: new Date(),
         })
       }
 

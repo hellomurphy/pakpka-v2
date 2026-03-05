@@ -7,7 +7,7 @@ import { calcUtilityCost } from '~~/server/utils/utility-cost'
 
 const readingSchema = z.object({
   newElec: z.number().min(0, 'เลขมิเตอร์ต้องไม่ติดลบ'),
-  newWater: z.number().min(0, 'เลขมิเตอร์ต้องไม่ติดลบ')
+  newWater: z.number().min(0, 'เลขมิเตอร์ต้องไม่ติดลบ'),
 })
 
 export default defineEventHandler(async (event) => {
@@ -16,15 +16,15 @@ export default defineEventHandler(async (event) => {
     if (!invoiceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invoice ID is required'
+        statusMessage: 'Invoice ID is required',
       })
     }
-    const body = await readValidatedBody(event, data => readingSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => readingSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
     const { newElec, newWater } = body.data
@@ -55,8 +55,8 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.invoice.contractId, contractRow.id),
-          eq(schema.invoice.period, previousPeriod)
-        )
+          eq(schema.invoice.period, previousPeriod),
+        ),
       )
       .limit(1)
     let oldElec = 0
@@ -78,13 +78,13 @@ export default defineEventHandler(async (event) => {
       elecUnits,
       contractRow.electricityBillingType,
       contractRow.electricityRate,
-      contractRow.electricityMinimumCharge
+      contractRow.electricityMinimumCharge,
     )
     const waterCost = calcUtilityCost(
       waterUnits,
       contractRow.waterBillingType,
       contractRow.waterRate,
-      contractRow.waterMinimumCharge
+      contractRow.waterMinimumCharge,
     )
 
     await db.transaction(async (tx) => {
@@ -94,8 +94,8 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.meterReading.invoiceId, invoiceId),
-            eq(schema.meterReading.utilityType, UtilityType.ELECTRICITY)
-          )
+            eq(schema.meterReading.utilityType, UtilityType.ELECTRICITY),
+          ),
         )
         .limit(1)
       if (existingElec.length > 0) {
@@ -109,7 +109,7 @@ export default defineEventHandler(async (event) => {
           invoiceId,
           utilityType: UtilityType.ELECTRICITY,
           readingValue: String(newElec),
-          readingDate: new Date()
+          readingDate: new Date(),
         })
       }
 
@@ -119,8 +119,8 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.meterReading.invoiceId, invoiceId),
-            eq(schema.meterReading.utilityType, UtilityType.WATER)
-          )
+            eq(schema.meterReading.utilityType, UtilityType.WATER),
+          ),
         )
         .limit(1)
       if (existingWater.length > 0) {
@@ -134,7 +134,7 @@ export default defineEventHandler(async (event) => {
           invoiceId,
           utilityType: UtilityType.WATER,
           readingValue: String(newWater),
-          readingDate: new Date()
+          readingDate: new Date(),
         })
       }
 
@@ -146,9 +146,9 @@ export default defineEventHandler(async (event) => {
             eq(schema.invoiceItem.invoiceId, invoiceId),
             or(
               eq(schema.invoiceItem.description, 'ค่าไฟฟ้า'),
-              eq(schema.invoiceItem.description, 'ค่าน้ำประปา')
-            )
-          )
+              eq(schema.invoiceItem.description, 'ค่าน้ำประปา'),
+            ),
+          ),
         )
       for (const it of utilityItemIds) {
         await tx.delete(schema.invoiceItem).where(eq(schema.invoiceItem.id, it.id))
@@ -158,14 +158,14 @@ export default defineEventHandler(async (event) => {
           id: crypto.randomUUID(),
           invoiceId,
           description: 'ค่าไฟฟ้า',
-          amount: String(elecCost)
+          amount: String(elecCost),
         },
         {
           id: crypto.randomUUID(),
           invoiceId,
           description: 'ค่าน้ำประปา',
-          amount: String(waterCost)
-        }
+          amount: String(waterCost),
+        },
       ])
 
       const allItems = await tx

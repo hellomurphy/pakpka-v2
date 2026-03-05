@@ -8,14 +8,14 @@ import { $fetch, setup } from '@nuxt/test-utils/e2e'
 describe('Server API – Payments (e2e)', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   describe('POST /api/payments/:id/approve', () => {
     it('returns 401 when no session (auth middleware)', async () => {
       try {
         await $fetch('/api/payments/00000000-0000-0000-0000-000000000000/approve', {
-          method: 'POST'
+          method: 'POST',
         })
         expect.fail('Expected 401')
       } catch (err: unknown) {
@@ -30,7 +30,7 @@ describe('Server API – Payments (e2e)', async () => {
       try {
         await $fetch('/api/payments/00000000-0000-0000-0000-000000000000/reject', {
           method: 'POST',
-          body: {}
+          body: {},
         })
         expect.fail('Expected 401')
       } catch (err: unknown) {

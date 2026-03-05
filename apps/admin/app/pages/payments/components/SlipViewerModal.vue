@@ -1,33 +1,28 @@
 <script setup>
-import { ref } from "vue";
-import {
-  Dialog,
-  DialogPanel,
-  TransitionRoot,
-  TransitionChild,
-} from "@headlessui/vue";
-import { XMarkIcon } from "@heroicons/vue/24/solid";
+import { ref } from 'vue'
+import { Dialog, DialogPanel, TransitionRoot, TransitionChild } from '@headlessui/vue'
+import { XMarkIcon } from '@heroicons/vue/24/solid'
 
-const isOpen = ref(false);
-const imageUrl = ref("");
-const isLoading = ref(true); // ✨ State ใหม่สำหรับจัดการ Loading
+const isOpen = ref(false)
+const imageUrl = ref('')
+const isLoading = ref(true) // ✨ State ใหม่สำหรับจัดการ Loading
 
 const open = (url) => {
-  imageUrl.value = url;
-  isLoading.value = true; // ✨ เริ่ม Loading ทุกครั้งที่เปิด
-  isOpen.value = true;
-};
+  imageUrl.value = url
+  isLoading.value = true // ✨ เริ่ม Loading ทุกครั้งที่เปิด
+  isOpen.value = true
+}
 
 const close = () => {
-  isOpen.value = false;
-};
+  isOpen.value = false
+}
 
 // ✨ ฟังก์ชันนี้จะถูกเรียกเมื่อรูปภาพโหลดเสร็จ
 const onImageLoad = () => {
-  isLoading.value = false;
-};
+  isLoading.value = false
+}
 
-defineExpose({ open });
+defineExpose({ open })
 </script>
 
 <template>
@@ -42,15 +37,11 @@ defineExpose({ open });
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div
-          class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
-        />
+        <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto" @click="close">
-        <div
-          class="flex min-h-full items-center justify-center p-4 text-center"
-        >
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
           <TransitionChild
             as="template"
             enter="ease-out duration-300"
@@ -60,12 +51,10 @@ defineExpose({ open });
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel
-              class="relative w-full max-w-lg transform text-left transition-all"
-            >
+            <DialogPanel class="relative w-full max-w-lg transform text-left transition-all">
               <button
-                @click="close"
                 class="absolute -top-4 -right-4 z-10 p-2 bg-white/20 rounded-full text-white hover:bg-white/30 focus:outline-none"
+                @click="close"
               >
                 <XMarkIcon class="h-6 w-6" />
               </button>
@@ -73,7 +62,7 @@ defineExpose({ open });
               <div
                 v-if="isLoading"
                 class="aspect-[3/4] w-full bg-slate-200 rounded-lg animate-pulse"
-              ></div>
+              />
 
               <img
                 :src="imageUrl"

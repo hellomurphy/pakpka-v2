@@ -1,73 +1,70 @@
 <script setup>
-import { ref } from "vue";
-import { useForm } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
-import * as z from "zod";
-import BaseModal from "~/components/ui/BaseModal.vue";
-import BaseDatePicker from "~/components/form/BaseDatePicker.vue";
-import BaseButton from "~/components/ui/BaseButton.vue";
-import dayjs from "dayjs";
-import { useContractsStore } from "~/store/contractsStore";
+import { ref } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import BaseModal from '~/components/ui/BaseModal.vue'
+import BaseDatePicker from '~/components/form/BaseDatePicker.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import dayjs from 'dayjs'
+import { useContractsStore } from '~/store/contractsStore'
 
-const emit = defineEmits(["success"]);
+const emit = defineEmits(['success'])
 
-const contractsStore = useContractsStore();
+const contractsStore = useContractsStore()
 
-const isModalOpen = ref(false);
-const isLoading = ref(false);
-const contractInfo = ref(null);
+const isModalOpen = ref(false)
+const isLoading = ref(false)
+const contractInfo = ref(null)
 
 const schema = toTypedSchema(
   z.object({
     noticeDate: z.coerce
-      .date({ required_error: "กรุณาเลือกวันที่แจ้งย้ายออก" })
-      .min(new Date(), { message: "วันที่ต้องไม่ใช่วันในอดีต" }),
-  })
-);
+      .date({ required_error: 'กรุณาเลือกวันที่แจ้งย้ายออก' })
+      .min(new Date(), { message: 'วันที่ต้องไม่ใช่วันในอดีต' }),
+  }),
+)
 
 const { handleSubmit, defineField, resetForm, errors } = useForm({
   validationSchema: schema,
-});
-const [noticeDate, noticeDateAttrs] = defineField("noticeDate");
+})
+const [noticeDate, noticeDateAttrs] = defineField('noticeDate')
 
 const onSubmit = handleSubmit(async (values) => {
   const isSuccess = await contractsStore.giveNoticeOfMoveOut(
     contractInfo.value.activeContract.id,
-    values.noticeDate
-  );
+    values.noticeDate,
+  )
 
   if (isSuccess) {
-    emit("success", "NOTICE_GIVEN");
-    closeModal();
+    emit('success', 'NOTICE_GIVEN')
+    closeModal()
   }
-});
+})
 
 const open = (tenant) => {
-  if (!tenant) return;
-  contractInfo.value = tenant;
+  if (!tenant) return
+  contractInfo.value = tenant
   resetForm({
     values: {
-      noticeDate: dayjs(tenant.activeContract.endDate)
-        .toISOString()
-        .split("T")[0],
+      noticeDate: dayjs(tenant.activeContract.endDate).toISOString().split('T')[0],
     },
-  });
-  isModalOpen.value = true;
-};
+  })
+  isModalOpen.value = true
+}
 const closeModal = () => {
-  isModalOpen.value = false;
-};
-defineExpose({ open });
+  isModalOpen.value = false
+}
+defineExpose({ open })
 </script>
 
 <template>
-  <BaseModal v-model="isModalOpen" maxWidth="md" :persistent="true">
+  <BaseModal v-model="isModalOpen" max-width="md" :persistent="true">
     <template #title>
-      แจ้งย้ายออกสำหรับ: {{ contractInfo?.tenantName }} (ห้อง
-      {{ contractInfo?.roomNumber }})
+      แจ้งย้ายออกสำหรับ: {{ contractInfo?.tenantName }} (ห้อง {{ contractInfo?.roomNumber }})
     </template>
 
-    <form id="notice-form" @submit.prevent="onSubmit" class="mt-4">
+    <form id="notice-form" class="mt-4" @submit.prevent="onSubmit">
       <BaseDatePicker
         v-model="noticeDate"
         v-bind="noticeDateAttrs"
@@ -78,7 +75,7 @@ defineExpose({ open });
 
     <template #footer>
       <div class="w-full flex justify-end gap-x-3">
-        <BaseButton @click="closeModal" variant="secondary">ยกเลิก</BaseButton>
+        <BaseButton variant="secondary" @click="closeModal"> ยกเลิก </BaseButton>
         <BaseButton type="submit" form="notice-form" :loading="isLoading">
           ยืนยันการแจ้งย้ายออก
         </BaseButton>

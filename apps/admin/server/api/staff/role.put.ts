@@ -7,12 +7,12 @@ import { canChangeStaffRole } from '~~/server/utils/staff-rules'
 const updateRoleSchema = z.object({
   propertyId: z.string().min(1),
   userId: z.string().min(1),
-  role: z.enum([Role.ADMIN, Role.STAFF])
+  role: z.enum([Role.ADMIN, Role.STAFF]),
 })
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readValidatedBody(event, data => updateRoleSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateRoleSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, data: body.error.flatten() })
     }
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     if (!canChangeStaffRole(staff.role)) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'เฉพาะ OWNER ของหอพักเท่านั้นที่เปลี่ยน Role ได้'
+        statusMessage: 'เฉพาะ OWNER ของหอพักเท่านั้นที่เปลี่ยน Role ได้',
       })
     }
 
@@ -32,14 +32,14 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.propertyStaff.userId, userId),
-          eq(schema.propertyStaff.propertyId, propertyId)
-        )
+          eq(schema.propertyStaff.propertyId, propertyId),
+        ),
       )
       .returning()
     if (!updated) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบทีมงานนี้ในหอพัก'
+        statusMessage: 'ไม่พบทีมงานนี้ในหอพัก',
       })
     }
 

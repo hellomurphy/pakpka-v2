@@ -9,7 +9,7 @@ export function calcUtilityCost(
   units: number,
   billingType: string,
   rate: string | number,
-  minCharge: string | number
+  minCharge: string | number,
 ): number {
   const r = Number(rate)
   const min = Number(minCharge)

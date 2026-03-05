@@ -9,14 +9,14 @@ import { getSessionCookie } from '../../helpers'
 describe('Integration – POST /api/billing-runs', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   it('returns 401 when not authenticated', async () => {
     try {
       await $fetch('/api/billing-runs', {
         method: 'POST',
-        body: { propertyId: 'any', period: '2025-01' }
+        body: { propertyId: 'any', period: '2025-01' },
       })
       expect.fail('Expected 401')
     } catch (err: unknown) {
@@ -32,7 +32,7 @@ describe('Integration – POST /api/billing-runs', async () => {
       await $fetch('/api/billing-runs', {
         method: 'POST',
         headers: { Cookie: cookie },
-        body: {}
+        body: {},
       })
       expect.fail('Expected 400')
     } catch (err: unknown) {
@@ -48,7 +48,7 @@ describe('Integration – POST /api/billing-runs', async () => {
       await $fetch('/api/billing-runs', {
         method: 'POST',
         headers: { Cookie: cookie },
-        body: { propertyId: crypto.randomUUID(), period: 'invalid' }
+        body: { propertyId: crypto.randomUUID(), period: 'invalid' },
       })
       expect.fail('Expected 400')
     } catch (err: unknown) {
@@ -64,7 +64,7 @@ describe('Integration – POST /api/billing-runs', async () => {
       await $fetch('/api/billing-runs', {
         method: 'POST',
         headers: { Cookie: cookie },
-        body: { propertyId: crypto.randomUUID(), period: '2025-01' }
+        body: { propertyId: crypto.randomUUID(), period: '2025-01' },
       })
       expect.fail('Expected 403')
     } catch (err: unknown) {

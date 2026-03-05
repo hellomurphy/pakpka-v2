@@ -6,7 +6,7 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 const updateContractSchema = z.object({
   endDate: z.coerce.date().optional(),
   rentAmount: z.coerce.number().positive().optional(),
-  status: z.enum(Object.values(ContractStatus) as [string, ...string[]]).optional()
+  status: z.enum(Object.values(ContractStatus) as [string, ...string[]]).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -15,15 +15,15 @@ export default defineEventHandler(async (event) => {
     if (!contractId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Contract ID'
+        statusMessage: 'ต้องระบุ Contract ID',
       })
     }
-    const body = await readValidatedBody(event, data => updateContractSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateContractSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
 
@@ -57,14 +57,11 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.contractTenant.contractId, contractId),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
     const primaryTenantId = primaryTenants[0]?.tenantId
-    if (
-      primaryTenantId &&
-      body.data.status === ContractStatus.ACTIVE
-    ) {
+    if (primaryTenantId && body.data.status === ContractStatus.ACTIVE) {
       const [tenant] = await db
         .select({ status: schema.tenant.status })
         .from(schema.tenant)
@@ -82,16 +79,19 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(schema.contractTenant)
       .where(eq(schema.contractTenant.contractId, contractId))
-    const tenantIds = tenantRows.map(ct => ct.tenantId)
-    const tenants = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
+    const tenantIds = tenantRows.map((ct) => ct.tenantId)
+    const tenants =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
     const updatedContract = {
       ...updated,
-      tenants: tenantRows.map(ct => ({
-        isPrimary: ct.isPrimary,
-        tenant: tenants.find(t => t.id === ct.tenantId) ?? null
-      })).filter(t => t.tenant)
+      tenants: tenantRows
+        .map((ct) => ({
+          isPrimary: ct.isPrimary,
+          tenant: tenants.find((t) => t.id === ct.tenantId) ?? null,
+        }))
+        .filter((t) => t.tenant),
     }
 
     return successResponse(updatedContract, 'อัปเดตสัญญาสำเร็จ')

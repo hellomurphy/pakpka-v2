@@ -8,7 +8,7 @@ const querySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
   q: z.string().optional(),
-  filter: z.enum(['active', 'ending_soon', 'expired', 'all']).optional().default('active')
+  filter: z.enum(['active', 'ending_soon', 'expired', 'all']).optional().default('active'),
 })
 
 function formatContractRow(row: {
@@ -31,17 +31,17 @@ function formatContractRow(row: {
     endDate: row.endDate,
     status: row.status,
     room: { roomNumber: row.roomNumber },
-    tenants: row.tenantName ? [{ tenant: { name: row.tenantName } }] : []
+    tenants: row.tenantName ? [{ tenant: { name: row.tenantName } }] : [],
   }
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invalid query parameters'
+        statusMessage: 'Invalid query parameters',
       })
     }
     const { propertyId, page, limit, q, filter } = query.data
@@ -75,8 +75,8 @@ export default defineEventHandler(async (event) => {
           baseWhere,
           or(
             like(schema.room.roomNumber, `%${searchTerm}%`),
-            like(schema.tenant.name, `%${searchTerm}%`)
-          )
+            like(schema.tenant.name, `%${searchTerm}%`),
+          ),
         )
       : baseWhere
 
@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
         endDate: schema.contract.endDate,
         status: schema.contract.status,
         roomNumber: schema.room.roomNumber,
-        tenantName: schema.tenant.name
+        tenantName: schema.tenant.name,
       })
       .from(schema.contract)
       .innerJoin(schema.room, eq(schema.room.id, schema.contract.roomId))
@@ -100,8 +100,8 @@ export default defineEventHandler(async (event) => {
         schema.contractTenant,
         and(
           eq(schema.contractTenant.contractId, schema.contract.id),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
       .leftJoin(schema.tenant, eq(schema.tenant.id, schema.contractTenant.tenantId))
       .where(searchCondition)
@@ -117,8 +117,8 @@ export default defineEventHandler(async (event) => {
         schema.contractTenant,
         and(
           eq(schema.contractTenant.contractId, schema.contract.id),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
       .leftJoin(schema.tenant, eq(schema.tenant.id, schema.contractTenant.tenantId))
       .where(searchCondition)

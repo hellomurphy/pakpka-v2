@@ -1,23 +1,12 @@
 <script setup>
-import { BaseInput, BaseSelect } from "~/components/form";
-
-// 1. กำหนด Props ที่ Component นี้จะรับมาจากตัวแม่
-// Component นี้จะรับทุกอย่างที่จำเป็นสำหรับการแสดงผลและการผูกข้อมูล
-const props = defineProps({
-  intent: { type: String, required: true },
-  groupedRoomOptions: { type: Array, default: () => [] },
-  errors: { type: Object, default: () => ({}) },
-  // Props สำหรับ VeeValidate attributes (v-bind)
-  tenantNameAttrs: Object,
-  tenantPhoneAttrs: Object,
-  roomAttrs: Object,
-});
+import { BaseInput, BaseSelect } from '~/components/form'
 
 // 2. ใช้ defineModel เพื่อสร้าง v-model สำหรับแต่ละ field
 // ทำให้การสื่อสารกับ Component แม่สะอาดและง่ายดาย
-const tenantName = defineModel("tenantName");
-const tenantPhone = defineModel("tenantPhone");
-const roomId = defineModel("roomId");
+/* eslint-disable vue/require-prop-types -- defineModel props are typed via macro */
+const tenantName = defineModel('tenantName')
+const tenantPhone = defineModel('tenantPhone')
+const roomId = defineModel('roomId')
 </script>
 
 <template>

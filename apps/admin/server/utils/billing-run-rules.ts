@@ -22,9 +22,6 @@ export function canCreateBillingRun(role: string | null | undefined): boolean {
  * Check if period is already in the list of existing periods (e.g. for same property).
  * Unit-testable without DB/Nitro.
  */
-export function isPeriodDuplicate(
-  existingPeriods: string[],
-  period: string
-): boolean {
+export function isPeriodDuplicate(existingPeriods: string[], period: string): boolean {
   return existingPeriods.includes(period)
 }

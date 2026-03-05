@@ -8,7 +8,7 @@ import { $fetch, setup } from '@nuxt/test-utils/e2e'
 describe('Server API – Billing runs (e2e)', async () => {
   await setup({
     rootDir: '.',
-    setupTimeout: 60000
+    setupTimeout: 60000,
   })
 
   describe('POST /api/billing-runs', () => {
@@ -16,7 +16,7 @@ describe('Server API – Billing runs (e2e)', async () => {
       try {
         await $fetch('/api/billing-runs', {
           method: 'POST',
-          body: { propertyId: 'any', period: '2025-01' }
+          body: { propertyId: 'any', period: '2025-01' },
         })
         expect.fail('Expected 401')
       } catch (err: unknown) {

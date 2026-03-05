@@ -4,7 +4,7 @@ import { ContractStatus, ReservationStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const querySchema = z.object({
-  floorId: z.string().min(1, 'ต้องระบุ Floor ID')
+  floorId: z.string().min(1, 'ต้องระบุ Floor ID'),
 })
 
 function formatRoomRow(
@@ -30,7 +30,7 @@ function formatRoomRow(
     reservationStartDate: Date | null
     reservationTenantId: string | null
   },
-  reservationTenantNames: Record<string, string>
+  reservationTenantNames: Record<string, string>,
 ) {
   return {
     id: row.id,
@@ -42,14 +42,14 @@ function formatRoomRow(
     roomType: {
       name: row.roomTypeName,
       basePrice: row.roomTypeBasePrice,
-      deposit: row.roomTypeDeposit
+      deposit: row.roomTypeDeposit,
     },
     activeContract: row.contractId
       ? {
           id: row.contractId,
           startDate: row.contractStartDate,
           endDate: row.contractEndDate,
-          rentAmount: row.contractRentAmount
+          rentAmount: row.contractRentAmount,
         }
       : null,
     tenant: row.tenantId
@@ -57,7 +57,7 @@ function formatRoomRow(
           id: row.tenantId,
           name: row.tenantName,
           status: row.tenantStatus,
-          phone: row.tenantPhone
+          phone: row.tenantPhone,
         }
       : null,
     activeReservation: row.reservationId
@@ -66,20 +66,22 @@ function formatRoomRow(
           startDate: row.reservationStartDate,
           tenant: {
             id: row.reservationTenantId,
-            name: row.reservationTenantId ? (reservationTenantNames[row.reservationTenantId] ?? '') : ''
-          }
+            name: row.reservationTenantId
+              ? (reservationTenantNames[row.reservationTenantId] ?? '')
+              : '',
+          },
         }
-      : null
+      : null,
   }
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Floor ID'
+        statusMessage: 'ต้องระบุ Floor ID',
       })
     }
     const { floorId } = query.data
@@ -92,7 +94,7 @@ export default defineEventHandler(async (event) => {
     if (!floor) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบชั้นนี้'
+        statusMessage: 'ไม่พบชั้นนี้',
       })
     }
     await requirePropertyStaff(event, floor.propertyId)
@@ -118,64 +120,81 @@ export default defineEventHandler(async (event) => {
         tenantPhone: schema.tenant.phone,
         reservationId: schema.reservation.id,
         reservationStartDate: schema.reservation.startDate,
-        reservationTenantId: schema.reservation.tenantId
+        reservationTenantId: schema.reservation.tenantId,
       })
       .from(schema.room)
       .innerJoin(schema.roomType, eq(schema.room.roomTypeId, schema.roomType.id))
       .leftJoin(
         schema.contract,
-        and(eq(schema.contract.roomId, schema.room.id), eq(schema.contract.status, ContractStatus.ACTIVE))
+        and(
+          eq(schema.contract.roomId, schema.room.id),
+          eq(schema.contract.status, ContractStatus.ACTIVE),
+        ),
       )
       .leftJoin(
         schema.contractTenant,
         and(
           eq(schema.contractTenant.contractId, schema.contract.id),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
       .leftJoin(schema.tenant, eq(schema.tenant.id, schema.contractTenant.tenantId))
       .leftJoin(
         schema.reservation,
         and(
           eq(schema.reservation.roomId, schema.room.id),
-          eq(schema.reservation.status, ReservationStatus.CONFIRMED)
-        )
+          eq(schema.reservation.status, ReservationStatus.CONFIRMED),
+        ),
       )
       .where(eq(schema.room.floorId, floorId))
       .orderBy(schema.room.roomNumber)
 
-    const resTenantIds = [...new Set(rows.map(r => r.reservationTenantId).filter(Boolean) as string[])]
-    const resTenantRows = resTenantIds.length > 0
-      ? await db.select({ id: schema.tenant.id, name: schema.tenant.name }).from(schema.tenant).where(inArray(schema.tenant.id, resTenantIds))
-      : []
-    const reservationTenantNames: Record<string, string> = Object.fromEntries(resTenantRows.map(t => [t.id, t.name]))
+    const resTenantIds = [
+      ...new Set(rows.map((r) => r.reservationTenantId).filter(Boolean) as string[]),
+    ]
+    const resTenantRows =
+      resTenantIds.length > 0
+        ? await db
+            .select({ id: schema.tenant.id, name: schema.tenant.name })
+            .from(schema.tenant)
+            .where(inArray(schema.tenant.id, resTenantIds))
+        : []
+    const reservationTenantNames: Record<string, string> = Object.fromEntries(
+      resTenantRows.map((t) => [t.id, t.name]),
+    )
 
     const byRoomId = new Map<string, ReturnType<typeof formatRoomRow>>()
     for (const r of rows) {
       const roomId = r.id
       if (!byRoomId.has(roomId)) {
-        byRoomId.set(roomId, formatRoomRow({
-          id: r.id,
-          roomNumber: r.roomNumber,
-          status: r.status,
-          floorId: r.floorId,
-          propertyId: r.propertyId,
-          roomTypeId: r.roomTypeId,
-          roomTypeName: r.roomTypeName,
-          roomTypeBasePrice: r.roomTypeBasePrice,
-          roomTypeDeposit: r.roomTypeDeposit,
-          contractId: r.contractId,
-          contractStartDate: r.contractStartDate,
-          contractEndDate: r.contractEndDate,
-          contractRentAmount: r.contractRentAmount,
-          tenantId: r.tenantId,
-          tenantName: r.tenantName,
-          tenantStatus: r.tenantStatus,
-          tenantPhone: r.tenantPhone,
-          reservationId: r.reservationId,
-          reservationStartDate: r.reservationStartDate,
-          reservationTenantId: r.reservationTenantId
-        }, reservationTenantNames))
+        byRoomId.set(
+          roomId,
+          formatRoomRow(
+            {
+              id: r.id,
+              roomNumber: r.roomNumber,
+              status: r.status,
+              floorId: r.floorId,
+              propertyId: r.propertyId,
+              roomTypeId: r.roomTypeId,
+              roomTypeName: r.roomTypeName,
+              roomTypeBasePrice: r.roomTypeBasePrice,
+              roomTypeDeposit: r.roomTypeDeposit,
+              contractId: r.contractId,
+              contractStartDate: r.contractStartDate,
+              contractEndDate: r.contractEndDate,
+              contractRentAmount: r.contractRentAmount,
+              tenantId: r.tenantId,
+              tenantName: r.tenantName,
+              tenantStatus: r.tenantStatus,
+              tenantPhone: r.tenantPhone,
+              reservationId: r.reservationId,
+              reservationStartDate: r.reservationStartDate,
+              reservationTenantId: r.reservationTenantId,
+            },
+            reservationTenantNames,
+          ),
+        )
       }
     }
     const formattedRooms = [...byRoomId.values()]

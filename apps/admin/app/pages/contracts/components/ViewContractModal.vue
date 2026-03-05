@@ -1,29 +1,29 @@
 <script setup>
-import { ref, computed } from "vue";
-import { useFormatters } from "~/composables/useFormatters";
-import BaseModal from "~/components/ui/BaseModal.vue";
-import BaseButton from "~/components/ui/BaseButton.vue";
+import { ref, computed } from 'vue'
+import { useFormatters } from '~/composables/useFormatters'
+import BaseModal from '~/components/ui/BaseModal.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
 import {
   UserCircleIcon,
   BanknotesIcon,
   WrenchScrewdriverIcon,
   SunIcon,
   CloudIcon,
-} from "@heroicons/vue/24/outline";
-import dayjs from "dayjs";
-import "dayjs/locale/th";
-import buddhistEra from "dayjs/plugin/buddhistEra";
+} from '@heroicons/vue/24/outline'
+import dayjs from 'dayjs'
+import 'dayjs/locale/th'
+import buddhistEra from 'dayjs/plugin/buddhistEra'
 
-dayjs.locale("th");
-dayjs.extend(buddhistEra);
+dayjs.locale('th')
+dayjs.extend(buddhistEra)
 
-const isModalOpen = ref(false);
-const contract = ref(null);
-const roomInfo = ref(null);
-const isLoading = ref(false);
+const isModalOpen = ref(false)
+const contract = ref(null)
+const roomInfo = ref(null)
+const isLoading = ref(false)
 
-const { currency, fullDate } = useFormatters();
-const { getContractStatusInfo } = useStatusStyles();
+const { currency, fullDate } = useFormatters()
+const { getContractStatusInfo } = useStatusStyles()
 
 /**
  * ฟังก์ชันสาธารณะสำหรับเปิด Modal
@@ -31,66 +31,66 @@ const { getContractStatusInfo } = useStatusStyles();
  * ซึ่งต้องมี activeContract อยู่ข้างใน
  */
 const open = async (dataObject) => {
-  const contractData = dataObject?.activeContract;
+  const contractData = dataObject?.activeContract
 
   if (!contractData?.id) {
-    console.error("ViewContractModal: No activeContract data provided.");
-    return;
+    console.error('ViewContractModal: No activeContract data provided.')
+    return
   }
 
   // เปิด modal ก่อน (แสดง loading)
-  isModalOpen.value = true;
-  isLoading.value = true;
-  contract.value = null;
+  isModalOpen.value = true
+  isLoading.value = true
+  contract.value = null
 
   // ดึงข้อมูลห้องจาก object ที่ส่งมา
   roomInfo.value = {
     roomNumber: dataObject.roomNumber || contractData.room?.roomNumber,
     roomType: dataObject.roomType || contractData.room?.roomType,
-  };
+  }
 
   try {
     // Lazy load: ดึงข้อมูลสัญญาแบบเต็มจาก API
-    const response = await useApiFetch(`/api/contracts/${contractData.id}`);
+    const response = await useApiFetch(`/api/contracts/${contractData.id}`)
 
     if (response.success) {
-      contract.value = response.data;
+      contract.value = response.data
 
       // อัปเดต roomInfo ถ้ามีข้อมูลจาก API
       if (response.data.room) {
         roomInfo.value = {
           roomNumber: response.data.room.roomNumber,
           roomType: response.data.room.roomType,
-        };
+        }
       }
     }
   } catch (error) {
-    console.error("Failed to load contract details:", error);
+    console.error('Failed to load contract details:', error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 const closeModal = () => {
-  isModalOpen.value = false;
-  contract.value = null;
-  isLoading.value = false;
-};
+  isModalOpen.value = false
+  contract.value = null
+  isLoading.value = false
+}
 
-defineExpose({ open });
+defineExpose({ open })
 
 // --- Helper Functions for Display ---
 const getBillingTypeLabel = (type) => {
-  return type === "FLAT_RATE" ? "เหมาจ่าย" : "ตามหน่วย";
-};
+  return type === 'FLAT_RATE' ? 'เหมาจ่าย' : 'ตามหน่วย'
+}
 
 const primaryTenant = computed(() => {
-  return contract.value?.tenants?.find((t) => t.isPrimary)?.tenant;
-});
+  return contract.value?.tenants?.find((t) => t.isPrimary)?.tenant
+})
 </script>
 
 <template>
-  <BaseModal v-model="isModalOpen" maxWidth="lg">
+  <BaseModal v-model="isModalOpen" max-width="lg">
     <template #title>
       <div class="flex justify-between items-center">
         <span>รายละเอียดสัญญา: ห้อง {{ roomInfo?.roomNumber || '...' }}</span>
@@ -108,15 +108,13 @@ const primaryTenant = computed(() => {
 
     <!-- Loading State -->
     <div v-if="isLoading" class="mt-6 flex justify-center items-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
     </div>
 
     <!-- Content -->
     <div v-else-if="contract && roomInfo" class="mt-6 space-y-6">
       <div>
-        <h3
-          class="text-base font-semibold text-gray-800 flex items-center gap-2"
-        >
+        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
           <UserCircleIcon class="h-5 w-5 text-gray-500" />
           ข้อมูลผู้เช่าและห้องพัก
         </h3>
@@ -124,28 +122,26 @@ const primaryTenant = computed(() => {
           <div class="py-3 grid grid-cols-3 gap-4">
             <dt class="text-sm font-medium text-gray-600">ผู้เช่าหลัก</dt>
             <dd class="text-sm text-gray-900 col-span-2 font-semibold">
-              {{ primaryTenant?.name || "N/A" }}
+              {{ primaryTenant?.name || 'N/A' }}
             </dd>
           </div>
           <div class="py-3 grid grid-cols-3 gap-4">
             <dt class="text-sm font-medium text-gray-600">เบอร์โทรศัพท์</dt>
             <dd class="text-sm text-gray-900 col-span-2">
-              {{ primaryTenant?.phone || "-" }}
+              {{ primaryTenant?.phone || '-' }}
             </dd>
           </div>
           <div class="py-3 grid grid-cols-3 gap-4">
             <dt class="text-sm font-medium text-gray-600">ประเภทห้อง</dt>
             <dd class="text-sm text-gray-900 col-span-2">
-              {{ roomInfo.roomType?.name || "N/A" }}
+              {{ roomInfo.roomType?.name || 'N/A' }}
             </dd>
           </div>
         </dl>
       </div>
 
       <div>
-        <h3
-          class="text-base font-semibold text-gray-800 flex items-center gap-2"
-        >
+        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
           <BanknotesIcon class="h-5 w-5 text-gray-500" />
           การเงินและระยะเวลาสัญญา
         </h3>
@@ -181,17 +177,13 @@ const primaryTenant = computed(() => {
       </div>
 
       <div>
-        <h3
-          class="text-base font-semibold text-gray-800 flex items-center gap-2"
-        >
+        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
           <WrenchScrewdriverIcon class="h-5 w-5 text-gray-500" />
           ค่าบริการสาธารณูปโภคและบริการเสริม
         </h3>
         <dl class="mt-2 divide-y divide-gray-100 border-t border-gray-200">
           <div class="py-3 grid grid-cols-3 gap-4">
-            <dt
-              class="text-sm font-medium text-gray-600 flex items-center gap-1.5"
-            >
+            <dt class="text-sm font-medium text-gray-600 flex items-center gap-1.5">
               <CloudIcon class="h-5 w-5 text-sky-600" />ค่าน้ำ
             </dt>
             <dd class="text-sm text-gray-900 col-span-2">
@@ -203,10 +195,7 @@ const primaryTenant = computed(() => {
                 <span v-else> ({{ currency(contract.waterRate) }}/เดือน)</span>
               </p>
               <p
-                v-if="
-                  contract.waterBillingType === 'PER_UNIT' &&
-                  contract.waterMinimumCharge > 0
-                "
+                v-if="contract.waterBillingType === 'PER_UNIT' && contract.waterMinimumCharge > 0"
                 class="text-xs text-gray-500"
               >
                 ขั้นต่ำ {{ currency(contract.waterMinimumCharge) }}
@@ -214,9 +203,7 @@ const primaryTenant = computed(() => {
             </dd>
           </div>
           <div class="py-3 grid grid-cols-3 gap-4">
-            <dt
-              class="text-sm font-medium text-gray-600 flex items-center gap-1.5"
-            >
+            <dt class="text-sm font-medium text-gray-600 flex items-center gap-1.5">
               <SunIcon class="h-5 w-5 text-amber-500" />ค่าไฟ
             </dt>
             <dd class="text-sm text-gray-900 col-span-2">
@@ -225,9 +212,7 @@ const primaryTenant = computed(() => {
                 <span v-if="contract.electricityBillingType === 'PER_UNIT'">
                   ({{ currency(contract.electricityRate) }}/หน่วย)</span
                 >
-                <span v-else>
-                  ({{ currency(contract.electricityRate) }}/เดือน)</span
-                >
+                <span v-else> ({{ currency(contract.electricityRate) }}/เดือน)</span>
               </p>
               <p
                 v-if="
@@ -250,9 +235,7 @@ const primaryTenant = computed(() => {
                 {{ service.service.name }}
               </dt>
               <dd class="text-sm text-gray-900 col-span-2">
-                {{
-                  currency(service.customPrice || service.service.defaultPrice)
-                }}
+                {{ currency(service.customPrice || service.service.defaultPrice) }}
                 / เดือน
               </dd>
             </div>
@@ -266,10 +249,10 @@ const primaryTenant = computed(() => {
         <NuxtLink :to="`/contracts/${contract.id}`">
           <BaseButton variant="secondary">ไปที่หน้าจัดการสัญญา</BaseButton>
         </NuxtLink>
-        <BaseButton @click="closeModal">ปิด</BaseButton>
+        <BaseButton @click="closeModal"> ปิด </BaseButton>
       </div>
       <div v-else class="w-full flex justify-end">
-        <BaseButton @click="closeModal">ปิด</BaseButton>
+        <BaseButton @click="closeModal"> ปิด </BaseButton>
       </div>
     </template>
   </BaseModal>

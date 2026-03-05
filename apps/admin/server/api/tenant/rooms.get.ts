@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     if (!tenantRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -32,36 +32,35 @@ export default defineEventHandler(async (event) => {
       .where(inArray(schema.contract.id, contractIds))
       .orderBy(desc(schema.contract.startDate))
 
-    const roomIds = [...new Set(contracts.map(c => c.roomId))]
-    const rooms = await db
-      .select()
-      .from(schema.room)
-      .where(inArray(schema.room.id, roomIds))
-    const roomMap = Object.fromEntries(rooms.map(r => [r.id, r]))
+    const roomIds = [...new Set(contracts.map((c) => c.roomId))]
+    const rooms = await db.select().from(schema.room).where(inArray(schema.room.id, roomIds))
+    const roomMap = Object.fromEntries(rooms.map((r) => [r.id, r]))
 
-    const roomTypeIds = [...new Set(rooms.map(r => r.roomTypeId))]
+    const roomTypeIds = [...new Set(rooms.map((r) => r.roomTypeId))]
     const roomTypes = await db
       .select()
       .from(schema.roomType)
       .where(inArray(schema.roomType.id, roomTypeIds))
-    const roomTypeMap = Object.fromEntries(roomTypes.map(rt => [rt.id, rt]))
+    const roomTypeMap = Object.fromEntries(roomTypes.map((rt) => [rt.id, rt]))
 
-    const floorIds = [...new Set(rooms.map(r => r.floorId).filter(Boolean))]
-    const floors = floorIds.length > 0
-      ? await db.select().from(schema.floor).where(inArray(schema.floor.id, floorIds))
-      : []
-    const floorMap = Object.fromEntries(floors.map(f => [f.id, f]))
+    const floorIds = [...new Set(rooms.map((r) => r.floorId).filter(Boolean))]
+    const floors =
+      floorIds.length > 0
+        ? await db.select().from(schema.floor).where(inArray(schema.floor.id, floorIds))
+        : []
+    const floorMap = Object.fromEntries(floors.map((f) => [f.id, f]))
 
     const amenityLinks = await db
       .select()
       .from(schema.roomTypeAmenity)
       .where(inArray(schema.roomTypeAmenity.roomTypeId, roomTypeIds))
-    const amenityIds = [...new Set(amenityLinks.map(a => a.amenityId))]
-    const amenities = amenityIds.length > 0
-      ? await db.select().from(schema.amenity).where(inArray(schema.amenity.id, amenityIds))
-      : []
-    const amenityMap = Object.fromEntries(amenities.map(a => [a.id, a]))
-    const amenitiesByRoomType: Record<string, { id: string, name: string }[]> = {}
+    const amenityIds = [...new Set(amenityLinks.map((a) => a.amenityId))]
+    const amenities =
+      amenityIds.length > 0
+        ? await db.select().from(schema.amenity).where(inArray(schema.amenity.id, amenityIds))
+        : []
+    const amenityMap = Object.fromEntries(amenities.map((a) => [a.id, a]))
+    const amenitiesByRoomType: Record<string, { id: string; name: string }[]> = {}
     for (const link of amenityLinks) {
       const a = amenityMap[link.amenityId]
       if (!a) continue
@@ -75,15 +74,16 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           inArray(schema.contractTenant.contractId, contractIds),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
-    const tenantIds = [...new Set(primaryTenants.map(pt => pt.tenantId))]
-    const tenants = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
-    const tenantMap = Object.fromEntries(tenants.map(t => [t.id, t]))
-    const primaryByContract: Record<string, { id: string, name: string }> = {}
+    const tenantIds = [...new Set(primaryTenants.map((pt) => pt.tenantId))]
+    const tenants =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
+    const tenantMap = Object.fromEntries(tenants.map((t) => [t.id, t]))
+    const primaryByContract: Record<string, { id: string; name: string }> = {}
     for (const pt of primaryTenants) {
       const t = tenantMap[pt.tenantId]
       if (t) primaryByContract[pt.contractId] = { id: t.id, name: t.name }
@@ -115,18 +115,18 @@ export default defineEventHandler(async (event) => {
                     name: roomType.name,
                     basePrice: roomType.basePrice,
                     deposit: roomType.deposit,
-                    amenities: amenitiesByRoomType[roomType.id] ?? []
+                    amenities: amenitiesByRoomType[roomType.id] ?? [],
                   }
-                : null
+                : null,
             }
           : null,
-        primaryTenant: primaryByContract[c.id] ?? null
+        primaryTenant: primaryByContract[c.id] ?? null,
       }
     })
 
     return successResponse(
       { rooms: roomsFormatted, total: roomsFormatted.length },
-      'ดึงข้อมูลห้องสำเร็จ'
+      'ดึงข้อมูลห้องสำเร็จ',
     )
   } catch (error) {
     return errorResponse(event, error)

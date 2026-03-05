@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!contractId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Contract ID is required'
+        statusMessage: 'Contract ID is required',
       })
     }
 
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (!contractRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลสัญญา หรือคุณไม่มีสิทธิ์เข้าถึง'
+        statusMessage: 'ไม่พบข้อมูลสัญญา หรือคุณไม่มีสิทธิ์เข้าถึง',
       })
     }
     await requirePropertyStaff(event, contractRow.propertyId)
@@ -30,18 +30,23 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.room.id, contractRow.roomId))
       .limit(1)
     const [roomTypeRow] = roomRow
-      ? await db.select().from(schema.roomType).where(eq(schema.roomType.id, roomRow.roomTypeId)).limit(1)
+      ? await db
+          .select()
+          .from(schema.roomType)
+          .where(eq(schema.roomType.id, roomRow.roomTypeId))
+          .limit(1)
       : [null]
 
     const contractTenants = await db
       .select()
       .from(schema.contractTenant)
       .where(eq(schema.contractTenant.contractId, contractId))
-    const tenantIds = contractTenants.map(ct => ct.tenantId)
-    const tenants = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
-    const tenantMap = Object.fromEntries(tenants.map(t => [t.id, t]))
+    const tenantIds = contractTenants.map((ct) => ct.tenantId)
+    const tenants =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
+    const tenantMap = Object.fromEntries(tenants.map((t) => [t.id, t]))
 
     const deposits = await db
       .select()
@@ -52,11 +57,12 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(schema.contractService)
       .where(eq(schema.contractService.contractId, contractId))
-    const serviceIds = contractServices.map(cs => cs.serviceId)
-    const services = serviceIds.length > 0
-      ? await db.select().from(schema.service).where(inArray(schema.service.id, serviceIds))
-      : []
-    const serviceMap = Object.fromEntries(services.map(s => [s.id, s]))
+    const serviceIds = contractServices.map((cs) => cs.serviceId)
+    const services =
+      serviceIds.length > 0
+        ? await db.select().from(schema.service).where(inArray(schema.service.id, serviceIds))
+        : []
+    const serviceMap = Object.fromEntries(services.map((s) => [s.id, s]))
 
     const contract = {
       id: contractRow.id,
@@ -74,54 +80,59 @@ export default defineEventHandler(async (event) => {
       electricityMinimumCharge: contractRow.electricityMinimumCharge,
       createdAt: contractRow.createdAt,
       updatedAt: contractRow.updatedAt,
-      room: roomRow && roomTypeRow
-        ? {
-            id: roomRow.id,
-            roomNumber: roomRow.roomNumber,
-            status: roomRow.status,
-            roomType: {
-              id: roomTypeRow.id,
-              name: roomTypeRow.name,
-              basePrice: roomTypeRow.basePrice,
-              deposit: roomTypeRow.deposit
-            }
-          }
-        : null,
-      tenants: contractTenants.map(ct => ({
-        isPrimary: ct.isPrimary,
-        tenant: tenantMap[ct.tenantId]
+      room:
+        roomRow && roomTypeRow
           ? {
-              id: tenantMap[ct.tenantId].id,
-              name: tenantMap[ct.tenantId].name,
-              phone: tenantMap[ct.tenantId].phone,
-              status: tenantMap[ct.tenantId].status
+              id: roomRow.id,
+              roomNumber: roomRow.roomNumber,
+              status: roomRow.status,
+              roomType: {
+                id: roomTypeRow.id,
+                name: roomTypeRow.name,
+                basePrice: roomTypeRow.basePrice,
+                deposit: roomTypeRow.deposit,
+              },
             }
-          : null
-      })).filter(t => t.tenant),
-      deposits: deposits.map(d => ({
+          : null,
+      tenants: contractTenants
+        .map((ct) => ({
+          isPrimary: ct.isPrimary,
+          tenant: tenantMap[ct.tenantId]
+            ? {
+                id: tenantMap[ct.tenantId].id,
+                name: tenantMap[ct.tenantId].name,
+                phone: tenantMap[ct.tenantId].phone,
+                status: tenantMap[ct.tenantId].status,
+              }
+            : null,
+        }))
+        .filter((t) => t.tenant),
+      deposits: deposits.map((d) => ({
         id: d.id,
         amount: d.amount,
         receivedDate: d.receivedDate,
         refundedDate: d.refundedDate,
         deductions: d.deductions,
         deductionNotes: d.deductionNotes,
-        clearanceStatus: d.clearanceStatus
+        clearanceStatus: d.clearanceStatus,
       })),
-      services: contractServices.map(cs => ({
-        id: cs.id,
-        startDate: cs.startDate,
-        endDate: cs.endDate,
-        status: cs.status,
-        customPrice: cs.customPrice,
-        service: serviceMap[cs.serviceId]
-          ? {
-              id: serviceMap[cs.serviceId].id,
-              name: serviceMap[cs.serviceId].name,
-              defaultPrice: serviceMap[cs.serviceId].defaultPrice,
-              billingCycle: serviceMap[cs.serviceId].billingCycle
-            }
-          : null
-      })).filter(s => s.service)
+      services: contractServices
+        .map((cs) => ({
+          id: cs.id,
+          startDate: cs.startDate,
+          endDate: cs.endDate,
+          status: cs.status,
+          customPrice: cs.customPrice,
+          service: serviceMap[cs.serviceId]
+            ? {
+                id: serviceMap[cs.serviceId].id,
+                name: serviceMap[cs.serviceId].name,
+                defaultPrice: serviceMap[cs.serviceId].defaultPrice,
+                billingCycle: serviceMap[cs.serviceId].billingCycle,
+              }
+            : null,
+        }))
+        .filter((s) => s.service),
     }
 
     return successResponse(contract)

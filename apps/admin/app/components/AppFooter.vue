@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useNavigation } from "~/constants/navigation";
+import { ref } from 'vue'
+import { useNavigation } from '~/constants/navigation'
 
-const { mobilePrimaryLinks, mobileSecondaryLinks } = useNavigation();
-const isMoreMenuOpen = ref(false);
-const route = useRoute();
+const { mobilePrimaryLinks, mobileSecondaryLinks } = useNavigation()
+const isMoreMenuOpen = ref(false)
+const route = useRoute()
 </script>
 
 <template>
@@ -31,9 +31,9 @@ const route = useRoute();
         <!-- More Button -->
         <button
           v-if="mobileSecondaryLinks.length > 0"
-          @click="isMoreMenuOpen = true"
           class="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 w-1/5 pt-1 focus:outline-none"
           :class="{ '!text-blue-600': isMoreMenuOpen }"
+          @click="isMoreMenuOpen = true"
         >
           <UIcon name="i-lucide-more-horizontal" class="w-7 h-7" />
           <span class="text-xs mt-0.5">เพิ่มเติม</span>
@@ -45,19 +45,16 @@ const route = useRoute();
     <UModal
       v-model:open="isMoreMenuOpen"
       :ui="{
-        content: 'w-full max-h-[70vh] rounded-t-2xl shadow-2xl flex flex-col fixed bottom-0 left-0 right-0 top-auto translate-y-0',
-        overlay: 'fixed inset-0 bg-black/30 backdrop-blur-sm'
+        content:
+          'w-full max-h-[70vh] rounded-t-2xl shadow-2xl flex flex-col fixed bottom-0 left-0 right-0 top-auto translate-y-0',
+        overlay: 'fixed inset-0 bg-black/30 backdrop-blur-sm',
       }"
     >
       <template #content>
         <div class="p-4 flex flex-col">
-          <div
-            class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-4"
-          />
+          <div class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-4" />
           <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-semibold text-gray-800">
-              เมนูเพิ่มเติม
-            </h2>
+            <h2 class="text-lg font-semibold text-gray-800">เมนูเพิ่มเติม</h2>
             <UButton
               color="neutral"
               variant="ghost"

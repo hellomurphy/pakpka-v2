@@ -1,32 +1,32 @@
-import { defineStore } from "pinia";
-import { useNotification } from "~/composables/useNotification";
+import { defineStore } from 'pinia'
+import { useNotification } from '~/composables/useNotification'
 // Type สำหรับ Property (ข้อมูลพื้นฐานจาก Property table)
 interface Property {
-  id: string;
-  name: string;
+  id: string
+  name: string
   // Settings fields
-  roomNamingFormat: string;
-  roomTurnoverDays: number;
-  contractEndingSoonDays: number;
+  roomNamingFormat: string
+  roomTurnoverDays: number
+  contractEndingSoonDays: number
   // Billing defaults
-  defaultWaterBillingType: string;
-  defaultWaterRate: number;
-  defaultWaterMinimumCharge: number;
-  defaultElectricityBillingType: string;
-  defaultElectricityRate: number;
-  defaultElectricityMinimumCharge: number;
-  defaultBillingCutoffDay: number;
-  defaultPaymentDueDays: number;
+  defaultWaterBillingType: string
+  defaultWaterRate: number
+  defaultWaterMinimumCharge: number
+  defaultElectricityBillingType: string
+  defaultElectricityRate: number
+  defaultElectricityMinimumCharge: number
+  defaultBillingCutoffDay: number
+  defaultPaymentDueDays: number
   // Late fee settings
-  lateFeeEnabled: boolean;
-  lateFeeType: string;
-  lateFeeValue: number;
+  lateFeeEnabled: boolean
+  lateFeeType: string
+  lateFeeValue: number
 }
 
 // Key สำหรับ Local Storage
-const ACTIVE_PROPERTY_ID_KEY = "prop_pakdee_place_01";
+const ACTIVE_PROPERTY_ID_KEY = 'prop_pakdee_place_01'
 
-export const usePropertyStore = defineStore("property", {
+export const usePropertyStore = defineStore('property', {
   // --- STATE ---
   // สถานะของ Store ไม่มีการเปลี่ยนแปลง
   state: () => ({
@@ -50,23 +50,23 @@ export const usePropertyStore = defineStore("property", {
      * @param properties - Array ของ properties ที่ได้มาจาก API
      */
     setInitialProperties(properties: Property[]) {
-      this.allProperties = properties;
+      this.allProperties = properties
 
       if (properties.length === 0) {
-        useNotification().showError("ไม่พบข้อมูลหอพักสำหรับบัญชีนี้");
-        this.activeProperty = null;
-        return;
+        useNotification().showError('ไม่พบข้อมูลหอพักสำหรับบัญชีนี้')
+        this.activeProperty = null
+        return
       }
 
-      const savedId = localStorage.getItem(ACTIVE_PROPERTY_ID_KEY);
-      const savedPropertyIsValid = properties.some((p) => p.id === savedId);
+      const savedId = localStorage.getItem(ACTIVE_PROPERTY_ID_KEY)
+      const savedPropertyIsValid = properties.some((p) => p.id === savedId)
 
       if (savedId && savedPropertyIsValid) {
         // ถ้ามี ID ที่ถูกต้องบันทึกไว้ ให้ใช้ ID นั้น
-        this.setActiveProperty(savedId);
+        this.setActiveProperty(savedId)
       } else {
         // ถ้าไม่มี ให้ใช้ default (อันแรก)
-        this.setActiveProperty(properties[0].id);
+        this.setActiveProperty(properties[0].id)
       }
     },
 
@@ -76,37 +76,35 @@ export const usePropertyStore = defineStore("property", {
      */
     setActiveProperty(propertyId: string) {
       // เพิ่มการตรวจสอบว่า propertyId ที่ส่งเข้ามามีอยู่ในลิสต์ของผู้ใช้จริงหรือไม่
-      const newActive = this.allProperties.find((p) => p.id === propertyId);
+      const newActive = this.allProperties.find((p) => p.id === propertyId)
 
       if (newActive) {
-        this.activeProperty = newActive;
-        localStorage.setItem(ACTIVE_PROPERTY_ID_KEY, propertyId);
+        this.activeProperty = newActive
+        localStorage.setItem(ACTIVE_PROPERTY_ID_KEY, propertyId)
       } else {
-        console.error(
-          `Attempted to set an invalid active property ID: ${propertyId}`
-        );
-        useNotification().showError("เกิดข้อผิดพลาดในการเลือกหอพัก");
+        console.error(`Attempted to set an invalid active property ID: ${propertyId}`)
+        useNotification().showError('เกิดข้อผิดพลาดในการเลือกหอพัก')
       }
     },
 
     async updateProperty(item: Partial<Property>) {
-      if (!this.activeProperty) return;
+      if (!this.activeProperty) return
 
       try {
-        const url = `/api/properties/${this.activeProperty.id}`;
+        const url = `/api/properties/${this.activeProperty.id}`
         console.log(url)
         const res = await useApiFetch<{ success: boolean }>(url, {
-          method: "PUT",
+          method: 'PUT',
           body: item,
-        });
+        })
 
-        console.log("Update response:", res);
+        console.log('Update response:', res)
 
         if (res?.success) {
-          this.activeProperty = { ...this.activeProperty, ...item };
+          this.activeProperty = { ...this.activeProperty, ...item }
         }
       } catch (error) {
-        console.error("Error updating property:", error);
+        console.error('Error updating property:', error)
       }
     },
 
@@ -114,9 +112,9 @@ export const usePropertyStore = defineStore("property", {
      * ✨ Action สำหรับเคลียร์ State (จะถูกเรียกตอน Logout)
      */
     clearProperties() {
-      this.activeProperty = null;
-      this.allProperties = [];
-      localStorage.removeItem(ACTIVE_PROPERTY_ID_KEY);
+      this.activeProperty = null
+      this.allProperties = []
+      localStorage.removeItem(ACTIVE_PROPERTY_ID_KEY)
     },
   },
-});
+})

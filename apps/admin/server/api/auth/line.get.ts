@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   if (!channelId || !config.lineChannelSecret) {
     throw createError({
       statusCode: 503,
-      statusMessage: 'LINE Login is not configured. Set LINE_CHANNEL_ID and LINE_CHANNEL_SECRET.'
+      statusMessage: 'LINE Login is not configured. Set LINE_CHANNEL_ID and LINE_CHANNEL_SECRET.',
     })
   }
 
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     secure: true,
     sameSite: 'lax',
     maxAge: STATE_MAX_AGE,
-    path: '/'
+    path: '/',
   })
 
   const params = new URLSearchParams({
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
     client_id: channelId,
     redirect_uri: callbackUrl,
     state,
-    scope: LINE_SCOPE
+    scope: LINE_SCOPE,
   })
 
   const target = `${LINE_AUTH_URL}?${params.toString()}`

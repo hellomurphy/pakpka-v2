@@ -1,78 +1,73 @@
 <script setup>
-import { ref } from "vue";
-import { useForm } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
-import * as z from "zod";
-import { useContractsStore } from "~/store/contractsStore";
-import BaseModal from "~/components/ui/BaseModal.vue";
-import BaseDatePicker from "~/components/form/BaseDatePicker.vue";
-import BaseButton from "~/components/ui/BaseButton.vue";
-import dayjs from "dayjs";
+import { ref } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
+import { useContractsStore } from '~/store/contractsStore'
+import BaseModal from '~/components/ui/BaseModal.vue'
+import BaseDatePicker from '~/components/form/BaseDatePicker.vue'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import dayjs from 'dayjs'
 
-const emit = defineEmits(["success"]);
-const contractsStore = useContractsStore(); // ✨ 2. เรียกใช้ Store
+const emit = defineEmits(['success'])
+const contractsStore = useContractsStore() // ✨ 2. เรียกใช้ Store
 
-const { isLoading } = storeToRefs(contractsStore);
+const { isLoading } = storeToRefs(contractsStore)
 
 // --- State ---
-const isModalOpen = ref(false);
-const contractInfo = ref(null);
+const isModalOpen = ref(false)
+const contractInfo = ref(null)
 
 const schema = toTypedSchema(
   z.object({
-    noticeDate: z.coerce.date().min(dayjs().startOf("day").toDate(), {
-      message: "วันที่ต้องไม่ใช่วันในอดีต",
+    noticeDate: z.coerce.date().min(dayjs().startOf('day').toDate(), {
+      message: 'วันที่ต้องไม่ใช่วันในอดีต',
     }),
-  })
-);
+  }),
+)
 
 const { handleSubmit, defineField, resetForm, errors } = useForm({
   validationSchema: schema,
-});
-const [noticeDate, noticeDateAttrs] = defineField("noticeDate");
+})
+const [noticeDate, noticeDateAttrs] = defineField('noticeDate')
 
 // --- Methods ---
 const onSubmit = handleSubmit(async (values) => {
-  if (!contractInfo.value?.id) return;
+  if (!contractInfo.value?.id) return
 
   // ✨ 3. เรียกใช้ Action จาก Store
-  const success = await contractsStore.giveNoticeOfMoveOut(
-    contractInfo.value.id,
-    values.noticeDate
-  );
+  const success = await contractsStore.giveNoticeOfMoveOut(contractInfo.value.id, values.noticeDate)
 
   if (success) {
-    emit("success");
-    closeModal();
+    emit('success')
+    closeModal()
   }
-});
+})
 
 const open = (contract) => {
-  contractInfo.value = contract;
+  contractInfo.value = contract
 
   resetForm({
     values: { noticeDate: dayjs(contract.endDate).toDate() },
-  });
-  isModalOpen.value = true;
-};
+  })
+  isModalOpen.value = true
+}
 
 const closeModal = () => {
-  isModalOpen.value = false;
-};
-defineExpose({ open });
+  isModalOpen.value = false
+}
+defineExpose({ open })
 </script>
 
 <template>
-  <BaseModal v-model="isModalOpen" maxWidth="md" :persistent="true">
+  <BaseModal v-model="isModalOpen" max-width="md" :persistent="true">
     <template #title>
-      แจ้งย้ายออก: {{ contractInfo?.tenantName }} (ห้อง
-      {{ contractInfo?.roomNumber }})
+      แจ้งย้ายออก: {{ contractInfo?.tenantName }} (ห้อง {{ contractInfo?.roomNumber }})
     </template>
 
     <div class="mt-4">
       <p class="text-sm text-gray-600 mb-4">
-        กรุณาระบุวันที่ผู้เช่าคาดว่าจะย้ายออก ระบบจะเปลี่ยนสถานะของผู้เช่าเป็น
-        "แจ้งย้ายออก"
+        กรุณาระบุวันที่ผู้เช่าคาดว่าจะย้ายออก ระบบจะเปลี่ยนสถานะของผู้เช่าเป็น "แจ้งย้ายออก"
       </p>
       <form id="notice-form" @submit.prevent="onSubmit">
         <BaseDatePicker
@@ -86,7 +81,7 @@ defineExpose({ open });
 
     <template #footer>
       <div class="w-full flex justify-end gap-x-3">
-        <BaseButton @click="closeModal" variant="secondary">ยกเลิก</BaseButton>
+        <BaseButton variant="secondary" @click="closeModal"> ยกเลิก </BaseButton>
         <BaseButton
           type="submit"
           form="notice-form"

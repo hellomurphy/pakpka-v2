@@ -6,15 +6,15 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 const roomSchema = z.object({
   id: z.string(),
   roomNumber: z.string(),
-  roomTypeId: z.string().min(1)
+  roomTypeId: z.string().min(1),
 })
 const floorSchema = z.object({
   id: z.string().min(1),
   floorNumber: z.number(),
-  rooms: z.array(roomSchema)
+  rooms: z.array(roomSchema),
 })
 const syncRoomsSchema = z.object({
-  floors: z.array(floorSchema)
+  floors: z.array(floorSchema),
 })
 
 export default defineEventHandler(async (event) => {
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     if (!propertyId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Property ID' })
     }
-    const body = await readValidatedBody(event, data => syncRoomsSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => syncRoomsSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -33,29 +33,31 @@ export default defineEventHandler(async (event) => {
 
     await db.transaction(async (tx) => {
       const existingRooms = await tx
-        .select({ id: schema.room.id, roomNumber: schema.room.roomNumber, status: schema.room.status })
+        .select({
+          id: schema.room.id,
+          roomNumber: schema.room.roomNumber,
+          status: schema.room.status,
+        })
         .from(schema.room)
         .where(eq(schema.room.propertyId, propertyId))
 
-      const newRoomsFromRequest = floors.flatMap(f => f.rooms)
-      const newRoomNumbers = new Set(newRoomsFromRequest.map(r => r.roomNumber))
+      const newRoomsFromRequest = floors.flatMap((f) => f.rooms)
+      const newRoomNumbers = new Set(newRoomsFromRequest.map((r) => r.roomNumber))
 
-      const roomsToDelete = existingRooms.filter(r => !newRoomNumbers.has(r.roomNumber))
+      const roomsToDelete = existingRooms.filter((r) => !newRoomNumbers.has(r.roomNumber))
 
       if (roomsToDelete.length > 0) {
         const protectedRooms = roomsToDelete.filter(
-          room =>
-            room.status !== RoomStatus.AVAILABLE &&
-            room.status !== RoomStatus.CLEANING
+          (room) => room.status !== RoomStatus.AVAILABLE && room.status !== RoomStatus.CLEANING,
         )
         if (protectedRooms.length > 0) {
-          const protectedRoomNumbers = protectedRooms.map(r => r.roomNumber).join(', ')
+          const protectedRoomNumbers = protectedRooms.map((r) => r.roomNumber).join(', ')
           throw createError({
             statusCode: 409,
-            statusMessage: `ไม่สามารถลบได้: ห้อง ${protectedRoomNumbers} กำลังมีการใช้งาน, ถูกจอง, หรืออยู่ระหว่างซ่อมบำรุง`
+            statusMessage: `ไม่สามารถลบได้: ห้อง ${protectedRoomNumbers} กำลังมีการใช้งาน, ถูกจอง, หรืออยู่ระหว่างซ่อมบำรุง`,
           })
         }
-        const roomsToDeleteIds = roomsToDelete.map(r => r.id)
+        const roomsToDeleteIds = roomsToDelete.map((r) => r.id)
         await tx.delete(schema.room).where(inArray(schema.room.id, roomsToDeleteIds))
       }
 
@@ -67,8 +69,8 @@ export default defineEventHandler(async (event) => {
             .where(
               and(
                 eq(schema.room.propertyId, propertyId),
-                eq(schema.room.roomNumber, room.roomNumber)
-              )
+                eq(schema.room.roomNumber, room.roomNumber),
+              ),
             )
             .limit(1)
           if (existing) {
@@ -76,7 +78,7 @@ export default defineEventHandler(async (event) => {
               .update(schema.room)
               .set({
                 roomTypeId: room.roomTypeId,
-                floorId: floor.id
+                floorId: floor.id,
               })
               .where(eq(schema.room.id, existing.id))
           } else {
@@ -85,7 +87,7 @@ export default defineEventHandler(async (event) => {
               propertyId,
               floorId: floor.id,
               roomNumber: room.roomNumber,
-              roomTypeId: room.roomTypeId
+              roomTypeId: room.roomTypeId,
             })
           }
         }
