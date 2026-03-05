@@ -1,8 +1,9 @@
 import { z } from 'zod'
 import dayjs from 'dayjs'
 import { eq, and, or } from 'drizzle-orm'
-import { UtilityType, BillingType } from '@repo/db'
+import { UtilityType } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
+import { calcUtilityCost } from '~~/server/utils/utility-cost'
 
 const readingSchema = z.object({
   newElec: z.number().min(0, 'เลขมิเตอร์ต้องไม่ติดลบ'),
@@ -73,20 +74,18 @@ export default defineEventHandler(async (event) => {
 
     const elecUnits = newElec - oldElec
     const waterUnits = newWater - oldWater
-    const elecCost =
-      contractRow.electricityBillingType === BillingType.PER_UNIT
-        ? Math.max(
-            elecUnits * Number(contractRow.electricityRate),
-            Number(contractRow.electricityMinimumCharge)
-          )
-        : Number(contractRow.electricityRate)
-    const waterCost =
-      contractRow.waterBillingType === BillingType.PER_UNIT
-        ? Math.max(
-            waterUnits * Number(contractRow.waterRate),
-            Number(contractRow.waterMinimumCharge)
-          )
-        : Number(contractRow.waterRate)
+    const elecCost = calcUtilityCost(
+      elecUnits,
+      contractRow.electricityBillingType,
+      contractRow.electricityRate,
+      contractRow.electricityMinimumCharge
+    )
+    const waterCost = calcUtilityCost(
+      waterUnits,
+      contractRow.waterBillingType,
+      contractRow.waterRate,
+      contractRow.waterMinimumCharge
+    )
 
     await db.transaction(async (tx) => {
       const existingElec = await tx

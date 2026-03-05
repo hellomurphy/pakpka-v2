@@ -1,13 +1,9 @@
-import { z } from 'zod'
 import dayjs from 'dayjs'
 import { eq, and, lte, inArray } from 'drizzle-orm'
-import { ContractStatus, InvoiceStatus, BillingRunStatus, Role } from '@repo/db'
+import { ContractStatus, InvoiceStatus, BillingRunStatus } from '@repo/db'
 import { requirePropertyStaff, requireSession } from '~~/server/utils/auth'
-
-const createBillingRunSchema = z.object({
-  propertyId: z.string().min(1, 'Property ID ไม่ถูกต้อง'),
-  period: z.string().regex(/^\d{4}-\d{2}$/, 'รูปแบบรอบบิลต้องเป็น YYYY-MM')
-})
+import { canCreateBillingRun } from '~~/server/utils/billing-run-rules'
+import { createBillingRunSchema } from '~~/server/utils/schemas/billing-run'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -32,7 +28,7 @@ export default defineEventHandler(async (event) => {
         )
       )
       .limit(1)
-    if (!staff || (staff.role !== Role.OWNER && staff.role !== Role.ADMIN)) {
+    if (!staff || !canCreateBillingRun(staff.role)) {
       throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
     }
     await requirePropertyStaff(event, propertyId)

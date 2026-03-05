@@ -8,6 +8,7 @@ import {
   ReservationStatus
 } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
+import { hasOverlappingDateRanges } from '~~/server/utils/date-overlap'
 
 const waitingListSchema = z.object({
   status: z.literal(TenantStatus.WAITING_LIST),
@@ -118,7 +119,7 @@ export default defineEventHandler(async (event) => {
             )
           )
         )
-      if (overlappingContracts.length > 0) {
+      if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingContracts)) {
         throw createError({
           statusCode: 409,
           statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับสัญญาที่มีอยู่แล้ว'
@@ -141,7 +142,7 @@ export default defineEventHandler(async (event) => {
             )
           )
         )
-      if (overlappingReservations.length > 0) {
+      if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingReservations)) {
         throw createError({
           statusCode: 409,
           statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับการจองห้องที่มีอยู่แล้ว'
