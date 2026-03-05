@@ -2,6 +2,7 @@
 
 > **A high-performance, monorepo-based SaaS engineered for financial accuracy and global low-latency property operations.**
 
+[![CI](https://github.com/hellomurphy/pakpak-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/hellomurphy/pakpak-v2/actions/workflows/ci.yml)
 [![Framework: Nuxt 4](https://img.shields.io/badge/Framework-Nuxt_4-00DC82?style=flat-square&logo=nuxt.js)](https://nuxt.com/)
 [![Runtime: Cloudflare Workers](https://img.shields.io/badge/Runtime-Cloudflare_Workers-F38020?style=flat-square&logo=cloudflare)](https://workers.cloudflare.com/)
 [![Database: Cloudflare D1](https://img.shields.io/badge/Database-Cloudflare_D1-F38020?style=flat-square&logo=cloudflare)](https://www.cloudflare.com/products/workers/d1/)
@@ -127,6 +128,35 @@ pnpm --filter admin dev
 # Start Tenant Portal
 pnpm --filter client dev
 ```
+
+---
+
+## 🧪 Testing
+
+We use a **testing pyramid** (Unit → Integration → E2E) with Vitest and `@nuxt/test-utils`. Integration and E2E run against a **single pre-built server** and an isolated SQLite DB (Build Once, Run Many), so full test runs stay fast.
+
+| Command | What it runs | When to use |
+| :------ | :------------ | :----------- |
+| `pnpm test:quick` | Unit + Nuxt only | Before push (fast feedback) |
+| `pnpm test:full` | Unit, Nuxt, Integration, E2E | Before opening a PR or to mirror CI |
+| `pnpm --filter admin run test:unit` | Unit only | While editing pure logic |
+| `pnpm --filter admin run test:int` | Integration only | While changing API + DB flows |
+| `pnpm --filter admin run test:e2e` | E2E only | While changing auth / HTTP behaviour |
+
+Details: `apps/admin/test/TESTING_STRATEGY.md` and `apps/admin/test/CI_BUILD_ONCE_PLAN.md`.
+
+---
+
+## 🔧 Troubleshooting
+
+**CI is red (failed)**
+
+- **E2E or Integration step failed**  
+  Check that migrations are applied to the test DB. In CI we use a temp SQLite file and run `packages/database/drizzle/*.sql` once before starting the preview server. Locally, run `pnpm --filter @repo/db run db:migrate:local` and ensure `apps/admin/.env` has a valid `DATABASE_URL` if you run integration/e2e without `TEST_HOST`.
+- **“Server not ready” or timeouts**  
+  If you run integration/e2e against a local server, start the app first (`pnpm --filter admin run preview`), then run tests with `TEST_HOST=http://localhost:3000 pnpm --filter admin run test:int` (and similarly for `test:e2e`).
+- **Other steps (lint, format, unit, build)**  
+  Run the same commands locally: `pnpm format:check`, `pnpm turbo run lint --filter=admin`, `pnpm --filter admin run test:unit`, `pnpm turbo run build --filter=admin`.
 
 ---
 
