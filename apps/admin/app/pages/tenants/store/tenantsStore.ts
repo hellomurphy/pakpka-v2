@@ -96,10 +96,7 @@ export const useTenantsStore = defineStore('tenants', {
     },
 
     // ------------------ UPDATE TENANT ------------------
-    async updateTenant(
-      tenantId: string,
-      data: { name?: string; phone?: string },
-    ) {
+    async updateTenant(tenantId: string, data: { name?: string; phone?: string }) {
       try {
         const url = `/api/tenants/${tenantId}`
         const res = await useApiFetch(url, {

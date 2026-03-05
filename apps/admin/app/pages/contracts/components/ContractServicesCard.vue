@@ -165,13 +165,7 @@ const handleRemoveService = async (contractServiceId) => {
           label="ราคาที่กำหนดเอง"
         />
         <div class="flex justify-end gap-x-2 pt-2">
-          <BaseButton
-            variant="secondary"
-            size="sm"
-            @click="cancelAddService"
-          >
-            ยกเลิก
-          </BaseButton>
+          <BaseButton variant="secondary" size="sm" @click="cancelAddService"> ยกเลิก </BaseButton>
           <BaseButton size="sm" @click="handleAddService"> เพิ่มบริการ </BaseButton>
         </div>
       </div>

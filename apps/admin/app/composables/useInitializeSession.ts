@@ -8,9 +8,12 @@ export const useInitializeSession = () => {
 
   const initialize = async () => {
     if (session.value?.user && !propertyStore.isSessionInitialized) {
-      const data = await useApiFetch<{ properties: Record<string, unknown>[] }>('/api/session/init', {
-        showNotification: false, // ปิดการแจ้งเตือนตอน init
-      })
+      const data = await useApiFetch<{ properties: Record<string, unknown>[] }>(
+        '/api/session/init',
+        {
+          showNotification: false, // ปิดการแจ้งเตือนตอน init
+        },
+      )
 
       if (data?.properties?.length) {
         propertyStore.setInitialProperties(data.properties)

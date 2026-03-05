@@ -49,25 +49,27 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     let activeContract: typeof activeContractRow extends undefined
       ? null
-      : NonNullable<typeof activeContractRow> & {
-          tenants: {
-            tenant: { id: string; name: string; phone: string | null; status: string | null }
-          }[]
-          deposits: {
-            id: string
-            amount: string
-            receivedDate: Date
-            refundedDate: Date | null
-            deductions: string | null
-            deductionNotes: string | null
-            clearanceStatus: string | null
-          }[]
-          services: {
-            id: string
-            startDate: Date
-            service: { name: string; defaultPrice: string; billingCycle: string }
-          }[]
-        } | null = null
+      :
+          | (NonNullable<typeof activeContractRow> & {
+              tenants: {
+                tenant: { id: string; name: string; phone: string | null; status: string | null }
+              }[]
+              deposits: {
+                id: string
+                amount: string
+                receivedDate: Date
+                refundedDate: Date | null
+                deductions: string | null
+                deductionNotes: string | null
+                clearanceStatus: string | null
+              }[]
+              services: {
+                id: string
+                startDate: Date
+                service: { name: string; defaultPrice: string; billingCycle: string }
+              }[]
+            })
+          | null = null
     if (activeContractRow) {
       const primaryTenants = await db
         .select()
@@ -298,12 +300,13 @@ export default defineEventHandler(async (event) => {
                 startDate: Date
                 service?: { name: string; defaultPrice: string; billingCycle: string } | null
               }) => ({
-              id: cs.id,
-              serviceName: cs.service?.name,
-              price: cs.customPrice ?? cs.service?.defaultPrice,
-              billingCycle: cs.service?.billingCycle,
-              startDate: cs.startDate,
-            })),
+                id: cs.id,
+                serviceName: cs.service?.name,
+                price: cs.customPrice ?? cs.service?.defaultPrice,
+                billingCycle: cs.service?.billingCycle,
+                startDate: cs.startDate,
+              }),
+            ),
           }
         : null,
       currentTenant: currentTenant
