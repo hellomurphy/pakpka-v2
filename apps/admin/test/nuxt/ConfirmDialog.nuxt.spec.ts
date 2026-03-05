@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { defineComponent, h } from 'vue'
 import ConfirmDialog from '~/components/ConfirmDialog.vue'
 

@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { eq, and } from 'drizzle-orm'
 import { Role } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
+import { canChangeStaffRole } from '~~/server/utils/staff-rules'
 
 const updateRoleSchema = z.object({
   propertyId: z.string().min(1),
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
     const { propertyId, userId, role } = body.data
 
     const staff = await requirePropertyStaff(event, propertyId)
-    if (staff.role !== Role.OWNER) {
+    if (!canChangeStaffRole(staff.role)) {
       throw createError({
         statusCode: 403,
         statusMessage: 'เฉพาะ OWNER ของหอพักเท่านั้นที่เปลี่ยน Role ได้'

@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { eq, and, inArray } from 'drizzle-orm'
-import { InvoiceStatus, BillingType } from '@repo/db'
+import { InvoiceStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
+import { isInvoiceMeterReady } from '~~/server/utils/invoice-meter-ready'
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
@@ -10,18 +11,6 @@ const querySchema = z.object({
   sortBy: z.string().optional().default('roomNumber_asc'),
   status: z.string().optional().default('all')
 })
-
-function checkMeterReadingReady(
-  waterBillingType: string,
-  electricityBillingType: string,
-  hasWaterReading: boolean,
-  hasElectricityReading: boolean
-): boolean {
-  let isReady = true
-  if (electricityBillingType === BillingType.PER_UNIT && !hasElectricityReading) isReady = false
-  if (waterBillingType === BillingType.PER_UNIT && !hasWaterReading) isReady = false
-  return isReady
-}
 
 export default defineEventHandler(async (event) => {
   try {
@@ -135,11 +124,11 @@ export default defineEventHandler(async (event) => {
       const isReadyToSend =
         inv.status !== InvoiceStatus.DRAFT
           ? false
-          : checkMeterReadingReady(
-              contract?.waterBillingType ?? '',
+          : isInvoiceMeterReady(
               contract?.electricityBillingType ?? '',
-              hasWater,
-              hasElec
+              contract?.waterBillingType ?? '',
+              hasElec,
+              hasWater
             )
       return {
         id: inv.id,

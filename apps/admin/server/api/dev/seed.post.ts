@@ -21,6 +21,7 @@ import {
   UtilityType
 } from '@repo/db'
 import { db, schema } from '@nuxthub/db'
+import { calcUtilityCost } from '~~/server/utils/utility-cost'
 
 export default defineEventHandler(async (event) => {
   console.log('🌱 [API] Starting comprehensive database seeding...')
@@ -762,13 +763,17 @@ async function createPaidInvoice(
   if (!property) throw new Error('Property not found')
   const elecUnits = newElec - oldElec
   const waterUnits = newWater - oldWater
-  const elecCost = Math.max(
-    elecUnits * Number(contract.electricityRate),
-    Number(contract.electricityMinimumCharge)
+  const elecCost = calcUtilityCost(
+    elecUnits,
+    BillingType.PER_UNIT,
+    contract.electricityRate,
+    contract.electricityMinimumCharge
   )
-  const waterCost = Math.max(
-    waterUnits * Number(contract.waterRate),
-    Number(contract.waterMinimumCharge)
+  const waterCost = calcUtilityCost(
+    waterUnits,
+    BillingType.PER_UNIT,
+    contract.waterRate,
+    contract.waterMinimumCharge
   )
   const csWithService = await db
     .select({
@@ -840,12 +845,18 @@ async function createInvoiceWithMeterReading(
   if (!property) throw new Error('Property not found')
   const elecUnits = newElec - oldElec
   const waterUnits = newWater - oldWater
-  const elecCost = contract.electricityBillingType === BillingType.PER_UNIT
-    ? Math.max(elecUnits * Number(contract.electricityRate), Number(contract.electricityMinimumCharge))
-    : Number(contract.electricityRate)
-  const waterCost = contract.waterBillingType === BillingType.PER_UNIT
-    ? Math.max(waterUnits * Number(contract.waterRate), Number(contract.waterMinimumCharge))
-    : Number(contract.waterRate)
+  const elecCost = calcUtilityCost(
+    elecUnits,
+    contract.electricityBillingType,
+    contract.electricityRate,
+    contract.electricityMinimumCharge
+  )
+  const waterCost = calcUtilityCost(
+    waterUnits,
+    contract.waterBillingType,
+    contract.waterRate,
+    contract.waterMinimumCharge
+  )
   const csWithService = await db.select({ customPrice: schema.contractService.customPrice, defaultPrice: schema.service.defaultPrice, name: schema.service.name })
     .from(schema.contractService)
     .innerJoin(schema.service, eq(schema.contractService.serviceId, schema.service.id))

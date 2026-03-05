@@ -1,24 +1,9 @@
-import { z } from 'zod'
 import dayjs from 'dayjs'
 import { eq, and, lte, gte, inArray } from 'drizzle-orm'
 import { BillingType, ContractStatus, TenantStatus, RoomStatus, ReservationStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
-
-const createContractSchema = z.object({
-  tenantId: z.string().min(1, 'ต้องระบุ ID ผู้เช่า'),
-  roomId: z.string().min(1, 'ต้องระบุ ID ห้องพัก'),
-  propertyId: z.string().min(1),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-  rentAmount: z.coerce.number().positive(),
-  depositAmount: z.coerce.number().min(0),
-  waterBillingType: z.enum(Object.values(BillingType) as [string, ...string[]]),
-  waterRate: z.coerce.number().min(0),
-  waterMinimumCharge: z.coerce.number().min(0).default(0),
-  electricityBillingType: z.enum(Object.values(BillingType) as [string, ...string[]]),
-  electricityRate: z.coerce.number().min(0),
-  electricityMinimumCharge: z.coerce.number().min(0).default(0)
-})
+import { hasOverlappingDateRanges } from '~~/server/utils/date-overlap'
+import { createContractSchema } from '~~/server/utils/schemas/contract'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -52,7 +37,7 @@ export default defineEventHandler(async (event) => {
             )
           )
         )
-      if (overlappingContracts.length > 0) {
+      if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingContracts)) {
         throw createError({
           statusCode: 409,
           statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับสัญญาที่มีอยู่แล้ว'
@@ -72,7 +57,7 @@ export default defineEventHandler(async (event) => {
             )
           )
         )
-      if (overlappingReservations.length > 0) {
+      if (hasOverlappingDateRanges(data.startDate, data.endDate, overlappingReservations)) {
         throw createError({
           statusCode: 409,
           statusMessage: 'ช่วงเวลาที่เลือกทับซ้อนกับการจองห้องที่มีอยู่แล้ว'

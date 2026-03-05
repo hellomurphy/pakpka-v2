@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm'
-import { InvoiceStatus, BillingRunStatus, BillingType, UtilityType } from '@repo/db'
+import { InvoiceStatus, BillingRunStatus, UtilityType } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
+import { isInvoiceMeterReady } from '~~/server/utils/invoice-meter-ready'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -42,21 +43,16 @@ export default defineEventHandler(async (event) => {
       .select({ utilityType: schema.meterReading.utilityType })
       .from(schema.meterReading)
       .where(eq(schema.meterReading.invoiceId, invoiceId))
-    let isReady = true
+    const hasElec = meterReadings.some(r => r.utilityType === UtilityType.ELECTRICITY)
+    const hasWater = meterReadings.some(r => r.utilityType === UtilityType.WATER)
     if (
-      contractRow.electricityBillingType === BillingType.PER_UNIT &&
-      !meterReadings.some(r => r.utilityType === UtilityType.ELECTRICITY)
+      !isInvoiceMeterReady(
+        contractRow.electricityBillingType,
+        contractRow.waterBillingType,
+        hasElec,
+        hasWater
+      )
     ) {
-      isReady = false
-    }
-    if (
-      isReady &&
-      contractRow.waterBillingType === BillingType.PER_UNIT &&
-      !meterReadings.some(r => r.utilityType === UtilityType.WATER)
-    ) {
-      isReady = false
-    }
-    if (!isReady) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลมิเตอร์ไม่ครบถ้วน ไม่สามารถส่งใบแจ้งหนี้ได้'
