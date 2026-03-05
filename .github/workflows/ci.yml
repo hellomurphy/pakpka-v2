@@ -2,8 +2,24 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - 'apps/admin/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - '.github/workflows/**'
   push:
     branches: [main]
+    paths:
+      - 'apps/admin/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - '.github/workflows/**'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -15,7 +31,6 @@ env:
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +42,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -43,12 +58,101 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      # Run only admin until client/landing are ready (remove --filter=admin to run all apps)
       - name: Lint
         run: pnpm turbo run lint --filter=admin
 
-      - name: Test
-        run: pnpm turbo run test --filter=admin
+      - name: Test (nuxt)
+        run: pnpm --filter admin run test:nuxt
+
+  unit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/2', '2/2']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test (unit shard ${{ matrix.shard }})
+        run: pnpm --filter admin exec vitest run --project unit --shard=${{ matrix.shard }}
+
+  # Each job runs on a fresh runner (no shared disk). We use:
+  # - cache: 'pnpm' in setup-node → fast install from GitHub cache
+  # - actions/cache for .turbo → Turbo can reuse task outputs from previous CI runs (same key).
+  # For even faster builds, add Turbo Remote Cache (TURBO_TOKEN / TURBO_TEAM) so build can pull cache from remote.
+  test-integration-e2e:
+    needs: [validate, unit-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Test (integration)
+        run: pnpm --filter admin run test:int
+
+      - name: Test (e2e)
+        run: pnpm --filter admin run test:e2e
+
+  # Build reuses Turbo local cache from previous runs (same lockfile key). Remote cache (TURBO_TOKEN) would speed this up further.
+  build:
+    needs: [test-integration-e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
 
       - name: Build
         run: pnpm turbo run build --filter=admin

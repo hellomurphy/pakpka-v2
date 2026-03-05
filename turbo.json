@@ -11,6 +11,12 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "test:quick": {
+      "outputs": []
+    },
+    "test:full": {
+      "outputs": []
+    },
     "lint": {
       "dependsOn": ["^lint"]
     },
