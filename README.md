@@ -2,7 +2,13 @@
 
 > **A high-performance, monorepo-based SaaS engineered for financial accuracy and global low-latency property operations.**
 
-[![CI](https://github.com/hellomurphy/pakpak-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/hellomurphy/pakpak-v2/actions/workflows/ci.yml)
+**CI & Security**
+
+[![.github/workflows/ci.yml](https://github.com/hellomurphy/pakpka-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/hellomurphy/pakpka-v2/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/hellomurphy/pakpka-v2/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/hellomurphy/pakpka-v2/actions/workflows/github-code-scanning/codeql)
+
+**Stack**
+
 [![Framework: Nuxt 4](https://img.shields.io/badge/Framework-Nuxt_4-00DC82?style=flat-square&logo=nuxt.js)](https://nuxt.com/)
 [![Runtime: Cloudflare Workers](https://img.shields.io/badge/Runtime-Cloudflare_Workers-F38020?style=flat-square&logo=cloudflare)](https://workers.cloudflare.com/)
 [![Database: Cloudflare D1](https://img.shields.io/badge/Database-Cloudflare_D1-F38020?style=flat-square&logo=cloudflare)](https://www.cloudflare.com/products/workers/d1/)
