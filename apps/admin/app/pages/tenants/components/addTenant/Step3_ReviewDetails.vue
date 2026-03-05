@@ -354,11 +354,7 @@ const handleRemoveService = (serviceId) => {
               placeholder="เลือกบริการ..."
             />
             <div class="flex justify-end gap-x-2 pt-2">
-              <BaseButton
-                variant="secondary"
-                size="sm"
-                @click="cancelAddService"
-              >
+              <BaseButton variant="secondary" size="sm" @click="cancelAddService">
                 ยกเลิก
               </BaseButton>
               <BaseButton size="sm" @click="handleAddService"> เพิ่มบริการ </BaseButton>

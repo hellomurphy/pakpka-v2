@@ -54,6 +54,15 @@ apps/admin/test/
 
 ---
 
+## 2.1 Migration: run once per run, never per test
+
+Migrations must run **once per test run** (e.g. once per CI job when preparing the DB), not inside `setup()` or per test case.
+
+- Do **not** call migrations in test `setup()` or in `beforeEach`/`beforeAll` hooks.
+- In CI, migrations are applied once when creating the temp SQLite file (e.g. `cat packages/database/drizzle/*.sql | sqlite3 $RUNNER_TEMP/pakpak-test.sqlite`) before starting the preview server. See `test/CI_BUILD_ONCE_PLAN.md`.
+
+---
+
 ## 3. ตาราง Route หลัก vs ประเภทเทส
 
 | Domain                 | ไฟล์หลัก (server/api)                                                                                               | Unit (แยก logic)                                                  | Integration               | E2E                          |

@@ -76,7 +76,6 @@ const statusInfo = computed(() => {
       }
   }
 })
-
 </script>
 
 <template>

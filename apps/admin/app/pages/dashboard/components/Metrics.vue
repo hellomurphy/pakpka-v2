@@ -4,7 +4,7 @@ import { useFormatters } from '~/composables/useFormatters'
 import {
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
-  HomeModernIcon
+  HomeModernIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({

@@ -336,13 +336,7 @@ const initiateFinalizeMoveOut = (room) => {
         <h3 class="mt-2 text-sm font-semibold text-gray-900">ไม่พบข้อมูลห้องพัก</h3>
         <p class="mt-1 text-sm text-gray-500">ไม่พบห้องที่ตรงกับเงื่อนไขการกรองของคุณ</p>
         <div class="mt-6">
-          <BaseButton
-            variant="secondary"
-            size="sm"
-            @click="clearFilters"
-          >
-            ล้างการกรอง
-          </BaseButton>
+          <BaseButton variant="secondary" size="sm" @click="clearFilters"> ล้างการกรอง </BaseButton>
         </div>
       </div>
     </main>

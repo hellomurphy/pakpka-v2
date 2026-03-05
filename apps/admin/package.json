@@ -9,9 +9,12 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
+    "test:quick": "vitest run --project unit --project nuxt",
+    "test:full": "vitest run",
     "test:unit": "vitest run --project unit",
+    "test:nuxt": "vitest run --project nuxt",
     "test:int": "vitest run --project integration",
     "test:e2e": "vitest run --project e2e"
   },

@@ -364,11 +364,7 @@ const handleUpdateStructure = async () => {
               <div class="mt-4">
                 <h5 class="text-sm font-medium text-gray-800">ห้องในชั้นนี้:</h5>
                 <div v-if="floor.rooms.length > 0" class="mt-2 flex flex-wrap gap-2">
-                  <div
-                    v-for="(room) in floor.rooms"
-                    :key="room.id"
-                    class="group relative"
-                  >
+                  <div v-for="room in floor.rooms" :key="room.id" class="group relative">
                     <span
                       class="inline-block rounded-full bg-blue-100 pl-4 pr-3 py-1.5 text-sm font-medium text-blue-800"
                       >{{ room.roomNumber }}</span

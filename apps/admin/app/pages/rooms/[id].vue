@@ -39,9 +39,12 @@ onMounted(async () => {
 })
 
 // --- Fetch Data ---
-const { data: room, refresh, pending, error } = await useFetch<Record<string, unknown>>(
-  `/api/rooms/${roomId}`,
-)
+const {
+  data: room,
+  refresh,
+  pending,
+  error,
+} = await useFetch<Record<string, unknown>>(`/api/rooms/${roomId}`)
 
 // Debug: Log the room data
 watchEffect(() => {
@@ -129,18 +132,13 @@ const getInvoiceStatusLabel = (status: string) => {
 }
 
 // --- Computed ---
-const calculateUsage = (
-  invoice: Record<string, unknown>,
-  type: 'electricity' | 'water',
-) => {
+const calculateUsage = (invoice: Record<string, unknown>, type: 'electricity' | 'water') => {
   const meterReadings = invoice.meterReadings as Record<string, { value?: unknown }> | undefined
   const currentValue = meterReadings?.[type]?.value
   if (!currentValue) return '-'
 
   // หาค่าเดือนก่อนหน้า
-  const invoices = (room.value as Record<string, unknown>)?.invoices as
-    | { id: string }[]
-    | undefined
+  const invoices = (room.value as Record<string, unknown>)?.invoices as { id: string }[] | undefined
   const currentIndex = invoices?.findIndex((inv) => inv.id === invoice.id)
   if (currentIndex === undefined || currentIndex === -1) return '-'
 

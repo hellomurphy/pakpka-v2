@@ -5,13 +5,10 @@
  */
 import { describe, expect, it } from 'vitest'
 import { $fetch, setup } from '@nuxt/test-utils/e2e'
-import { getSessionCookie } from '../../helpers'
+import { getE2ESetupOptions, getSessionCookie } from '../../helpers'
 
 describe('Integration – POST /api/contracts (handler + DB)', async () => {
-  await setup({
-    rootDir: '.',
-    setupTimeout: 60000,
-  })
+  await setup(getE2ESetupOptions())
 
   it('returns 401 when not authenticated', async () => {
     const fakeId = crypto.randomUUID()
