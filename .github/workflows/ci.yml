@@ -138,9 +138,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set database env
-        run: echo "DATABASE_URL=file:$RUNNER_TEMP/pakpak-test.sqlite" >> $GITHUB_ENV
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -153,11 +150,30 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Set database env
+        run: echo "DATABASE_URL=file:$RUNNER_TEMP/pakpak-test.sqlite" >> $GITHUB_ENV
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
       - name: Download admin .output
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: admin-output
           path: apps/admin/.output
+
+      - name: Get admin .output (build if missing)
+        run: |
+          if [ ! -d apps/admin/.output ]; then
+            echo "Artifact missing (e.g. re-run), building locally..."
+            pnpm turbo run build --filter=admin
+          fi
 
       - name: Prepare DB (migrate once)
         run: |
