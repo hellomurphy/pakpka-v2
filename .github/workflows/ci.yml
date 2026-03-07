@@ -131,7 +131,6 @@ jobs:
     runs-on: ubuntu-latest
     # NODE_ENV=development so hub.db uses DATABASE_URL (nuxt.config) and dev-login is allowed (auth). Preview still serves production build.
     env:
-      DATABASE_URL: file:${{ runner.temp }}/pakpak-test.sqlite
       NODE_ENV: development
       NUXT_SESSION_PASSWORD: dev-session-secret-min-32-chars-long-for-sealed-cookie
       TEST_HOST: http://localhost:3000
@@ -151,11 +150,30 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Set database env
+        run: echo "DATABASE_URL=file:$RUNNER_TEMP/pakpak-test.sqlite" >> $GITHUB_ENV
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
       - name: Download admin .output
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: admin-output
           path: apps/admin/.output
+
+      - name: Get admin .output (build if missing)
+        run: |
+          if [ ! -d apps/admin/.output ]; then
+            echo "Artifact missing (e.g. re-run), building locally..."
+            pnpm turbo run build --filter=admin
+          fi
 
       - name: Prepare DB (migrate once)
         run: |

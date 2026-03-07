@@ -105,16 +105,16 @@ This is much faster than `wrangler d1 execute` and avoids depending on wrangler�
 
 ## 5. Summary of file changes
 
-| Item | File(s) | Change |
-|------|---------|--------|
-| Timeouts | `apps/admin/vitest.config.ts` | integration/e2e: `setupTimeout`, `hookTimeout` → 180_000 |
-| Migration once | `apps/admin/test/TESTING_STRATEGY.md` | Document: migrations run once per run (CI step), never in setup() or per test |
-| DB isolation | CI workflow + SQL | Temp DB: `cat packages/database/drizzle/*.sql \| sqlite3 $RUNNER_TEMP/pakpak-test.sqlite`; keep only migration .sql files in that folder; export DATABASE_URL |
-| Build once | `.github/workflows/ci.yml` | build before test-integration-e2e; build uploads .output with retention-days: 1; verify .output has no junk; test job downloads artifact, prepares DB, starts preview, uses wait-on, then runs tests with TEST_HOST |
-| Server readiness | `.github/workflows/ci.yml` | Use wait-on (e.g. `/api/health` or static page if root is heavy) after starting preview; do not use only a curl loop |
-| Env vars in test job | `.github/workflows/ci.yml` | Set DATABASE_URL, NUXT_PUBLIC_*, and other runtime vars in test-integration-e2e so preview matches real run |
-| Artifacts | `.github/workflows/ci.yml` | retention-days: 1 on upload-artifact; document or add step to avoid uploading junk in .output |
-| Test setup | Integration/e2e test files | Use `host: process.env.TEST_HOST` when set (optional: shared helper) |
+| Item                 | File(s)                               | Change                                                                                                                                                                                                              |
+| -------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Timeouts             | `apps/admin/vitest.config.ts`         | integration/e2e: `setupTimeout`, `hookTimeout` → 180_000                                                                                                                                                            |
+| Migration once       | `apps/admin/test/TESTING_STRATEGY.md` | Document: migrations run once per run (CI step), never in setup() or per test                                                                                                                                       |
+| DB isolation         | CI workflow + SQL                     | Temp DB: `cat packages/database/drizzle/*.sql \| sqlite3 $RUNNER_TEMP/pakpak-test.sqlite`; keep only migration .sql files in that folder; export DATABASE_URL                                                       |
+| Build once           | `.github/workflows/ci.yml`            | build before test-integration-e2e; build uploads .output with retention-days: 1; verify .output has no junk; test job downloads artifact, prepares DB, starts preview, uses wait-on, then runs tests with TEST_HOST |
+| Server readiness     | `.github/workflows/ci.yml`            | Use wait-on (e.g. `/api/health` or static page if root is heavy) after starting preview; do not use only a curl loop                                                                                                |
+| Env vars in test job | `.github/workflows/ci.yml`            | Set DATABASE*URL, NUXT_PUBLIC*\*, and other runtime vars in test-integration-e2e so preview matches real run                                                                                                        |
+| Artifacts            | `.github/workflows/ci.yml`            | retention-days: 1 on upload-artifact; document or add step to avoid uploading junk in .output                                                                                                                       |
+| Test setup           | Integration/e2e test files            | Use `host: process.env.TEST_HOST` when set (optional: shared helper)                                                                                                                                                |
 
 ---
 

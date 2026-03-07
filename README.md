@@ -141,13 +141,13 @@ pnpm --filter client dev
 
 We use a **testing pyramid** (Unit → Integration → E2E) with Vitest and `@nuxt/test-utils`. Integration and E2E run against a **single pre-built server** and an isolated SQLite DB (Build Once, Run Many), so full test runs stay fast.
 
-| Command | What it runs | When to use |
-| :------ | :------------ | :----------- |
-| `pnpm test:quick` | Unit + Nuxt only | Before push (fast feedback) |
-| `pnpm test:full` | Unit, Nuxt, Integration, E2E | Before opening a PR or to mirror CI |
-| `pnpm --filter admin run test:unit` | Unit only | While editing pure logic |
-| `pnpm --filter admin run test:int` | Integration only | While changing API + DB flows |
-| `pnpm --filter admin run test:e2e` | E2E only | While changing auth / HTTP behaviour |
+| Command                             | What it runs                 | When to use                          |
+| :---------------------------------- | :--------------------------- | :----------------------------------- |
+| `pnpm test:quick`                   | Unit + Nuxt only             | Before push (fast feedback)          |
+| `pnpm test:full`                    | Unit, Nuxt, Integration, E2E | Before opening a PR or to mirror CI  |
+| `pnpm --filter admin run test:unit` | Unit only                    | While editing pure logic             |
+| `pnpm --filter admin run test:int`  | Integration only             | While changing API + DB flows        |
+| `pnpm --filter admin run test:e2e`  | E2E only                     | While changing auth / HTTP behaviour |
 
 Details: `apps/admin/test/TESTING_STRATEGY.md` and `apps/admin/test/CI_BUILD_ONCE_PLAN.md`.
 
