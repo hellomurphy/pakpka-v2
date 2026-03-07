@@ -1,10 +1,18 @@
 <script setup>
+import { defineProps } from 'vue'
 import {
   WrenchScrewdriverIcon,
   ArrowDownOnSquareIcon,
   KeyIcon,
   DocumentTextIcon,
 } from '@heroicons/vue/24/outline'
+
+defineProps({
+  todos: {
+    type: Array,
+    required: true,
+  },
+})
 
 const getIconForType = (type) => {
   switch (type) {

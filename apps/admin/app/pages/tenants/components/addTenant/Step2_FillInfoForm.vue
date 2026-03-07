@@ -1,8 +1,15 @@
 <script setup>
 import { BaseInput, BaseSelect } from '~/components/form'
 
-// 2. ใช้ defineModel เพื่อสร้าง v-model สำหรับแต่ละ field
-// ทำให้การสื่อสารกับ Component แม่สะอาดและง่ายดาย
+defineProps({
+  intent: { type: String, default: null },
+  groupedRoomOptions: { type: Array, default: () => [] },
+  errors: { type: Object, default: () => ({}) },
+  tenantNameAttrs: { type: Object, default: () => ({}) },
+  tenantPhoneAttrs: { type: Object, default: () => ({}) },
+  roomAttrs: { type: Object, default: () => ({}) },
+})
+
 /* eslint-disable vue/require-prop-types -- defineModel props are typed via macro */
 const tenantName = defineModel('tenantName')
 const tenantPhone = defineModel('tenantPhone')
