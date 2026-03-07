@@ -131,13 +131,15 @@ jobs:
     runs-on: ubuntu-latest
     # NODE_ENV=development so hub.db uses DATABASE_URL (nuxt.config) and dev-login is allowed (auth). Preview still serves production build.
     env:
-      DATABASE_URL: file:${{ runner.temp }}/pakpak-test.sqlite
       NODE_ENV: development
       NUXT_SESSION_PASSWORD: dev-session-secret-min-32-chars-long-for-sealed-cookie
       TEST_HOST: http://localhost:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set database env
+        run: echo "DATABASE_URL=file:$RUNNER_TEMP/pakpak-test.sqlite" >> $GITHUB_ENV
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
