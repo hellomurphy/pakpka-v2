@@ -1,4 +1,3 @@
-import { eq } from 'drizzle-orm'
 import { requireSession } from '~~/server/utils/auth'
 
 /**
@@ -13,7 +12,7 @@ export default defineEventHandler(async (event) => {
     if (!notificationId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Notification ID is required'
+        statusMessage: 'Notification ID is required',
       })
     }
 
@@ -21,9 +20,9 @@ export default defineEventHandler(async (event) => {
       {
         id: notificationId,
         isRead: true,
-        readAt: new Date()
+        readAt: new Date(),
       },
-      'ทำเครื่องหมายว่าอ่านแล้ว (Placeholder - ต้องเพิ่ม Notification model เพื่อใช้งานจริง)'
+      'ทำเครื่องหมายว่าอ่านแล้ว (Placeholder - ต้องเพิ่ม Notification model เพื่อใช้งานจริง)',
     )
   } catch (error) {
     return errorResponse(event, error)

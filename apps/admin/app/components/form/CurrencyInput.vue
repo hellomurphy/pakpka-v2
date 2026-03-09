@@ -2,19 +2,12 @@
 import { ref, watch, nextTick } from 'vue'
 
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
 const modelValue = defineModel({
   type: [String, Number],
-  default: null
-})
-
-const props = defineProps({
-  label: { type: String, default: '' },
-  error: { type: String, default: '' },
-  required: { type: Boolean, default: false },
-  placeholder: { type: String, default: '' }
+  default: null,
 })
 
 const displayValue = ref('')
@@ -39,7 +32,7 @@ watch(
     if (numericValue === currentDisplayNumericValue) return
     displayValue.value = format(numericValue)
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const onInput = (event) => {
@@ -52,7 +45,10 @@ const onInput = (event) => {
     const formattedValue = displayValue.value
     const newLength = formattedValue.length
     if (inputRef.value) {
-      const cursorPosition = Math.min(selectionStart + (newLength - originalLength), formattedValue.length)
+      const cursorPosition = Math.min(
+        selectionStart + (newLength - originalLength),
+        formattedValue.length,
+      )
       inputRef.value.value = formattedValue
       inputRef.value.setSelectionRange(cursorPosition, cursorPosition)
     }
@@ -61,11 +57,7 @@ const onInput = (event) => {
 </script>
 
 <template>
-  <UFormField
-    :label="label"
-    :error="error"
-    :required="required"
-  >
+  <UFormField :label="label" :error="error" :required="required">
     <div class="relative" :class="{ 'mt-2': label }">
       <span
         v-if="placeholder"
@@ -80,10 +72,8 @@ const onInput = (event) => {
         inputmode="numeric"
         :class="[
           'block w-full rounded-lg border-0 py-2.5 text-right text-gray-900 shadow-sm ring-1 ring-inset transition-colors placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm',
-          error
-            ? 'ring-red-500 focus:ring-red-600'
-            : 'ring-gray-300 focus:ring-primary',
-          placeholder ? 'pl-16 pr-3' : 'px-3'
+          error ? 'ring-red-500 focus:ring-red-600' : 'ring-gray-300 focus:ring-primary',
+          placeholder ? 'pl-16 pr-3' : 'px-3',
         ]"
         @input="onInput"
       />

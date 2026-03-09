@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!accountId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Account ID is required'
+        statusMessage: 'Account ID is required',
       })
     }
 
@@ -21,9 +21,7 @@ export default defineEventHandler(async (event) => {
     }
     await requirePropertyStaff(event, existing.propertyId)
 
-    await db
-      .delete(schema.receivingAccount)
-      .where(eq(schema.receivingAccount.id, accountId))
+    await db.delete(schema.receivingAccount).where(eq(schema.receivingAccount.id, accountId))
 
     return successResponse(null, 'ลบช่องทางการชำระเงินสำเร็จ')
   } catch (error) {

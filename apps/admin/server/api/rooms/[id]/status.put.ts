@@ -4,7 +4,7 @@ import { RoomStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const updateStatusSchema = z.object({
-  status: z.enum(Object.values(RoomStatus) as [string, ...string[]])
+  status: z.enum(Object.values(RoomStatus) as [string, ...string[]]),
 })
 
 export default defineEventHandler(async (event) => {
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     if (!roomId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Room ID' })
     }
-    const body = await readValidatedBody(event, data => updateStatusSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateStatusSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       id: historyId,
       roomId: updated.id,
       status: updated.status ?? body.data.status,
-      startDate: new Date()
+      startDate: new Date(),
     })
 
     return successResponse(updated)

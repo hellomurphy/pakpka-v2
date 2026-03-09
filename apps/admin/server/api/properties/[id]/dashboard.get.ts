@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     if (!propertyId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Property ID'
+        statusMessage: 'ต้องระบุ Property ID',
       })
     }
     await requirePropertyStaff(event, propertyId)
@@ -21,20 +21,22 @@ export default defineEventHandler(async (event) => {
       .select({ id: schema.invoice.id })
       .from(schema.invoice)
       .where(eq(schema.invoice.propertyId, propertyId))
-    const invIds = invoiceIdsForProperty.map(i => i.id)
+    const invIds = invoiceIdsForProperty.map((i) => i.id)
 
     const [incomeRow] =
       invIds.length > 0
         ? await db
-            .select({ total: sql<string>`COALESCE(SUM(CAST(${schema.payment.amount} AS REAL)), 0)` })
+            .select({
+              total: sql<string>`COALESCE(SUM(CAST(${schema.payment.amount} AS REAL)), 0)`,
+            })
             .from(schema.payment)
             .where(
               and(
                 inArray(schema.payment.invoiceId, invIds),
                 eq(schema.payment.status, 'VERIFIED'),
                 gte(schema.payment.paymentDate, startOfMonth),
-                lte(schema.payment.paymentDate, endOfMonth)
-              )
+                lte(schema.payment.paymentDate, endOfMonth),
+              ),
             )
         : [{ total: '0' }]
     const monthlyIncome = Number(incomeRow?.total ?? 0)
@@ -51,17 +53,25 @@ export default defineEventHandler(async (event) => {
       .where(and(eq(schema.room.propertyId, propertyId), eq(schema.room.status, 'AVAILABLE')))
     const availableRoomsCount = availableRooms.length
 
-    const roomIds = await db.select({ id: schema.room.id }).from(schema.room).where(eq(schema.room.propertyId, propertyId))
-    const rIds = roomIds.map(r => r.id)
+    const roomIds = await db
+      .select({ id: schema.room.id })
+      .from(schema.room)
+      .where(eq(schema.room.propertyId, propertyId))
+    const rIds = roomIds.map((r) => r.id)
     const maintenanceCount =
       rIds.length > 0
-        ? (await db
-            .select()
-            .from(schema.maintenanceRequest)
-            .innerJoin(schema.room, eq(schema.room.id, schema.maintenanceRequest.roomId))
-            .where(
-              and(eq(schema.room.propertyId, propertyId), eq(schema.maintenanceRequest.status, 'PENDING'))
-            )).length
+        ? (
+            await db
+              .select()
+              .from(schema.maintenanceRequest)
+              .innerJoin(schema.room, eq(schema.room.id, schema.maintenanceRequest.roomId))
+              .where(
+                and(
+                  eq(schema.room.propertyId, propertyId),
+                  eq(schema.maintenanceRequest.status, 'PENDING'),
+                ),
+              )
+          ).length
         : 0
 
     const roomStatusRows = await db
@@ -81,10 +91,7 @@ export default defineEventHandler(async (event) => {
       .select({ status: schema.invoice.status })
       .from(schema.invoice)
       .where(
-        and(
-          eq(schema.invoice.propertyId, propertyId),
-          gte(schema.invoice.createdAt, startOfMonth)
-        )
+        and(eq(schema.invoice.propertyId, propertyId), gte(schema.invoice.createdAt, startOfMonth)),
       )
     const billingCounts: Record<string, number> = {}
     for (const inv of invoicesThisMonth) {
@@ -100,10 +107,10 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.tenant.propertyId, propertyId),
-          inArray(schema.tenant.status, [TenantStatus.UPCOMING, TenantStatus.NOTICE_GIVEN])
-        )
+          inArray(schema.tenant.status, [TenantStatus.UPCOMING, TenantStatus.NOTICE_GIVEN]),
+        ),
       )
-    const tenantIds = todoTenants.map(t => t.id)
+    const tenantIds = todoTenants.map((t) => t.id)
     const links =
       tenantIds.length > 0
         ? await db
@@ -111,36 +118,33 @@ export default defineEventHandler(async (event) => {
             .from(schema.contractTenant)
             .where(inArray(schema.contractTenant.tenantId, tenantIds))
         : []
-    const contractIds = [...new Set(links.map(l => l.contractId))]
+    const contractIds = [...new Set(links.map((l) => l.contractId))]
     const contracts =
       contractIds.length > 0
-        ? await db
-            .select()
-            .from(schema.contract)
-            .where(inArray(schema.contract.id, contractIds))
+        ? await db.select().from(schema.contract).where(inArray(schema.contract.id, contractIds))
         : []
-    const contractByTenant: Record<string, { startDate: Date, endDate: Date }> = {}
+    const contractByTenant: Record<string, { startDate: Date; endDate: Date }> = {}
     for (const link of links) {
-      const c = contracts.find(x => x.id === link.contractId)
+      const c = contracts.find((x) => x.id === link.contractId)
       if (c) contractByTenant[link.tenantId] = { startDate: c.startDate, endDate: c.endDate }
     }
-    const todoList = todoTenants.map(t => ({
+    const todoList = todoTenants.map((t) => ({
       name: t.name,
       status: t.status,
-      contract: contractByTenant[t.id] ?? null
+      contract: contractByTenant[t.id] ?? null,
     }))
 
     const metrics = {
       monthlyIncome,
       overdueBalance,
       availableRooms: availableRoomsCount,
-      maintenanceRequests: maintenanceCount
+      maintenanceRequests: maintenanceCount,
     }
     const occupancy = {
       total: totalRoomCount,
       occupied,
       available,
-      other: totalRoomCount - occupied - available
+      other: totalRoomCount - occupied - available,
     }
     const billing = { paid, unpaid }
 

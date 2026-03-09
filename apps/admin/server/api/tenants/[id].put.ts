@@ -12,7 +12,7 @@ const updateTenantSchema = z.object({
     .optional()
     .or(z.literal(''))
     .optional(),
-  status: z.enum(tenantStatusValues).optional()
+  status: z.enum(tenantStatusValues).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -32,12 +32,12 @@ export default defineEventHandler(async (event) => {
     }
     await requirePropertyStaff(event, existing.propertyId)
 
-    const body = await readValidatedBody(event, data => updateTenantSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateTenantSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.flatten()
+        data: body.error.flatten(),
       })
     }
 

@@ -5,21 +5,19 @@ import { requireSession } from '~~/server/utils/auth'
 const updateProfileSchema = z.object({
   name: z.string().min(1, 'ชื่อต้องไม่เป็นค่าว่าง').optional(),
   phone: z.string().optional(),
-  desiredRoomTypeId: z.string().nullable().optional()
+  desiredRoomTypeId: z.string().nullable().optional(),
 })
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireSession(event)
 
-    const body = await readValidatedBody(event, data =>
-      updateProfileSchema.safeParse(data)
-    )
+    const body = await readValidatedBody(event, (data) => updateProfileSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.errors
+        data: body.error.errors,
       })
     }
     const { name, phone, desiredRoomTypeId } = body.data
@@ -32,7 +30,7 @@ export default defineEventHandler(async (event) => {
     if (!existing) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -49,7 +47,7 @@ export default defineEventHandler(async (event) => {
     if (!updated) {
       throw createError({
         statusCode: 500,
-        statusMessage: 'อัปเดตไม่สำเร็จ'
+        statusMessage: 'อัปเดตไม่สำเร็จ',
       })
     }
 
@@ -58,13 +56,13 @@ export default defineEventHandler(async (event) => {
       .from(schema.property)
       .where(eq(schema.property.id, updated.propertyId))
       .limit(1)
-    let desiredRoomTypeRow: { id: string, name: string, basePrice: string } | null = null
+    let desiredRoomTypeRow: { id: string; name: string; basePrice: string } | null = null
     if (updated.desiredRoomTypeId) {
       const [rt] = await db
         .select({
           id: schema.roomType.id,
           name: schema.roomType.name,
-          basePrice: schema.roomType.basePrice
+          basePrice: schema.roomType.basePrice,
         })
         .from(schema.roomType)
         .where(eq(schema.roomType.id, updated.desiredRoomTypeId))
@@ -81,7 +79,7 @@ export default defineEventHandler(async (event) => {
       property: propertyRow ? { id: propertyRow.id, name: propertyRow.name } : null,
       desiredRoomTypeId: updated.desiredRoomTypeId,
       desiredRoomType: desiredRoomTypeRow,
-      updatedAt: updated.updatedAt
+      updatedAt: updated.updatedAt,
     }
 
     return successResponse(result, 'อัปเดตโปรไฟล์สำเร็จ')

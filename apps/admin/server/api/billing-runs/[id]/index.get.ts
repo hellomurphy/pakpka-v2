@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!runId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ ID ของรอบบิล'
+        statusMessage: 'ต้องระบุ ID ของรอบบิล',
       })
     }
 
@@ -25,16 +25,15 @@ export default defineEventHandler(async (event) => {
       .select({ id: schema.invoice.id })
       .from(schema.invoice)
       .where(eq(schema.invoice.billingRunId, runId))
-    const invIds = invoices.map(i => i.id)
-    const meterReadings = invIds.length > 0
-      ? await db
-          .select({ invoiceId: schema.meterReading.invoiceId })
-          .from(schema.meterReading)
-          .where(inArray(schema.meterReading.invoiceId, invIds))
-      : []
-    const invoicesWithMeterCount = new Set(
-      meterReadings.map(mr => mr.invoiceId)
-    ).size
+    const invIds = invoices.map((i) => i.id)
+    const meterReadings =
+      invIds.length > 0
+        ? await db
+            .select({ invoiceId: schema.meterReading.invoiceId })
+            .from(schema.meterReading)
+            .where(inArray(schema.meterReading.invoiceId, invIds))
+        : []
+    const invoicesWithMeterCount = new Set(meterReadings.map((mr) => mr.invoiceId)).size
 
     const responseData = {
       id: billingRun.id,
@@ -46,7 +45,7 @@ export default defineEventHandler(async (event) => {
       executedById: billingRun.executedById,
       createdAt: billingRun.createdAt,
       meterReadingCompletedCount: invoicesWithMeterCount,
-      automatedInvoices: billingRun.totalContracts - billingRun.meterReadingRequired
+      automatedInvoices: billingRun.totalContracts - billingRun.meterReadingRequired,
     }
 
     return successResponse(responseData)

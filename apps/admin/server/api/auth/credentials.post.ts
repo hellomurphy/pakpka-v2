@@ -1,7 +1,6 @@
 import { eq, or } from 'drizzle-orm'
-import { setCookie } from 'h3'
+import { setCookie, readValidatedBody } from 'h3'
 import { db, schema } from '@nuxthub/db'
-import { readValidatedBody } from 'h3'
 import { z } from 'zod'
 
 const SESSION_COOKIE_NAME = 'session_token'
@@ -9,7 +8,7 @@ const SESSION_MAX_AGE_DAYS = 30
 
 const bodySchema = z.object({
   login: z.string().min(1),
-  password: z.string().min(1)
+  password: z.string().min(1),
 })
 
 /**
@@ -22,7 +21,7 @@ export default defineEventHandler(async (event) => {
   if (!isDemo && !config.dev) {
     throw createError({
       statusCode: 403,
-      statusMessage: 'Credentials login is only available in demo or development'
+      statusMessage: 'Credentials login is only available in demo or development',
     })
   }
 
@@ -36,21 +35,16 @@ export default defineEventHandler(async (event) => {
       email: schema.user.email,
       image: schema.user.image,
       avatarUrl: schema.user.avatarUrl,
-      password: schema.user.password
+      password: schema.user.password,
     })
     .from(schema.user)
-    .where(
-      or(
-        eq(schema.user.username, login),
-        eq(schema.user.email, login)
-      )
-    )
+    .where(or(eq(schema.user.username, login), eq(schema.user.email, login)))
     .limit(1)
 
   if (!userRow) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+      statusMessage: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
     })
   }
 
@@ -58,7 +52,7 @@ export default defineEventHandler(async (event) => {
   if (!storedPassword || storedPassword !== body.password) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+      statusMessage: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
     })
   }
 
@@ -71,7 +65,7 @@ export default defineEventHandler(async (event) => {
     id: sessionId,
     sessionToken,
     userId: userRow.id,
-    expires
+    expires,
   })
 
   setCookie(event, SESSION_COOKIE_NAME, sessionToken, {
@@ -79,7 +73,7 @@ export default defineEventHandler(async (event) => {
     secure: !config.dev,
     sameSite: 'lax',
     maxAge: SESSION_MAX_AGE_DAYS * 24 * 60 * 60,
-    path: '/'
+    path: '/',
   })
 
   await setUserSession(event, {
@@ -87,8 +81,8 @@ export default defineEventHandler(async (event) => {
       id: userRow.id,
       name: userRow.name ?? undefined,
       email: userRow.email ?? undefined,
-      image: userRow.image ?? userRow.avatarUrl ?? undefined
-    }
+      image: userRow.image ?? userRow.avatarUrl ?? undefined,
+    },
   })
 
   return { ok: true }

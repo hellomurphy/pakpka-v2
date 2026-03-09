@@ -10,24 +10,21 @@ const SESSION_COOKIE_NAME = 'session_token'
  * Used by getAuthSession in auth.ts so we don't depend on unresolved #auth.
  */
 export async function getToken({
-  event
+  event,
 }: {
   event: H3Event
 }): Promise<{ id: string; [key: string]: unknown } | null> {
   const token =
     getCookie(event, SESSION_COOKIE_NAME) ??
-    getHeader(event, 'authorization')?.replace(/^Bearer\s+/i, '').trim()
+    getHeader(event, 'authorization')
+      ?.replace(/^Bearer\s+/i, '')
+      .trim()
   if (!token) return null
 
   const [row] = await db
     .select({ userId: schema.session.userId, expires: schema.session.expires })
     .from(schema.session)
-    .where(
-      and(
-        eq(schema.session.sessionToken, token),
-        gt(schema.session.expires, new Date())
-      )
-    )
+    .where(and(eq(schema.session.sessionToken, token), gt(schema.session.expires, new Date())))
     .limit(1)
 
   if (!row) return null

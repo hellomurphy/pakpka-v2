@@ -1,48 +1,46 @@
 <script setup>
-import { onMounted } from "vue";
-import { useRoute } from "vue-router";
-import { storeToRefs } from "pinia";
-import { useContractsStore } from "~/store/contractsStore";
-import { useServicesStore } from "~/store/servicesStore";
-import { usePropertyStore } from "~/store/propertyStore";
+import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useContractsStore } from '~/store/contractsStore'
+import { useServicesStore } from '~/store/servicesStore'
+import { usePropertyStore } from '~/store/propertyStore'
 
 // Import sub-components
-import ContractDetailCard from "../components/ContractDetailCard.vue";
-import ContractServicesCard from "../components/ContractServicesCard.vue";
+import ContractDetailCard from '../components/ContractDetailCard.vue'
+import ContractServicesCard from '../components/ContractServicesCard.vue'
 
 // Import UI components
-import { ArrowLeftIcon } from "@heroicons/vue/24/outline";
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
 // --- Stores & Route ---
-const route = useRoute();
-const contractsStore = useContractsStore();
-const servicesStore = useServicesStore();
-const propertyStore = usePropertyStore();
+const route = useRoute()
+const contractsStore = useContractsStore()
+const servicesStore = useServicesStore()
+const propertyStore = usePropertyStore()
 
-const { activeContract, isLoading } = storeToRefs(contractsStore);
-const { services: serviceCatalog } = storeToRefs(servicesStore);
-const { propertyId } = storeToRefs(propertyStore); // Get propertyId for fetching services
-const contractId = Array.isArray(route.params.id)
-  ? route.params.id[0]
-  : route.params.id;
+const { activeContract, isLoading } = storeToRefs(contractsStore)
+const { services: serviceCatalog } = storeToRefs(servicesStore)
+const { propertyId } = storeToRefs(propertyStore) // Get propertyId for fetching services
+const contractId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
 
 // --- Data Fetching ---
 onMounted(() => {
   if (contractId) {
-    contractsStore.fetchContractDetails(contractId);
+    contractsStore.fetchContractDetails(contractId)
   }
   if (propertyId.value) {
     // Fetch all available services for the "Add Service" dropdown
-    servicesStore.fetchServices(propertyId.value);
+    servicesStore.fetchServices(propertyId.value)
   }
-});
+})
 
 // --- Methods ---
 const refreshData = () => {
   if (contractId) {
-    contractsStore.fetchContractDetails(contractId);
+    contractsStore.fetchContractDetails(contractId)
   }
-};
+}
 </script>
 
 <template>
@@ -57,8 +55,8 @@ const refreshData = () => {
       </NuxtLink>
 
       <div v-if="isLoading && !activeContract" class="animate-pulse">
-        <div class="h-9 w-3/4 bg-gray-200 rounded-md"></div>
-        <div class="h-5 w-1/2 bg-gray-200 rounded-md mt-2"></div>
+        <div class="h-9 w-3/4 bg-gray-200 rounded-md" />
+        <div class="h-5 w-1/2 bg-gray-200 rounded-md mt-2" />
       </div>
 
       <div v-else-if="activeContract">
@@ -75,18 +73,11 @@ const refreshData = () => {
     </header>
 
     <div v-if="isLoading && !activeContract" class="space-y-6">
-      <div
-        class="h-64 w-full bg-white rounded-xl animate-pulse ring-1 ring-gray-900/5"
-      ></div>
-      <div
-        class="h-48 w-full bg-white rounded-xl animate-pulse ring-1 ring-gray-900/5"
-      ></div>
+      <div class="h-64 w-full bg-white rounded-xl animate-pulse ring-1 ring-gray-900/5" />
+      <div class="h-48 w-full bg-white rounded-xl animate-pulse ring-1 ring-gray-900/5" />
     </div>
 
-    <div
-      v-else-if="activeContract"
-      class="grid grid-cols-1 lg:grid-cols-3 gap-6"
-    >
+    <div v-else-if="activeContract" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-2 space-y-6">
         <ContractDetailCard :contract="activeContract" @success="refreshData" />
       </div>

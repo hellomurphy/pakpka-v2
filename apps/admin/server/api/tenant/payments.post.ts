@@ -10,30 +10,23 @@ const paymentSchema = z.object({
   paymentMethod: z.enum(Object.values(PaymentMethod) as [string, ...string[]]),
   receivingAccountId: z.string().optional(),
   slipUrl: z.string().url('URL ของสลิปไม่ถูกต้อง').optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireSession(event)
 
-    const body = await readValidatedBody(event, data => paymentSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => paymentSchema.safeParse(data))
     if (!body.success) {
       throw createError({
         statusCode: 400,
         statusMessage: 'ข้อมูลไม่ถูกต้อง',
-        data: body.error.errors
+        data: body.error.errors,
       })
     }
-    const {
-      invoiceId,
-      amount,
-      paymentDate,
-      paymentMethod,
-      receivingAccountId,
-      slipUrl,
-      notes
-    } = body.data
+    const { invoiceId, amount, paymentDate, paymentMethod, receivingAccountId, slipUrl, notes } =
+      body.data
 
     const [tenantRow] = await db
       .select({ id: schema.tenant.id })
@@ -43,7 +36,7 @@ export default defineEventHandler(async (event) => {
     if (!tenantRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -61,7 +54,7 @@ export default defineEventHandler(async (event) => {
         propertyId: schema.invoice.propertyId,
         period: schema.invoice.period,
         dueDate: schema.invoice.dueDate,
-        contractId: schema.invoice.contractId
+        contractId: schema.invoice.contractId,
       })
       .from(schema.invoice)
       .where(eq(schema.invoice.id, invoiceId))
@@ -69,25 +62,25 @@ export default defineEventHandler(async (event) => {
     if (!invoiceRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบใบแจ้งหนี้นี้หรือคุณไม่มีสิทธิ์เข้าถึง'
+        statusMessage: 'ไม่พบใบแจ้งหนี้นี้หรือคุณไม่มีสิทธิ์เข้าถึง',
       })
     }
     if (!cIds.includes(invoiceRow.contractId)) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบใบแจ้งหนี้นี้หรือคุณไม่มีสิทธิ์เข้าถึง'
+        statusMessage: 'ไม่พบใบแจ้งหนี้นี้หรือคุณไม่มีสิทธิ์เข้าถึง',
       })
     }
     if (invoiceRow.status === 'PAID') {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ใบแจ้งหนี้นี้ชำระเงินแล้ว'
+        statusMessage: 'ใบแจ้งหนี้นี้ชำระเงินแล้ว',
       })
     }
     if (invoiceRow.status === 'CANCELLED') {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ใบแจ้งหนี้นี้ถูกยกเลิกแล้ว'
+        statusMessage: 'ใบแจ้งหนี้นี้ถูกยกเลิกแล้ว',
       })
     }
 
@@ -99,14 +92,14 @@ export default defineEventHandler(async (event) => {
           and(
             eq(schema.receivingAccount.id, receivingAccountId),
             eq(schema.receivingAccount.propertyId, invoiceRow.propertyId),
-            eq(schema.receivingAccount.isActive, true)
-          )
+            eq(schema.receivingAccount.isActive, true),
+          ),
         )
         .limit(1)
       if (!ra) {
         throw createError({
           statusCode: 404,
-          statusMessage: 'ไม่พบบัญชีรับเงินนี้หรือบัญชีไม่ใช้งานอยู่'
+          statusMessage: 'ไม่พบบัญชีรับเงินนี้หรือบัญชีไม่ใช้งานอยู่',
         })
       }
     }
@@ -121,7 +114,7 @@ export default defineEventHandler(async (event) => {
       receivingAccountId: receivingAccountId ?? null,
       slipUrl: slipUrl ?? null,
       notes: notes ?? null,
-      status: 'PENDING'
+      status: 'PENDING',
     })
 
     const [roomRow] = await db
@@ -147,9 +140,9 @@ export default defineEventHandler(async (event) => {
         dueDate: invoiceRow.dueDate,
         status: invoiceRow.status,
         contract: {
-          room: roomRow ? { roomNumber: roomRow.roomNumber } : null
-        }
-      }
+          room: roomRow ? { roomNumber: roomRow.roomNumber } : null,
+        },
+      },
     }
 
     return successResponse(payment, 'ส่งหลักฐานการชำระเงินสำเร็จ รอการตรวจสอบ')

@@ -36,7 +36,7 @@ export function useAppAuth() {
     const u = user.value
     if (!u) return null
     return {
-      user: u as AppAuthUser
+      user: u as AppAuthUser,
     }
   })
 
@@ -53,7 +53,7 @@ export function useAppAuth() {
 
   const signIn = async (
     provider: 'line' | 'credentials',
-    options?: SignInCredentialsOptions
+    options?: SignInCredentialsOptions,
   ): Promise<{ ok?: boolean; error?: string }> => {
     if (provider === 'line') {
       await navigateTo('/api/auth/line')
@@ -65,8 +65,8 @@ export function useAppAuth() {
           method: 'POST',
           body: {
             login: options.login,
-            password: options.password
-          }
+            password: options.password,
+          },
         })
         if (options.redirect !== false) {
           await navigateTo('/')
@@ -74,7 +74,11 @@ export function useAppAuth() {
         return { ok: true }
       } catch (err: unknown) {
         const message =
-          err && typeof err === 'object' && 'data' in err && err.data && typeof (err.data as { statusMessage?: string }).statusMessage === 'string'
+          err &&
+          typeof err === 'object' &&
+          'data' in err &&
+          err.data &&
+          typeof (err.data as { statusMessage?: string }).statusMessage === 'string'
             ? (err.data as { statusMessage: string }).statusMessage
             : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
         return { error: message }
@@ -91,6 +95,6 @@ export function useAppAuth() {
     ready,
     signOut,
     signIn,
-    fetchSession
+    fetchSession,
   }
 }

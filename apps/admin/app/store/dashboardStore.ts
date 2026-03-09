@@ -1,40 +1,40 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
 
 interface DashboardMetrics {
-  monthlyIncome: number;
-  overdueBalance: number;
-  availableRooms: number;
-  maintenanceRequests: number;
+  monthlyIncome: number
+  overdueBalance: number
+  availableRooms: number
+  maintenanceRequests: number
 }
 
 interface DashboardOccupancy {
-  total: number;
-  occupied: number;
-  available: number;
-  other: number;
+  total: number
+  occupied: number
+  available: number
+  other: number
 }
 
 interface DashboardBilling {
-  paid: number;
-  unpaid: number;
+  paid: number
+  unpaid: number
 }
 
 interface DashboardTodo {
-  type: "PAYMENT" | "CHECK_IN" | "CHECK_OUT" | "CONTRACT_ENDING";
-  text: string;
-  urgent: boolean;
-  to: string;
-  relatedId?: string;
+  type: 'PAYMENT' | 'CHECK_IN' | 'CHECK_OUT' | 'CONTRACT_ENDING'
+  text: string
+  urgent: boolean
+  to: string
+  relatedId?: string
 }
 
 interface DashboardData {
-  metrics: DashboardMetrics;
-  occupancy: DashboardOccupancy;
-  billing: DashboardBilling;
-  todos: DashboardTodo[];
+  metrics: DashboardMetrics
+  occupancy: DashboardOccupancy
+  billing: DashboardBilling
+  todos: DashboardTodo[]
 }
 
-export const useDashboardStore = defineStore("dashboard", {
+export const useDashboardStore = defineStore('dashboard', {
   state: () => ({
     dashboardData: null as DashboardData | null,
     isLoading: false,
@@ -49,25 +49,25 @@ export const useDashboardStore = defineStore("dashboard", {
 
   actions: {
     async fetchDashboardData(propertyId: string) {
-      this.isLoading = true;
+      this.isLoading = true
       try {
         const response = await useApiFetch<DashboardData>(
           `/api/dashboard?propertyId=${propertyId}`,
           {
             showNotification: false,
-          }
-        );
+          },
+        )
 
         if (response.success) {
-          this.dashboardData = response.data;
+          this.dashboardData = response.data
         }
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
     clearDashboardData() {
-      this.dashboardData = null;
+      this.dashboardData = null
     },
   },
-});
+})

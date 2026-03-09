@@ -8,7 +8,7 @@ const querySchema = z.object({
   status: z.enum(Object.values(TenantStatus) as [string, ...string[]]).optional(),
   q: z.string().optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(15)
+  limit: z.coerce.number().int().min(1).max(100).optional().default(15),
 })
 
 function formatTenantRow(row: {
@@ -37,19 +37,19 @@ function formatTenantRow(row: {
           id: row.contractId,
           rentAmount: row.rentAmount,
           endDate: row.contractEndDate,
-          room: { id: row.roomId, roomNumber: row.roomNumber }
+          room: { id: row.roomId, roomNumber: row.roomNumber },
         }
-      : null
+      : null,
   }
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ข้อมูล Query ไม่ถูกต้อง'
+        statusMessage: 'ข้อมูล Query ไม่ถูกต้อง',
       })
     }
     const { propertyId, status, q, page, limit } = query.data
@@ -73,19 +73,16 @@ export default defineEventHandler(async (event) => {
         roomId: schema.room.id,
         roomNumber: schema.room.roomNumber,
         rentAmount: schema.contract.rentAmount,
-        contractEndDate: schema.contract.endDate
+        contractEndDate: schema.contract.endDate,
       })
       .from(schema.tenant)
-      .leftJoin(
-        schema.contractTenant,
-        eq(schema.contractTenant.tenantId, schema.tenant.id)
-      )
+      .leftJoin(schema.contractTenant, eq(schema.contractTenant.tenantId, schema.tenant.id))
       .leftJoin(
         schema.contract,
         and(
           eq(schema.contract.id, schema.contractTenant.contractId),
-          inArray(schema.contract.status, [ContractStatus.ACTIVE, ContractStatus.PENDING])
-        )
+          inArray(schema.contract.status, [ContractStatus.ACTIVE, ContractStatus.PENDING]),
+        ),
       )
       .leftJoin(schema.room, eq(schema.room.id, schema.contract.roomId))
       .where(
@@ -95,10 +92,10 @@ export default defineEventHandler(async (event) => {
               or(
                 like(schema.tenant.name, searchTerm),
                 like(schema.tenant.phone, searchTerm),
-                like(schema.room.roomNumber, searchTerm)
-              )
+                like(schema.room.roomNumber, searchTerm),
+              ),
             )
-          : and(...baseConditions)
+          : and(...baseConditions),
       )
       .orderBy(schema.room.roomNumber)
       .limit(limit)
@@ -108,10 +105,7 @@ export default defineEventHandler(async (event) => {
       db
         .select({ count: sql<number>`COUNT(DISTINCT ${schema.tenant.id})` })
         .from(schema.tenant)
-        .leftJoin(
-          schema.contractTenant,
-          eq(schema.contractTenant.tenantId, schema.tenant.id)
-        )
+        .leftJoin(schema.contractTenant, eq(schema.contractTenant.tenantId, schema.tenant.id))
         .leftJoin(schema.contract, eq(schema.contract.id, schema.contractTenant.contractId))
         .leftJoin(schema.room, eq(schema.room.id, schema.contract.roomId))
         .where(
@@ -121,47 +115,43 @@ export default defineEventHandler(async (event) => {
                 or(
                   like(schema.tenant.name, searchTerm),
                   like(schema.tenant.phone, searchTerm),
-                  like(schema.room.roomNumber, searchTerm)
-                )
+                  like(schema.room.roomNumber, searchTerm),
+                ),
               )
-            : and(...baseConditions)
+            : and(...baseConditions),
         ),
       db
         .select({
           status: schema.tenant.status,
-          count: sql<number>`COUNT(*)`
+          count: sql<number>`COUNT(*)`,
         })
         .from(schema.tenant)
         .where(eq(schema.tenant.propertyId, propertyId))
         .groupBy(schema.tenant.status),
-      tenantsQuery
+      tenantsQuery,
     ])
 
     const total = Number(countResult[0]?.count ?? 0)
     const formattedCounts = Object.values(TenantStatus).reduce(
       (acc: Record<TenantStatus, number>, s) => {
         acc[s] = Number(
-          countByStatusRows.find((r: { status: string | null }) => r.status === s)
-            ?.count ?? 0
+          countByStatusRows.find((r: { status: string | null }) => r.status === s)?.count ?? 0,
         )
         return acc
       },
-      {} as Record<TenantStatus, number>
+      {} as Record<TenantStatus, number>,
     )
 
     type TenantRow = (typeof rawTenants)[number]
-    const deduped = rawTenants.reduce(
-      (acc: TenantRow[], row: TenantRow) => {
-        if (!acc.some((r: TenantRow) => r.id === row.id)) acc.push(row)
-        return acc
-      },
-      [] as TenantRow[]
-    )
+    const deduped = rawTenants.reduce((acc: TenantRow[], row: TenantRow) => {
+      if (!acc.some((r: TenantRow) => r.id === row.id)) acc.push(row)
+      return acc
+    }, [] as TenantRow[])
     const formattedData = deduped.map(formatTenantRow)
 
     return successResponse(
       { tenants: formattedData, total, counts: formattedCounts },
-      'ดึงข้อมูลผู้เช่าสำเร็จ'
+      'ดึงข้อมูลผู้เช่าสำเร็จ',
     )
   } catch (error) {
     return errorResponse(event, error)

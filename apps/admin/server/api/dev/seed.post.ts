@@ -18,9 +18,10 @@ import {
   InvitationStatus,
   LateFeeType,
   RoomNameFormat,
-  UtilityType
+  UtilityType,
 } from '@repo/db'
 import { db, schema } from '@nuxthub/db'
+import { calcUtilityCost } from '~~/server/utils/utility-cost'
 
 export default defineEventHandler(async (event) => {
   console.log('🌱 [API] Starting comprehensive database seeding...')
@@ -31,8 +32,8 @@ export default defineEventHandler(async (event) => {
       event,
       createError({
         statusCode: 403,
-        statusMessage: 'Seeding is only allowed in demo mode.'
-      })
+        statusMessage: 'Seeding is only allowed in demo mode.',
+      }),
     )
   }
 
@@ -46,8 +47,9 @@ export default defineEventHandler(async (event) => {
         event,
         createError({
           statusCode: 503,
-          statusMessage: 'Database has no schema (wrong DB or migration not applied). From repo root run: pnpm --filter @repo/db run db:migrate:local. Ensure apps/admin/.env DATABASE_URL points to the same SQLite file as Drizzle Studio (see README).'
-        })
+          statusMessage:
+            'Database has no schema (wrong DB or migration not applied). From repo root run: pnpm --filter @repo/db run db:migrate:local. Ensure apps/admin/.env DATABASE_URL points to the same SQLite file as Drizzle Studio (see README).',
+        }),
       )
     }
     throw err
@@ -81,7 +83,7 @@ export default defineEventHandler(async (event) => {
     schema.session,
     schema.account,
     schema.user,
-    schema.amenity
+    schema.amenity,
   ] as const
 
   try {
@@ -104,12 +106,48 @@ export default defineEventHandler(async (event) => {
     console.log('🌱 [API] Starting to seed new data...')
 
     const usersData = [
-      { id: 'user_owner_01', name: 'เจ้าของหอ (คุณอารี)', email: 'owner@pakpak.app', username: 'owner01', password: null },
-      { id: 'user_admin_01', name: 'ผู้จัดการ (สมหญิง)', email: 'admin@pakpak.app', username: 'admin01', password: null },
-      { id: 'user_staff_01', name: 'พนักงาน (จินดา)', email: 'staff1@pakpak.app', username: 'staff01', password: null },
-      { id: 'user_staff_02', name: 'พนักงาน (สมศรี)', email: 'staff2@pakpak.app', username: 'staff02', password: null },
-      { id: 'user_tenant_01', name: 'กิตติพงษ์ ชูชาติ', email: 'kittipong@example.com', username: 'kittipong', password: null },
-      { id: 'user_tenant_02', name: 'วิภาดา สุขสันต์', email: 'wipada@example.com', username: 'wipada', password: null }
+      {
+        id: 'user_owner_01',
+        name: 'เจ้าของหอ (คุณอารี)',
+        email: 'owner@pakpak.app',
+        username: 'owner01',
+        password: null,
+      },
+      {
+        id: 'user_admin_01',
+        name: 'ผู้จัดการ (สมหญิง)',
+        email: 'admin@pakpak.app',
+        username: 'admin01',
+        password: null,
+      },
+      {
+        id: 'user_staff_01',
+        name: 'พนักงาน (จินดา)',
+        email: 'staff1@pakpak.app',
+        username: 'staff01',
+        password: null,
+      },
+      {
+        id: 'user_staff_02',
+        name: 'พนักงาน (สมศรี)',
+        email: 'staff2@pakpak.app',
+        username: 'staff02',
+        password: null,
+      },
+      {
+        id: 'user_tenant_01',
+        name: 'กิตติพงษ์ ชูชาติ',
+        email: 'kittipong@example.com',
+        username: 'kittipong',
+        password: null,
+      },
+      {
+        id: 'user_tenant_02',
+        name: 'วิภาดา สุขสันต์',
+        email: 'wipada@example.com',
+        username: 'wipada',
+        password: null,
+      },
     ]
     await db.insert(schema.user).values(usersData)
     const owner = usersData[0]!
@@ -139,7 +177,7 @@ export default defineEventHandler(async (event) => {
         defaultPaymentDueDays: 5,
         lateFeeEnabled: true,
         lateFeeType: LateFeeType.FIXED,
-        lateFeeValue: '100'
+        lateFeeValue: '100',
       },
       {
         id: property2Id,
@@ -157,24 +195,38 @@ export default defineEventHandler(async (event) => {
         defaultPaymentDueDays: 7,
         lateFeeEnabled: true,
         lateFeeType: LateFeeType.PERCENTAGE,
-        lateFeeValue: '5'
-      }
+        lateFeeValue: '5',
+      },
     ])
     await db.insert(schema.propertyStaff).values([
       { userId: owner.id, propertyId: property1Id, role: Role.OWNER },
       { userId: admin.id, propertyId: property1Id, role: Role.ADMIN },
       { userId: staff1.id, propertyId: property1Id, role: Role.STAFF },
       { userId: owner.id, propertyId: property2Id, role: Role.OWNER },
-      { userId: staff2.id, propertyId: property2Id, role: Role.STAFF }
+      { userId: staff2.id, propertyId: property2Id, role: Role.STAFF },
     ])
-    const [property1] = await db.select().from(schema.property).where(eq(schema.property.id, property1Id)).limit(1)
-    const [property2] = await db.select().from(schema.property).where(eq(schema.property.id, property2Id)).limit(1)
+    const [property1] = await db
+      .select()
+      .from(schema.property)
+      .where(eq(schema.property.id, property1Id))
+      .limit(1)
+    const [property2] = await db
+      .select()
+      .from(schema.property)
+      .where(eq(schema.property.id, property2Id))
+      .limit(1)
     if (!property1 || !property2) throw new Error('Property insert failed')
 
     console.log('✨ Creating amenities...')
     const amenityNames = [
-      'เครื่องปรับอากาศ', 'เครื่องทำน้ำอุ่น', 'อินเทอร์เน็ต WiFi', 'ตู้เย็น',
-      'เครื่องซักผ้าส่วนกลาง', 'ที่จอดรถ', 'ระบบรักษาความปลอดภัย 24 ชม.', 'ลิฟต์โดยสาร'
+      'เครื่องปรับอากาศ',
+      'เครื่องทำน้ำอุ่น',
+      'อินเทอร์เน็ต WiFi',
+      'ตู้เย็น',
+      'เครื่องซักผ้าส่วนกลาง',
+      'ที่จอดรถ',
+      'ระบบรักษาความปลอดภัย 24 ชม.',
+      'ลิฟต์โดยสาร',
     ]
     const amenities = amenityNames.map((name, i) => ({ id: `amenity_${i + 1}`, name }))
     await db.insert(schema.amenity).values(amenities)
@@ -183,15 +235,33 @@ export default defineEventHandler(async (event) => {
     const floors1Data = [
       { id: 'floor_p1_1', name: 'ชั้น 1', floorNumber: 1, propertyId: property1.id },
       { id: 'floor_p1_2', name: 'ชั้น 2', floorNumber: 2, propertyId: property1.id },
-      { id: 'floor_p1_3', name: 'ชั้น 3', floorNumber: 3, propertyId: property1.id }
+      { id: 'floor_p1_3', name: 'ชั้น 3', floorNumber: 3, propertyId: property1.id },
     ]
     await db.insert(schema.floor).values(floors1Data)
     const floors1 = floors1Data
 
     const roomTypes1Data = [
-      { id: 'rt1_1', name: 'ห้องพัดลม', basePrice: '3000', deposit: '5000', propertyId: property1.id },
-      { id: 'rt1_2', name: 'ห้องแอร์', basePrice: '4200', deposit: '6000', propertyId: property1.id },
-      { id: 'rt1_3', name: 'ห้องแอร์ + น้ำอุ่น', basePrice: '4800', deposit: '7000', propertyId: property1.id }
+      {
+        id: 'rt1_1',
+        name: 'ห้องพัดลม',
+        basePrice: '3000',
+        deposit: '5000',
+        propertyId: property1.id,
+      },
+      {
+        id: 'rt1_2',
+        name: 'ห้องแอร์',
+        basePrice: '4200',
+        deposit: '6000',
+        propertyId: property1.id,
+      },
+      {
+        id: 'rt1_3',
+        name: 'ห้องแอร์ + น้ำอุ่น',
+        basePrice: '4800',
+        deposit: '7000',
+        propertyId: property1.id,
+      },
     ]
     await db.insert(schema.roomType).values(roomTypes1Data)
     await db.insert(schema.roomTypeAmenity).values([
@@ -207,12 +277,19 @@ export default defineEventHandler(async (event) => {
       { roomTypeId: 'rt1_3', amenityId: amenities[2].id },
       { roomTypeId: 'rt1_3', amenityId: amenities[3].id },
       { roomTypeId: 'rt1_3', amenityId: amenities[4].id },
-      { roomTypeId: 'rt1_3', amenityId: amenities[6].id }
+      { roomTypeId: 'rt1_3', amenityId: amenities[6].id },
     ])
     const roomTypes1 = roomTypes1Data
 
     console.log('🚪 Creating rooms for Property 1...')
-    const roomsData1: { id: string; roomNumber: string; status: string; roomTypeId: string; floorId: string; propertyId: string }[] = []
+    const roomsData1: {
+      id: string
+      roomNumber: string
+      status: string
+      roomTypeId: string
+      floorId: string
+      propertyId: string
+    }[] = []
     for (let floorIdx = 0; floorIdx < 3; floorIdx++) {
       for (let roomNum = 1; roomNum <= 10; roomNum++) {
         const roomNumber = `${floorIdx + 1}${roomNum.toString().padStart(2, '0')}`
@@ -220,51 +297,80 @@ export default defineEventHandler(async (event) => {
         let roomTypeId = roomTypes1[roomNum % 3].id
         if (floorIdx === 0 && roomNum <= 3) status = RoomStatus.OCCUPIED
         else if (floorIdx === 1 && roomNum <= 2) status = RoomStatus.OCCUPIED
-        else if (floorIdx === 0 && roomNum === 4) { status = RoomStatus.RESERVED; roomTypeId = roomTypes1[1].id }
-        else if (floorIdx === 1 && roomNum === 7) { status = RoomStatus.MAINTENANCE; roomTypeId = roomTypes1[0].id }
-        else if (floorIdx === 1 && roomNum === 8) { status = RoomStatus.CLEANING; roomTypeId = roomTypes1[2].id }
+        else if (floorIdx === 0 && roomNum === 4) {
+          status = RoomStatus.RESERVED
+          roomTypeId = roomTypes1[1].id
+        } else if (floorIdx === 1 && roomNum === 7) {
+          status = RoomStatus.MAINTENANCE
+          roomTypeId = roomTypes1[0].id
+        } else if (floorIdx === 1 && roomNum === 8) {
+          status = RoomStatus.CLEANING
+          roomTypeId = roomTypes1[2].id
+        }
         roomsData1.push({
           id: `room_p1_${floorIdx + 1}${roomNum.toString().padStart(2, '0')}`,
           roomNumber,
           status,
           roomTypeId,
           floorId: floors1[floorIdx].id,
-          propertyId: property1.id
+          propertyId: property1.id,
         })
       }
     }
     await db.insert(schema.room).values(roomsData1)
-    const roomTypeById = Object.fromEntries(roomTypes1.map(rt => [rt.id, rt]))
-    const rooms1 = roomsData1.map(r => ({
+    const roomTypeById = Object.fromEntries(roomTypes1.map((rt) => [rt.id, rt]))
+    const rooms1 = roomsData1.map((r) => ({
       ...r,
-      roomType: roomTypeById[r.roomTypeId] ?? roomTypes1[0]
+      roomType: roomTypeById[r.roomTypeId] ?? roomTypes1[0],
     }))
 
     console.log('🏗️  Creating floors and room types for Property 2...')
     const floors2Data = [
       { id: 'floor_p2_1', name: 'Floor 1', floorNumber: 1, propertyId: property2.id },
-      { id: 'floor_p2_2', name: 'Floor 2', floorNumber: 2, propertyId: property2.id }
+      { id: 'floor_p2_2', name: 'Floor 2', floorNumber: 2, propertyId: property2.id },
     ]
     await db.insert(schema.floor).values(floors2Data)
     const floors2 = floors2Data
 
     const roomTypes2Data = [
-      { id: 'rt2_1', name: 'Studio', basePrice: '5500', deposit: '11000', propertyId: property2.id },
-      { id: 'rt2_2', name: 'Deluxe', basePrice: '7200', deposit: '14400', propertyId: property2.id }
+      {
+        id: 'rt2_1',
+        name: 'Studio',
+        basePrice: '5500',
+        deposit: '11000',
+        propertyId: property2.id,
+      },
+      {
+        id: 'rt2_2',
+        name: 'Deluxe',
+        basePrice: '7200',
+        deposit: '14400',
+        propertyId: property2.id,
+      },
     ]
     await db.insert(schema.roomType).values(roomTypes2Data)
     const roomTypes2 = roomTypes2Data
     const rt2Amenities = [
       [0, 1, 2, 3, 5, 6, 7],
-      [0, 1, 2, 3, 4, 5, 6, 7]
+      [0, 1, 2, 3, 4, 5, 6, 7],
     ]
     for (let i = 0; i < roomTypes2.length; i++) {
       await db.insert(schema.roomTypeAmenity).values(
-        rt2Amenities[i].map(aIdx => ({ roomTypeId: roomTypes2[i].id, amenityId: amenities[aIdx].id }))
+        rt2Amenities[i].map((aIdx) => ({
+          roomTypeId: roomTypes2[i].id,
+          amenityId: amenities[aIdx].id,
+        })),
       )
     }
 
-    const roomsData2: { id: string; roomNumber: string; status: string; roomTypeId: string; floorId: string; propertyId: string }[] = []
+    const roomsData2: {
+      id: string
+      roomNumber: string
+      status: string
+      roomTypeId: string
+      floorId: string
+      propertyId: string
+    }[] = []
     for (let floorIdx = 0; floorIdx < 2; floorIdx++) {
       for (let roomNum = 1; roomNum <= 8; roomNum++) {
         const roomNumber = `${String.fromCharCode(65 + floorIdx)}${roomNum.toString().padStart(2, '0')}`
@@ -277,26 +383,61 @@ export default defineEventHandler(async (event) => {
           status,
           roomTypeId: roomTypes2[roomNum % 2].id,
           floorId: floors2[floorIdx].id,
-          propertyId: property2.id
+          propertyId: property2.id,
         })
       }
     }
     await db.insert(schema.room).values(roomsData2)
-    const rt2ById = Object.fromEntries(roomTypes2.map(rt => [rt.id, rt]))
-    const rooms2 = roomsData2.map(r => ({
+    const rt2ById = Object.fromEntries(roomTypes2.map((rt) => [rt.id, rt]))
+    const rooms2 = roomsData2.map((r) => ({
       ...r,
-      roomType: rt2ById[r.roomTypeId] ?? roomTypes2[0]
+      roomType: rt2ById[r.roomTypeId] ?? roomTypes2[0],
     }))
 
     console.log('🛎️  Creating services...')
     const services1Data = [
-      { id: 'sv1_1', name: 'ที่จอดรถ', defaultPrice: '500', billingCycle: BillingCycle.MONTHLY, propertyId: property1.id, isOptional: true },
-      { id: 'sv1_2', name: 'อินเทอร์เน็ตความเร็วสูง', defaultPrice: '300', billingCycle: BillingCycle.MONTHLY, propertyId: property1.id, isOptional: false },
-      { id: 'sv1_3', name: 'ค่าขยะและทำความสะอาด', defaultPrice: '200', billingCycle: BillingCycle.MONTHLY, propertyId: property1.id, isOptional: false }
+      {
+        id: 'sv1_1',
+        name: 'ที่จอดรถ',
+        defaultPrice: '500',
+        billingCycle: BillingCycle.MONTHLY,
+        propertyId: property1.id,
+        isOptional: true,
+      },
+      {
+        id: 'sv1_2',
+        name: 'อินเทอร์เน็ตความเร็วสูง',
+        defaultPrice: '300',
+        billingCycle: BillingCycle.MONTHLY,
+        propertyId: property1.id,
+        isOptional: false,
+      },
+      {
+        id: 'sv1_3',
+        name: 'ค่าขยะและทำความสะอาด',
+        defaultPrice: '200',
+        billingCycle: BillingCycle.MONTHLY,
+        propertyId: property1.id,
+        isOptional: false,
+      },
     ]
     const services2Data = [
-      { id: 'sv2_1', name: 'ที่จอดรถในร่ม', defaultPrice: '1000', billingCycle: BillingCycle.MONTHLY, propertyId: property2.id, isOptional: true },
-      { id: 'sv2_2', name: 'บริการซักรีด', defaultPrice: '800', billingCycle: BillingCycle.MONTHLY, propertyId: property2.id, isOptional: true }
+      {
+        id: 'sv2_1',
+        name: 'ที่จอดรถในร่ม',
+        defaultPrice: '1000',
+        billingCycle: BillingCycle.MONTHLY,
+        propertyId: property2.id,
+        isOptional: true,
+      },
+      {
+        id: 'sv2_2',
+        name: 'บริการซักรีด',
+        defaultPrice: '800',
+        billingCycle: BillingCycle.MONTHLY,
+        propertyId: property2.id,
+        isOptional: true,
+      },
     ]
     await db.insert(schema.service).values([...services1Data, ...services2Data])
     const services1 = services1Data
@@ -304,26 +445,109 @@ export default defineEventHandler(async (event) => {
 
     console.log('👤 Creating tenants...')
     const tenantsData = [
-      { id: 'tenant_01', name: 'กิตติพงษ์ ชูชาติ', phone: '0812345601', propertyId: property1.id, status: TenantStatus.ACTIVE, userId: tenantUser1.id },
-      { id: 'tenant_02', name: 'วิภาดา สุขสันต์', phone: '0812345602', propertyId: property1.id, status: TenantStatus.ACTIVE, userId: tenantUser2.id },
-      { id: 'tenant_03', name: 'ปิติ ยินดี', phone: '0812345603', propertyId: property1.id, status: TenantStatus.ACTIVE },
-      { id: 'tenant_04', name: 'สมศรี รักษา', phone: '0812345604', propertyId: property1.id, status: TenantStatus.ACTIVE },
-      { id: 'tenant_05', name: 'วิชัย เจริญ', phone: '0812345605', propertyId: property1.id, status: TenantStatus.ACTIVE },
-      { id: 'tenant_06', name: 'นันทิดา สดใส', phone: '0812345606', propertyId: property1.id, status: TenantStatus.UPCOMING, desiredRoomTypeId: roomTypes1[1].id },
-      { id: 'tenant_07', name: 'ประเสริฐ ออกไป', phone: '0812345607', propertyId: property1.id, status: TenantStatus.NOTICE_GIVEN },
-      { id: 'tenant_08', name: 'สุดา รออยู่', phone: '0812345608', propertyId: property1.id, status: TenantStatus.WAITING_LIST, desiredRoomTypeId: roomTypes1[2].id },
-      { id: 'tenant_09', name: 'วิไล รอด้วย', phone: '0812345609', propertyId: property1.id, status: TenantStatus.WAITING_LIST, desiredRoomTypeId: roomTypes1[1].id },
-      { id: 'tenant_10', name: 'สมบูรณ์ ย้ายไป', phone: '0812345610', propertyId: property1.id, status: TenantStatus.MOVED_OUT },
-      { id: 'tenant_11', name: 'ดวงใจ หวังดี', phone: '0823456701', propertyId: property2.id, status: TenantStatus.ACTIVE },
-      { id: 'tenant_12', name: 'สุรชัย มั่งคั่ง', phone: '0823456702', propertyId: property2.id, status: TenantStatus.ACTIVE },
-      { id: 'tenant_13', name: 'อรทัย สวยงาม', phone: '0823456703', propertyId: property2.id, status: TenantStatus.ACTIVE }
+      {
+        id: 'tenant_01',
+        name: 'กิตติพงษ์ ชูชาติ',
+        phone: '0812345601',
+        propertyId: property1.id,
+        status: TenantStatus.ACTIVE,
+        userId: tenantUser1.id,
+      },
+      {
+        id: 'tenant_02',
+        name: 'วิภาดา สุขสันต์',
+        phone: '0812345602',
+        propertyId: property1.id,
+        status: TenantStatus.ACTIVE,
+        userId: tenantUser2.id,
+      },
+      {
+        id: 'tenant_03',
+        name: 'ปิติ ยินดี',
+        phone: '0812345603',
+        propertyId: property1.id,
+        status: TenantStatus.ACTIVE,
+      },
+      {
+        id: 'tenant_04',
+        name: 'สมศรี รักษา',
+        phone: '0812345604',
+        propertyId: property1.id,
+        status: TenantStatus.ACTIVE,
+      },
+      {
+        id: 'tenant_05',
+        name: 'วิชัย เจริญ',
+        phone: '0812345605',
+        propertyId: property1.id,
+        status: TenantStatus.ACTIVE,
+      },
+      {
+        id: 'tenant_06',
+        name: 'นันทิดา สดใส',
+        phone: '0812345606',
+        propertyId: property1.id,
+        status: TenantStatus.UPCOMING,
+        desiredRoomTypeId: roomTypes1[1].id,
+      },
+      {
+        id: 'tenant_07',
+        name: 'ประเสริฐ ออกไป',
+        phone: '0812345607',
+        propertyId: property1.id,
+        status: TenantStatus.NOTICE_GIVEN,
+      },
+      {
+        id: 'tenant_08',
+        name: 'สุดา รออยู่',
+        phone: '0812345608',
+        propertyId: property1.id,
+        status: TenantStatus.WAITING_LIST,
+        desiredRoomTypeId: roomTypes1[2].id,
+      },
+      {
+        id: 'tenant_09',
+        name: 'วิไล รอด้วย',
+        phone: '0812345609',
+        propertyId: property1.id,
+        status: TenantStatus.WAITING_LIST,
+        desiredRoomTypeId: roomTypes1[1].id,
+      },
+      {
+        id: 'tenant_10',
+        name: 'สมบูรณ์ ย้ายไป',
+        phone: '0812345610',
+        propertyId: property1.id,
+        status: TenantStatus.MOVED_OUT,
+      },
+      {
+        id: 'tenant_11',
+        name: 'ดวงใจ หวังดี',
+        phone: '0823456701',
+        propertyId: property2.id,
+        status: TenantStatus.ACTIVE,
+      },
+      {
+        id: 'tenant_12',
+        name: 'สุรชัย มั่งคั่ง',
+        phone: '0823456702',
+        propertyId: property2.id,
+        status: TenantStatus.ACTIVE,
+      },
+      {
+        id: 'tenant_13',
+        name: 'อรทัย สวยงาม',
+        phone: '0823456703',
+        propertyId: property2.id,
+        status: TenantStatus.ACTIVE,
+      },
     ]
     await db.insert(schema.tenant).values(tenantsData)
     const tenants = tenantsData
 
     // --- 10. Create Contracts ---
-    console.log("📄 Creating contracts...");
-    const occupiedRooms1 = rooms1.filter((r) => r.status === RoomStatus.OCCUPIED);
+    console.log('📄 Creating contracts...')
+    const occupiedRooms1 = rooms1.filter((r) => r.status === RoomStatus.OCCUPIED)
     const contracts1 = await Promise.all([
       // Property 1: 5 ห้องมีผู้เช่า (101, 102, 103, 201, 202)
       createContractWithServices(
@@ -335,7 +559,7 @@ export default defineEventHandler(async (event) => {
         6,
         ContractStatus.ACTIVE,
         [services1[1], services1[2]],
-        true
+        true,
       ),
       createContractWithServices(
         property1,
@@ -346,7 +570,7 @@ export default defineEventHandler(async (event) => {
         9,
         ContractStatus.ACTIVE,
         [services1[0], services1[1], services1[2]],
-        true
+        true,
       ),
       createContractWithServices(
         property1,
@@ -357,7 +581,7 @@ export default defineEventHandler(async (event) => {
         11,
         ContractStatus.ACTIVE,
         [services1[1], services1[2]],
-        true
+        true,
       ),
       createContractWithServices(
         property1,
@@ -368,7 +592,7 @@ export default defineEventHandler(async (event) => {
         12,
         ContractStatus.ACTIVE,
         [services1[1], services1[2]],
-        true
+        true,
       ),
       createContractWithServices(
         property1,
@@ -379,36 +603,36 @@ export default defineEventHandler(async (event) => {
         2,
         ContractStatus.ACTIVE,
         [services1[1], services1[2]],
-        false // สัญญาที่กำลังจะหมดอายุ
+        false, // สัญญาที่กำลังจะหมดอายุ
       ),
       // สัญญาที่แจ้งย้ายออกแล้ว (ห้อง 108 - ยังอยู่อาศัยอยู่แต่จะย้ายออก)
       createContractWithServices(
         property1,
         tenants[6],
-        rooms1.find((r) => r.roomNumber === "108")!,
+        rooms1.find((r) => r.roomNumber === '108')!,
         3000,
         -8,
         1, // สิ้นสุดอีก 1 เดือนข้างหน้า (ยังไม่หมดอายุ)
         ContractStatus.ACTIVE, // ยังคงเป็น ACTIVE เพื่อให้ดูและต่อสัญญาได้
         [services1[1], services1[2]],
-        false
+        false,
       ),
       // สัญญารอเข้าพัก (ห้อง 106 - ผู้เช่ารอเข้าพัก)
       createContractWithServices(
         property1,
         tenants[5], // นันทิดา สดใส (UPCOMING)
-        rooms1.find((r) => r.roomNumber === "106")!,
+        rooms1.find((r) => r.roomNumber === '106')!,
         3200,
         3, // เริ่มสัญญา 3 วันข้างหน้า
         9, // สิ้นสุด 9 เดือนข้างหน้า
         ContractStatus.PENDING,
         [services1[0], services1[1]],
-        false
+        false,
       ),
-    ]);
+    ])
 
     // Property 2 contracts: 3 ห้องมีผู้เช่า (A01, A02, B01)
-    const occupiedRooms2 = rooms2.filter((r) => r.status === RoomStatus.OCCUPIED);
+    const occupiedRooms2 = rooms2.filter((r) => r.status === RoomStatus.OCCUPIED)
     const contracts2 = await Promise.all([
       createContractWithServices(
         property2,
@@ -419,7 +643,7 @@ export default defineEventHandler(async (event) => {
         8,
         ContractStatus.ACTIVE,
         [services2[0]],
-        true
+        true,
       ),
       createContractWithServices(
         property2,
@@ -430,7 +654,7 @@ export default defineEventHandler(async (event) => {
         10,
         ContractStatus.ACTIVE,
         [services2[0], services2[1]],
-        true
+        true,
       ),
       createContractWithServices(
         property2,
@@ -441,14 +665,13 @@ export default defineEventHandler(async (event) => {
         11,
         ContractStatus.ACTIVE,
         [],
-        true
+        true,
       ),
-    ]);
-
+    ])
 
     console.log('📅 Creating reservations...')
-    const reservedRoom1 = rooms1.find(r => r.status === RoomStatus.RESERVED)!
-    const room105 = rooms1.find(r => r.roomNumber === '105')!
+    const reservedRoom1 = rooms1.find((r) => r.status === RoomStatus.RESERVED)!
+    const room105 = rooms1.find((r) => r.roomNumber === '105')!
     await db.insert(schema.reservation).values([
       {
         id: crypto.randomUUID(),
@@ -457,7 +680,7 @@ export default defineEventHandler(async (event) => {
         status: ReservationStatus.CONFIRMED,
         propertyId: property1.id,
         roomId: reservedRoom1.id,
-        tenantId: tenants[5].id
+        tenantId: tenants[5].id,
       },
       {
         id: crypto.randomUUID(),
@@ -466,8 +689,8 @@ export default defineEventHandler(async (event) => {
         status: ReservationStatus.PENDING,
         propertyId: property1.id,
         roomId: room105.id,
-        tenantId: tenants[7].id
-      }
+        tenantId: tenants[7].id,
+      },
     ])
 
     console.log('💰 Creating deposits...')
@@ -477,7 +700,10 @@ export default defineEventHandler(async (event) => {
         contractId: contracts1[i].id,
         amount: contracts1[i].room.roomType.deposit,
         receivedDate: contracts1[i].startDate,
-        clearanceStatus: i === 4 ? DepositClearanceStatus.PENDING_ROOM_CHECK : DepositClearanceStatus.PENDING_SETTLEMENT
+        clearanceStatus:
+          i === 4
+            ? DepositClearanceStatus.PENDING_ROOM_CHECK
+            : DepositClearanceStatus.PENDING_SETTLEMENT,
       })
     }
     await db.insert(schema.deposit).values({
@@ -488,7 +714,7 @@ export default defineEventHandler(async (event) => {
       refundedDate: dayjs().subtract(5, 'day').toDate(),
       deductions: '500',
       deductionNotes: 'ค่าทำความสะอาดและซ่อมแซม',
-      clearanceStatus: DepositClearanceStatus.REFUNDED
+      clearanceStatus: DepositClearanceStatus.REFUNDED,
     })
 
     await db.insert(schema.contractTermination).values({
@@ -496,14 +722,40 @@ export default defineEventHandler(async (event) => {
       contractId: contracts1[5].id,
       reason: 'ย้ายที่ทำงาน',
       terminatedDate: dayjs().subtract(10, 'day').toDate(),
-      notes: 'ผู้เช่าแจ้งล่วงหน้า 30 วัน ตามข้อกำหนด'
+      notes: 'ผู้เช่าแจ้งล่วงหน้า 30 วัน ตามข้อกำหนด',
     })
 
     console.log('🏦 Creating receiving accounts...')
     const receivingAccountsData = [
-      { id: 'ra_1', type: 'BANK_ACCOUNT', details: { bankName: 'ธนาคารกรุงเทพ', accountNumber: '123-4-56789-0', accountName: 'บริษัท พักดีเพลส จำกัด' }, isActive: true, propertyId: property1.id },
-      { id: 'ra_2', type: 'PROMPTPAY', details: { promptpayNumber: '0812345678', recipientName: 'คุณอารี (เจ้าของหอ)' }, isActive: true, propertyId: property1.id },
-      { id: 'ra_3', type: 'BANK_ACCOUNT', details: { bankName: 'ธนาคารกสิกรไทย', accountNumber: '987-6-54321-0', accountName: 'บ้านสบาย' }, isActive: true, propertyId: property2.id }
+      {
+        id: 'ra_1',
+        type: 'BANK_ACCOUNT',
+        details: {
+          bankName: 'ธนาคารกรุงเทพ',
+          accountNumber: '123-4-56789-0',
+          accountName: 'บริษัท พักดีเพลส จำกัด',
+        },
+        isActive: true,
+        propertyId: property1.id,
+      },
+      {
+        id: 'ra_2',
+        type: 'PROMPTPAY',
+        details: { promptpayNumber: '0812345678', recipientName: 'คุณอารี (เจ้าของหอ)' },
+        isActive: true,
+        propertyId: property1.id,
+      },
+      {
+        id: 'ra_3',
+        type: 'BANK_ACCOUNT',
+        details: {
+          bankName: 'ธนาคารกสิกรไทย',
+          accountNumber: '987-6-54321-0',
+          accountName: 'บ้านสบาย',
+        },
+        isActive: true,
+        propertyId: property2.id,
+      },
     ]
     await db.insert(schema.receivingAccount).values(receivingAccountsData)
     const receivingAccounts = receivingAccountsData
@@ -518,12 +770,28 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: admin.id,
       totalContracts: 3,
-      meterReadingRequired: 3
+      meterReadingRequired: 3,
     })
     const billingRun1 = { id: billingRun1Id, period: threeMonthsAgo.format('YYYY-MM') }
 
-    await createPaidInvoice(billingRun1, contracts1[0], 1100, 1200, 90, 105, receivingAccounts[0].id)
-    await createPaidInvoice(billingRun1, contracts1[1], 2000, 2100, 195, 215, receivingAccounts[1].id)
+    await createPaidInvoice(
+      billingRun1,
+      contracts1[0],
+      1100,
+      1200,
+      90,
+      105,
+      receivingAccounts[0].id,
+    )
+    await createPaidInvoice(
+      billingRun1,
+      contracts1[1],
+      2000,
+      2100,
+      195,
+      215,
+      receivingAccounts[1].id,
+    )
 
     const twoMonthsAgo = dayjs().subtract(2, 'month')
     const billingRun2Id = crypto.randomUUID()
@@ -534,12 +802,36 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: admin.id,
       totalContracts: 4,
-      meterReadingRequired: 4
+      meterReadingRequired: 4,
     })
     const billingRun2 = { id: billingRun2Id, period: twoMonthsAgo.format('YYYY-MM') }
-    await createPaidInvoice(billingRun2, contracts1[0], 1200, 1310, 105, 120, receivingAccounts[0].id)
-    await createPaidInvoice(billingRun2, contracts1[1], 2100, 2215, 215, 235, receivingAccounts[1].id)
-    await createPaidInvoice(billingRun2, contracts1[2], 3000, 3110, 300, 325, receivingAccounts[0].id)
+    await createPaidInvoice(
+      billingRun2,
+      contracts1[0],
+      1200,
+      1310,
+      105,
+      120,
+      receivingAccounts[0].id,
+    )
+    await createPaidInvoice(
+      billingRun2,
+      contracts1[1],
+      2100,
+      2215,
+      215,
+      235,
+      receivingAccounts[1].id,
+    )
+    await createPaidInvoice(
+      billingRun2,
+      contracts1[2],
+      3000,
+      3110,
+      300,
+      325,
+      receivingAccounts[0].id,
+    )
 
     const lastMonth = dayjs().subtract(1, 'month')
     const billingRun3Id = crypto.randomUUID()
@@ -550,12 +842,36 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: admin.id,
       totalContracts: 5,
-      meterReadingRequired: 5
+      meterReadingRequired: 5,
     })
     const billingRun3 = { id: billingRun3Id, period: lastMonth.format('YYYY-MM') }
-    await createPaidInvoice(billingRun3, contracts1[0], 1310, 1425, 120, 137, receivingAccounts[0].id)
-    await createPaidInvoice(billingRun3, contracts1[1], 2215, 2330, 235, 258, receivingAccounts[1].id)
-    await createPaidInvoice(billingRun3, contracts1[2], 3110, 3225, 325, 350, receivingAccounts[0].id)
+    await createPaidInvoice(
+      billingRun3,
+      contracts1[0],
+      1310,
+      1425,
+      120,
+      137,
+      receivingAccounts[0].id,
+    )
+    await createPaidInvoice(
+      billingRun3,
+      contracts1[1],
+      2215,
+      2330,
+      235,
+      258,
+      receivingAccounts[1].id,
+    )
+    await createPaidInvoice(
+      billingRun3,
+      contracts1[2],
+      3110,
+      3225,
+      325,
+      350,
+      receivingAccounts[0].id,
+    )
 
     const billingRun4Id = crypto.randomUUID()
     await db.insert(schema.billingRun).values({
@@ -565,9 +881,17 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: staff2.id,
       totalContracts: 2,
-      meterReadingRequired: 2
+      meterReadingRequired: 2,
     })
-    await createPaidInvoice({ id: billingRun4Id, period: threeMonthsAgo.format('YYYY-MM') }, contracts2[0], 1500, 1620, 150, 172, receivingAccounts[2].id)
+    await createPaidInvoice(
+      { id: billingRun4Id, period: threeMonthsAgo.format('YYYY-MM') },
+      contracts2[0],
+      1500,
+      1620,
+      150,
+      172,
+      receivingAccounts[2].id,
+    )
 
     const billingRun5Id = crypto.randomUUID()
     await db.insert(schema.billingRun).values({
@@ -577,11 +901,27 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: staff2.id,
       totalContracts: 3,
-      meterReadingRequired: 3
+      meterReadingRequired: 3,
     })
     const billingRun5 = { id: billingRun5Id, period: twoMonthsAgo.format('YYYY-MM') }
-    await createPaidInvoice(billingRun5, contracts2[0], 1620, 1745, 172, 195, receivingAccounts[2].id)
-    await createPaidInvoice(billingRun5, contracts2[1], 2200, 2330, 220, 245, receivingAccounts[2].id)
+    await createPaidInvoice(
+      billingRun5,
+      contracts2[0],
+      1620,
+      1745,
+      172,
+      195,
+      receivingAccounts[2].id,
+    )
+    await createPaidInvoice(
+      billingRun5,
+      contracts2[1],
+      2200,
+      2330,
+      220,
+      245,
+      receivingAccounts[2].id,
+    )
 
     const billingRun6Id = crypto.randomUUID()
     await db.insert(schema.billingRun).values({
@@ -591,21 +931,47 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: staff2.id,
       totalContracts: 3,
-      meterReadingRequired: 3
+      meterReadingRequired: 3,
     })
     const billingRun6 = { id: billingRun6Id, period: lastMonth.format('YYYY-MM') }
-    await createPaidInvoice(billingRun6, contracts2[0], 1745, 1875, 195, 220, receivingAccounts[2].id)
-    await createPaidInvoice(billingRun6, contracts2[1], 2330, 2465, 245, 270, receivingAccounts[2].id)
-    await createPaidInvoice(billingRun6, contracts2[2], 1800, 1920, 180, 205, receivingAccounts[2].id)
+    await createPaidInvoice(
+      billingRun6,
+      contracts2[0],
+      1745,
+      1875,
+      195,
+      220,
+      receivingAccounts[2].id,
+    )
+    await createPaidInvoice(
+      billingRun6,
+      contracts2[1],
+      2330,
+      2465,
+      245,
+      270,
+      receivingAccounts[2].id,
+    )
+    await createPaidInvoice(
+      billingRun6,
+      contracts2[2],
+      1800,
+      1920,
+      180,
+      205,
+      receivingAccounts[2].id,
+    )
 
     console.log('💳 Creating pending payments...')
     const unpaidInvoices = await db
       .select()
       .from(schema.invoice)
-      .where(and(
-        eq(schema.invoice.propertyId, property1.id),
-        eq(schema.invoice.status, InvoiceStatus.UNPAID)
-      ))
+      .where(
+        and(
+          eq(schema.invoice.propertyId, property1.id),
+          eq(schema.invoice.status, InvoiceStatus.UNPAID),
+        ),
+      )
       .limit(3)
     let idx = 0
     for (const invoice of unpaidInvoices) {
@@ -614,7 +980,7 @@ export default defineEventHandler(async (event) => {
         invoice,
         Number(invoice.totalAmount),
         -idx,
-        `https://placehold.co/600x800/E2E8F0/475569?text=SLIP%5Cn${invoice.totalAmount}%5Cn${encodeURIComponent(tenantName)}`
+        `https://placehold.co/600x800/E2E8F0/475569?text=SLIP%5Cn${invoice.totalAmount}%5Cn${encodeURIComponent(tenantName)}`,
       )
       idx++
     }
@@ -624,20 +990,29 @@ export default defineEventHandler(async (event) => {
       property1,
       contracts1[3],
       Number(contracts1[3].rentAmount) + 500,
-      dayjs().subtract(15, 'day')
+      dayjs().subtract(15, 'day'),
     )
-    await db.update(schema.invoice).set({ status: InvoiceStatus.OVERDUE }).where(eq(schema.invoice.id, overdueInvoice.id))
+    await db
+      .update(schema.invoice)
+      .set({ status: InvoiceStatus.OVERDUE })
+      .where(eq(schema.invoice.id, overdueInvoice.id))
 
     const kittipongOverdueInvoice = await createInvoiceWithMeterReading(
       billingRun3,
       contracts1[0],
-      1425, 1550, 137, 159,
-      InvoiceStatus.OVERDUE
+      1425,
+      1550,
+      137,
+      159,
+      InvoiceStatus.OVERDUE,
     )
-    await db.update(schema.invoice).set({
-      dueDate: dayjs().subtract(10, 'day').toDate(),
-      period: lastMonth.format('YYYY-MM')
-    }).where(eq(schema.invoice.id, kittipongOverdueInvoice.id))
+    await db
+      .update(schema.invoice)
+      .set({
+        dueDate: dayjs().subtract(10, 'day').toDate(),
+        period: lastMonth.format('YYYY-MM'),
+      })
+      .where(eq(schema.invoice.id, kittipongOverdueInvoice.id))
 
     console.log('📋 Creating current month unpaid invoices...')
     const currentMonth = dayjs()
@@ -649,35 +1024,140 @@ export default defineEventHandler(async (event) => {
       status: BillingRunStatus.COMPLETED,
       executedById: admin.id,
       totalContracts: 5,
-      meterReadingRequired: 5
+      meterReadingRequired: 5,
     })
     const billingRunCurrent = { id: billingRunCurrentId, period: currentMonth.format('YYYY-MM') }
-    await createInvoiceWithMeterReading(billingRunCurrent, contracts1[0], 1550, 1675, 159, 181, InvoiceStatus.UNPAID)
-    await createInvoiceWithMeterReading(billingRunCurrent, contracts1[1], 2330, 2425, 258, 278, InvoiceStatus.UNPAID)
+    await createInvoiceWithMeterReading(
+      billingRunCurrent,
+      contracts1[0],
+      1550,
+      1675,
+      159,
+      181,
+      InvoiceStatus.UNPAID,
+    )
+    await createInvoiceWithMeterReading(
+      billingRunCurrent,
+      contracts1[1],
+      2330,
+      2425,
+      258,
+      278,
+      InvoiceStatus.UNPAID,
+    )
 
     console.log('🔧 Creating maintenance requests...')
     const maintenanceData = [
-      { id: crypto.randomUUID(), title: 'แอร์เสีย ไม่เย็น', description: 'เครื่องปรับอากาศทำงาน แต่ไม่เย็น เสียงดังผิดปกติ', status: MaintenanceStatus.PENDING, priority: Priority.HIGH, dueDate: dayjs().add(2, 'day').toDate(), roomId: occupiedRooms1[0].id, reportedByContractId: contracts1[0].id },
-      { id: crypto.randomUUID(), title: 'ก้อกน้ำรั่ว', description: 'ก้อกน้ำในห้องน้ำรั่ว', status: MaintenanceStatus.IN_PROGRESS, priority: Priority.MEDIUM, roomId: occupiedRooms1[1].id, reportedByContractId: contracts1[1].id },
-      { id: crypto.randomUUID(), title: 'หลอดไฟเสีย', description: 'หลอดไฟในห้องนอนดับ', status: MaintenanceStatus.COMPLETED, priority: Priority.LOW, roomId: occupiedRooms1[2].id, reportedByContractId: contracts1[2].id },
-      { id: crypto.randomUUID(), title: 'ประตูห้องเสีย', description: 'ลูกบิดประตูหลุด เปิดปิดไม่ได้', status: MaintenanceStatus.PENDING, priority: Priority.HIGH, dueDate: dayjs().add(1, 'day').toDate(), roomId: occupiedRooms1[3].id, reportedByContractId: contracts1[3].id },
-      { id: crypto.randomUUID(), title: 'ตรวจเช็คเครื่องทำน้ำอุ่น', description: 'ขอตรวจสอบเครื่องทำน้ำอุ่น น้ำไม่ค่อยร้อน', status: MaintenanceStatus.CANCELLED, priority: Priority.LOW, roomId: occupiedRooms1[4].id, reportedByContractId: contracts1[4].id }
+      {
+        id: crypto.randomUUID(),
+        title: 'แอร์เสีย ไม่เย็น',
+        description: 'เครื่องปรับอากาศทำงาน แต่ไม่เย็น เสียงดังผิดปกติ',
+        status: MaintenanceStatus.PENDING,
+        priority: Priority.HIGH,
+        dueDate: dayjs().add(2, 'day').toDate(),
+        roomId: occupiedRooms1[0].id,
+        reportedByContractId: contracts1[0].id,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'ก้อกน้ำรั่ว',
+        description: 'ก้อกน้ำในห้องน้ำรั่ว',
+        status: MaintenanceStatus.IN_PROGRESS,
+        priority: Priority.MEDIUM,
+        roomId: occupiedRooms1[1].id,
+        reportedByContractId: contracts1[1].id,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'หลอดไฟเสีย',
+        description: 'หลอดไฟในห้องนอนดับ',
+        status: MaintenanceStatus.COMPLETED,
+        priority: Priority.LOW,
+        roomId: occupiedRooms1[2].id,
+        reportedByContractId: contracts1[2].id,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'ประตูห้องเสีย',
+        description: 'ลูกบิดประตูหลุด เปิดปิดไม่ได้',
+        status: MaintenanceStatus.PENDING,
+        priority: Priority.HIGH,
+        dueDate: dayjs().add(1, 'day').toDate(),
+        roomId: occupiedRooms1[3].id,
+        reportedByContractId: contracts1[3].id,
+      },
+      {
+        id: crypto.randomUUID(),
+        title: 'ตรวจเช็คเครื่องทำน้ำอุ่น',
+        description: 'ขอตรวจสอบเครื่องทำน้ำอุ่น น้ำไม่ค่อยร้อน',
+        status: MaintenanceStatus.CANCELLED,
+        priority: Priority.LOW,
+        roomId: occupiedRooms1[4].id,
+        reportedByContractId: contracts1[4].id,
+      },
     ]
     await db.insert(schema.maintenanceRequest).values(maintenanceData)
 
     console.log('📊 Creating room status history...')
-    const maintenanceRoom = rooms1.find(r => r.status === RoomStatus.MAINTENANCE)!
+    const maintenanceRoom = rooms1.find((r) => r.status === RoomStatus.MAINTENANCE)!
     await db.insert(schema.roomStatusHistory).values([
-      { id: crypto.randomUUID(), roomId: maintenanceRoom.id, status: RoomStatus.OCCUPIED, startDate: dayjs().subtract(6, 'month').toDate(), endDate: dayjs().subtract(1, 'month').toDate(), notes: 'ผู้เช่ารายเก่า' },
-      { id: crypto.randomUUID(), roomId: maintenanceRoom.id, status: RoomStatus.CLEANING, startDate: dayjs().subtract(1, 'month').toDate(), endDate: dayjs().subtract(25, 'day').toDate(), notes: 'ทำความสะอาดหลังผู้เช่าย้ายออก' },
-      { id: crypto.randomUUID(), roomId: maintenanceRoom.id, status: RoomStatus.MAINTENANCE, startDate: dayjs().subtract(25, 'day').toDate(), endDate: null, notes: 'ซ่อมแอร์และทาสีใหม่' }
+      {
+        id: crypto.randomUUID(),
+        roomId: maintenanceRoom.id,
+        status: RoomStatus.OCCUPIED,
+        startDate: dayjs().subtract(6, 'month').toDate(),
+        endDate: dayjs().subtract(1, 'month').toDate(),
+        notes: 'ผู้เช่ารายเก่า',
+      },
+      {
+        id: crypto.randomUUID(),
+        roomId: maintenanceRoom.id,
+        status: RoomStatus.CLEANING,
+        startDate: dayjs().subtract(1, 'month').toDate(),
+        endDate: dayjs().subtract(25, 'day').toDate(),
+        notes: 'ทำความสะอาดหลังผู้เช่าย้ายออก',
+      },
+      {
+        id: crypto.randomUUID(),
+        roomId: maintenanceRoom.id,
+        status: RoomStatus.MAINTENANCE,
+        startDate: dayjs().subtract(25, 'day').toDate(),
+        endDate: null,
+        notes: 'ซ่อมแอร์และทาสีใหม่',
+      },
     ])
 
     console.log('✉️  Creating invitations...')
     await db.insert(schema.invitation).values([
-      { id: crypto.randomUUID(), propertyId: property1.id, role: Role.STAFF, status: InvitationStatus.ACCEPTED, nameForReference: 'พนักงาน (จินดา)', invitedById: admin.id, acceptedByUserId: staff1.id, expiresAt: dayjs().add(7, 'day').toDate(), acceptedAt: dayjs().subtract(5, 'day').toDate() },
-      { id: crypto.randomUUID(), propertyId: property1.id, role: Role.ADMIN, status: InvitationStatus.PENDING, nameForReference: 'ผู้จัดการใหม่', invitedById: owner.id, expiresAt: dayjs().add(7, 'day').toDate() },
-      { id: crypto.randomUUID(), propertyId: property2.id, role: Role.STAFF, status: InvitationStatus.EXPIRED, nameForReference: 'พนักงานรายเก่า', invitedById: owner.id, expiresAt: dayjs().subtract(1, 'day').toDate() }
+      {
+        id: crypto.randomUUID(),
+        propertyId: property1.id,
+        role: Role.STAFF,
+        status: InvitationStatus.ACCEPTED,
+        nameForReference: 'พนักงาน (จินดา)',
+        invitedById: admin.id,
+        acceptedByUserId: staff1.id,
+        expiresAt: dayjs().add(7, 'day').toDate(),
+        acceptedAt: dayjs().subtract(5, 'day').toDate(),
+      },
+      {
+        id: crypto.randomUUID(),
+        propertyId: property1.id,
+        role: Role.ADMIN,
+        status: InvitationStatus.PENDING,
+        nameForReference: 'ผู้จัดการใหม่',
+        invitedById: owner.id,
+        expiresAt: dayjs().add(7, 'day').toDate(),
+      },
+      {
+        id: crypto.randomUUID(),
+        propertyId: property2.id,
+        role: Role.STAFF,
+        status: InvitationStatus.EXPIRED,
+        nameForReference: 'พนักงานรายเก่า',
+        invitedById: owner.id,
+        expiresAt: dayjs().subtract(1, 'day').toDate(),
+      },
     ])
 
     console.log('✅ [API] Seeding finished successfully!')
@@ -689,7 +1169,15 @@ export default defineEventHandler(async (event) => {
 })
 
 async function createContractWithServices(
-  property: { id: string; defaultWaterBillingType: string | null; defaultWaterRate: string | null; defaultWaterMinimumCharge: string | null; defaultElectricityBillingType: string | null; defaultElectricityRate: string | null; defaultElectricityMinimumCharge: string | null },
+  property: {
+    id: string
+    defaultWaterBillingType: string | null
+    defaultWaterRate: string | null
+    defaultWaterMinimumCharge: string | null
+    defaultElectricityBillingType: string | null
+    defaultElectricityRate: string | null
+    defaultElectricityMinimumCharge: string | null
+  },
   tenant: { id: string },
   room: { id: string; roomType: { basePrice: string; deposit: string } },
   rentAmount: number,
@@ -697,7 +1185,7 @@ async function createContractWithServices(
   endMonthOffset: number,
   status: ContractStatus,
   services: { id: string; defaultPrice: string }[],
-  _includeDeposit: boolean
+  _includeDeposit: boolean,
 ) {
   const contractId = crypto.randomUUID()
   const startDate = dayjs().add(startMonthOffset, 'month').toDate()
@@ -715,12 +1203,12 @@ async function createContractWithServices(
     waterMinimumCharge: property.defaultWaterMinimumCharge ?? '0',
     electricityBillingType: property.defaultElectricityBillingType ?? BillingType.PER_UNIT,
     electricityRate: property.defaultElectricityRate ?? '0',
-    electricityMinimumCharge: property.defaultElectricityMinimumCharge ?? '0'
+    electricityMinimumCharge: property.defaultElectricityMinimumCharge ?? '0',
   })
   await db.insert(schema.contractTenant).values({
     contractId,
     tenantId: tenant.id,
-    isPrimary: true
+    isPrimary: true,
   })
   for (const service of services) {
     await db.insert(schema.contractService).values({
@@ -728,7 +1216,7 @@ async function createContractWithServices(
       contractId,
       serviceId: service.id,
       startDate,
-      customPrice: service.defaultPrice
+      customPrice: service.defaultPrice,
     })
   }
   return {
@@ -745,43 +1233,59 @@ async function createContractWithServices(
     electricityBillingType: property.defaultElectricityBillingType ?? BillingType.PER_UNIT,
     electricityRate: property.defaultElectricityRate ?? '0',
     electricityMinimumCharge: property.defaultElectricityMinimumCharge ?? '0',
-    room: { roomType: room.roomType }
+    room: { roomType: room.roomType },
   }
 }
 
 async function createPaidInvoice(
   run: { id: string; period: string },
-  contract: { id: string; propertyId: string; rentAmount: string; electricityRate: string; electricityMinimumCharge: string; waterRate: string; waterMinimumCharge: string },
+  contract: {
+    id: string
+    propertyId: string
+    rentAmount: string
+    electricityRate: string
+    electricityMinimumCharge: string
+    waterRate: string
+    waterMinimumCharge: string
+  },
   oldElec: number,
   newElec: number,
   oldWater: number,
   newWater: number,
-  receivingAccountId?: string
+  receivingAccountId?: string,
 ) {
-  const [property] = await db.select().from(schema.property).where(eq(schema.property.id, contract.propertyId)).limit(1)
+  const [property] = await db
+    .select()
+    .from(schema.property)
+    .where(eq(schema.property.id, contract.propertyId))
+    .limit(1)
   if (!property) throw new Error('Property not found')
   const elecUnits = newElec - oldElec
   const waterUnits = newWater - oldWater
-  const elecCost = Math.max(
-    elecUnits * Number(contract.electricityRate),
-    Number(contract.electricityMinimumCharge)
+  const elecCost = calcUtilityCost(
+    elecUnits,
+    BillingType.PER_UNIT,
+    contract.electricityRate,
+    contract.electricityMinimumCharge,
   )
-  const waterCost = Math.max(
-    waterUnits * Number(contract.waterRate),
-    Number(contract.waterMinimumCharge)
+  const waterCost = calcUtilityCost(
+    waterUnits,
+    BillingType.PER_UNIT,
+    contract.waterRate,
+    contract.waterMinimumCharge,
   )
   const csWithService = await db
     .select({
       customPrice: schema.contractService.customPrice,
       defaultPrice: schema.service.defaultPrice,
-      name: schema.service.name
+      name: schema.service.name,
     })
     .from(schema.contractService)
     .innerJoin(schema.service, eq(schema.contractService.serviceId, schema.service.id))
     .where(eq(schema.contractService.contractId, contract.id))
   const servicesCost = csWithService.reduce(
     (sum, cs) => sum + Number(cs.customPrice ?? cs.defaultPrice),
-    0
+    0,
   )
   const totalAmount = Number(contract.rentAmount) + elecCost + waterCost + servicesCost
   const cutoff = property.defaultBillingCutoffDay ?? 28
@@ -796,24 +1300,36 @@ async function createPaidInvoice(
     period: run.period,
     dueDate,
     status: InvoiceStatus.PAID,
-    totalAmount: String(totalAmount)
+    totalAmount: String(totalAmount),
   })
   await db.insert(schema.invoiceItem).values([
     { id: crypto.randomUUID(), invoiceId, description: 'ค่าเช่า', amount: contract.rentAmount },
     { id: crypto.randomUUID(), invoiceId, description: 'ค่าไฟฟ้า', amount: String(elecCost) },
     { id: crypto.randomUUID(), invoiceId, description: 'ค่าน้ำ', amount: String(waterCost) },
-    ...csWithService.map(cs => ({
+    ...csWithService.map((cs) => ({
       id: crypto.randomUUID(),
       invoiceId,
       description: cs.name,
-      amount: String(cs.customPrice ?? cs.defaultPrice)
-    }))
+      amount: String(cs.customPrice ?? cs.defaultPrice),
+    })),
   ])
   const mr1 = crypto.randomUUID()
   const mr2 = crypto.randomUUID()
   await db.insert(schema.meterReading).values([
-    { id: mr1, invoiceId, utilityType: UtilityType.ELECTRICITY, readingValue: String(newElec), readingDate: new Date() },
-    { id: mr2, invoiceId, utilityType: UtilityType.WATER, readingValue: String(newWater), readingDate: new Date() }
+    {
+      id: mr1,
+      invoiceId,
+      utilityType: UtilityType.ELECTRICITY,
+      readingValue: String(newElec),
+      readingDate: new Date(),
+    },
+    {
+      id: mr2,
+      invoiceId,
+      utilityType: UtilityType.WATER,
+      readingValue: String(newWater),
+      readingDate: new Date(),
+    },
   ])
   await db.insert(schema.payment).values({
     id: crypto.randomUUID(),
@@ -822,35 +1338,63 @@ async function createPaidInvoice(
     status: PaymentStatus.VERIFIED,
     paymentDate: dayjs(run.period).add(3, 'day').toDate(),
     paymentMethod: PaymentMethod.QR_PROMPTAY,
-    receivingAccountId: receivingAccountId ?? null
+    receivingAccountId: receivingAccountId ?? null,
   })
   return { id: invoiceId }
 }
 
 async function createInvoiceWithMeterReading(
   run: { id: string; period: string },
-  contract: { id: string; propertyId: string; rentAmount: string; electricityBillingType: string; electricityRate: string; electricityMinimumCharge: string; waterBillingType: string; waterRate: string; waterMinimumCharge: string },
+  contract: {
+    id: string
+    propertyId: string
+    rentAmount: string
+    electricityBillingType: string
+    electricityRate: string
+    electricityMinimumCharge: string
+    waterBillingType: string
+    waterRate: string
+    waterMinimumCharge: string
+  },
   oldElec: number,
   newElec: number,
   oldWater: number,
   newWater: number,
-  status: InvoiceStatus
+  status: InvoiceStatus,
 ) {
-  const [property] = await db.select().from(schema.property).where(eq(schema.property.id, contract.propertyId)).limit(1)
+  const [property] = await db
+    .select()
+    .from(schema.property)
+    .where(eq(schema.property.id, contract.propertyId))
+    .limit(1)
   if (!property) throw new Error('Property not found')
   const elecUnits = newElec - oldElec
   const waterUnits = newWater - oldWater
-  const elecCost = contract.electricityBillingType === BillingType.PER_UNIT
-    ? Math.max(elecUnits * Number(contract.electricityRate), Number(contract.electricityMinimumCharge))
-    : Number(contract.electricityRate)
-  const waterCost = contract.waterBillingType === BillingType.PER_UNIT
-    ? Math.max(waterUnits * Number(contract.waterRate), Number(contract.waterMinimumCharge))
-    : Number(contract.waterRate)
-  const csWithService = await db.select({ customPrice: schema.contractService.customPrice, defaultPrice: schema.service.defaultPrice, name: schema.service.name })
+  const elecCost = calcUtilityCost(
+    elecUnits,
+    contract.electricityBillingType,
+    contract.electricityRate,
+    contract.electricityMinimumCharge,
+  )
+  const waterCost = calcUtilityCost(
+    waterUnits,
+    contract.waterBillingType,
+    contract.waterRate,
+    contract.waterMinimumCharge,
+  )
+  const csWithService = await db
+    .select({
+      customPrice: schema.contractService.customPrice,
+      defaultPrice: schema.service.defaultPrice,
+      name: schema.service.name,
+    })
     .from(schema.contractService)
     .innerJoin(schema.service, eq(schema.contractService.serviceId, schema.service.id))
     .where(eq(schema.contractService.contractId, contract.id))
-  const servicesCost = csWithService.reduce((sum, cs) => sum + Number(cs.customPrice ?? cs.defaultPrice), 0)
+  const servicesCost = csWithService.reduce(
+    (sum, cs) => sum + Number(cs.customPrice ?? cs.defaultPrice),
+    0,
+  )
   const totalAmount = Number(contract.rentAmount) + elecCost + waterCost + servicesCost
   const cutoff = property.defaultBillingCutoffDay ?? 28
   const dueDays = property.defaultPaymentDueDays ?? 7
@@ -864,32 +1408,71 @@ async function createInvoiceWithMeterReading(
     period: run.period,
     dueDate,
     status,
-    totalAmount: String(totalAmount)
+    totalAmount: String(totalAmount),
   })
   await db.insert(schema.invoiceItem).values([
     { id: crypto.randomUUID(), invoiceId, description: 'ค่าเช่า', amount: contract.rentAmount },
-    { id: crypto.randomUUID(), invoiceId, description: `ค่าไฟฟ้า (${elecUnits} หน่วย)`, amount: String(elecCost) },
-    { id: crypto.randomUUID(), invoiceId, description: `ค่าน้ำ (${waterUnits} หน่วย)`, amount: String(waterCost) },
-    ...csWithService.map(cs => ({ id: crypto.randomUUID(), invoiceId, description: cs.name, amount: String(cs.customPrice ?? cs.defaultPrice) }))
+    {
+      id: crypto.randomUUID(),
+      invoiceId,
+      description: `ค่าไฟฟ้า (${elecUnits} หน่วย)`,
+      amount: String(elecCost),
+    },
+    {
+      id: crypto.randomUUID(),
+      invoiceId,
+      description: `ค่าน้ำ (${waterUnits} หน่วย)`,
+      amount: String(waterCost),
+    },
+    ...csWithService.map((cs) => ({
+      id: crypto.randomUUID(),
+      invoiceId,
+      description: cs.name,
+      amount: String(cs.customPrice ?? cs.defaultPrice),
+    })),
   ])
   await db.insert(schema.meterReading).values([
-    { id: crypto.randomUUID(), invoiceId, utilityType: UtilityType.ELECTRICITY, readingValue: String(newElec), readingDate: new Date() },
-    { id: crypto.randomUUID(), invoiceId, utilityType: UtilityType.WATER, readingValue: String(newWater), readingDate: new Date() }
+    {
+      id: crypto.randomUUID(),
+      invoiceId,
+      utilityType: UtilityType.ELECTRICITY,
+      readingValue: String(newElec),
+      readingDate: new Date(),
+    },
+    {
+      id: crypto.randomUUID(),
+      invoiceId,
+      utilityType: UtilityType.WATER,
+      readingValue: String(newWater),
+      readingDate: new Date(),
+    },
   ])
   return { id: invoiceId }
 }
 
 async function _createDraftInvoice(
   run: { id: string; period: string },
-  contract: { id: string; propertyId: string; rentAmount: string }
+  contract: { id: string; propertyId: string; rentAmount: string },
 ) {
-  const [property] = await db.select().from(schema.property).where(eq(schema.property.id, contract.propertyId)).limit(1)
+  const [property] = await db
+    .select()
+    .from(schema.property)
+    .where(eq(schema.property.id, contract.propertyId))
+    .limit(1)
   if (!property) throw new Error('Property not found')
-  const csWithService = await db.select({ customPrice: schema.contractService.customPrice, defaultPrice: schema.service.defaultPrice, name: schema.service.name })
+  const csWithService = await db
+    .select({
+      customPrice: schema.contractService.customPrice,
+      defaultPrice: schema.service.defaultPrice,
+      name: schema.service.name,
+    })
     .from(schema.contractService)
     .innerJoin(schema.service, eq(schema.contractService.serviceId, schema.service.id))
     .where(eq(schema.contractService.contractId, contract.id))
-  const servicesCost = csWithService.reduce((sum, cs) => sum + Number(cs.customPrice ?? cs.defaultPrice), 0)
+  const servicesCost = csWithService.reduce(
+    (sum, cs) => sum + Number(cs.customPrice ?? cs.defaultPrice),
+    0,
+  )
   const totalAmount = Number(contract.rentAmount) + servicesCost
   const cutoff = property.defaultBillingCutoffDay ?? 28
   const dueDays = property.defaultPaymentDueDays ?? 7
@@ -903,20 +1486,29 @@ async function _createDraftInvoice(
     period: run.period,
     dueDate,
     status: InvoiceStatus.DRAFT,
-    totalAmount: String(totalAmount)
+    totalAmount: String(totalAmount),
   })
   await db.insert(schema.invoiceItem).values([
     { id: crypto.randomUUID(), invoiceId, description: 'ค่าเช่า', amount: contract.rentAmount },
-    ...csWithService.map(cs => ({ id: crypto.randomUUID(), invoiceId, description: cs.name, amount: String(cs.customPrice ?? cs.defaultPrice) }))
+    ...csWithService.map((cs) => ({
+      id: crypto.randomUUID(),
+      invoiceId,
+      description: cs.name,
+      amount: String(cs.customPrice ?? cs.defaultPrice),
+    })),
   ])
   return { id: invoiceId }
 }
 
 async function createUnpaidInvoice(
-  property: { id: string; defaultBillingCutoffDay: number | null; defaultPaymentDueDays: number | null },
+  property: {
+    id: string
+    defaultBillingCutoffDay: number | null
+    defaultPaymentDueDays: number | null
+  },
   contract: { id: string; propertyId: string },
   totalAmount: number,
-  dueDate?: dayjs.Dayjs
+  dueDate?: dayjs.Dayjs,
 ) {
   const cutoff = property.defaultBillingCutoffDay ?? 28
   const dueDays = property.defaultPaymentDueDays ?? 7
@@ -929,13 +1521,13 @@ async function createUnpaidInvoice(
     period: dayjs().format('YYYY-MM'),
     dueDate: calculatedDueDate.toDate(),
     status: InvoiceStatus.UNPAID,
-    totalAmount: String(totalAmount)
+    totalAmount: String(totalAmount),
   })
   await db.insert(schema.invoiceItem).values({
     id: crypto.randomUUID(),
     invoiceId,
     description: 'ค่าเช่าและบริการ',
-    amount: String(totalAmount)
+    amount: String(totalAmount),
   })
   return { id: invoiceId }
 }
@@ -944,7 +1536,7 @@ async function createPendingPayment(
   invoice: { id: string },
   amount: number,
   daysAgo: number,
-  slipUrl: string
+  slipUrl: string,
 ) {
   await db.insert(schema.payment).values({
     id: crypto.randomUUID(),
@@ -953,6 +1545,6 @@ async function createPendingPayment(
     status: PaymentStatus.PENDING,
     paymentDate: dayjs().add(daysAgo, 'day').toDate(),
     paymentMethod: PaymentMethod.QR_PROMPTAY,
-    slipUrl
+    slipUrl,
   })
 }

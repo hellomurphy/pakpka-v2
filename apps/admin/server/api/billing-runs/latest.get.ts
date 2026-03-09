@@ -3,16 +3,16 @@ import { eq, desc } from 'drizzle-orm'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const querySchema = z.object({
-  propertyId: z.string().min(1)
+  propertyId: z.string().min(1),
 })
 
 export default defineEventHandler(async (event) => {
   try {
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invalid Property ID'
+        statusMessage: 'Invalid Property ID',
       })
     }
     const { propertyId } = query.data

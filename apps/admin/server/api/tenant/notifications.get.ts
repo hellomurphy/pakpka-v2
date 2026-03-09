@@ -5,18 +5,18 @@ import { requireSession } from '~~/server/utils/auth'
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20)
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 })
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireSession(event)
 
-    const query = await getValidatedQuery(event, data => querySchema.safeParse(data))
+    const query = await getValidatedQuery(event, (data) => querySchema.safeParse(data))
     if (!query.success) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ข้อมูล Query ไม่ถูกต้อง'
+        statusMessage: 'ข้อมูล Query ไม่ถูกต้อง',
       })
     }
     const { page, limit } = query.data
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     if (!tenantRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -45,128 +45,148 @@ export default defineEventHandler(async (event) => {
           total: 0,
           page,
           limit,
-          unreadCount: 0
+          unreadCount: 0,
         },
-        'ดึงข้อมูลการแจ้งเตือนสำเร็จ'
+        'ดึงข้อมูลการแจ้งเตือนสำเร็จ',
       )
     }
 
     const sixtyDaysFromNow = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
     const now = new Date()
 
-    const [unpaidInvoices, overdueInvoices, pendingPayments, maintenanceRows, upcomingContracts] = await Promise.all([
-      db
-        .select({
-          id: schema.invoice.id,
-          period: schema.invoice.period,
-          totalAmount: schema.invoice.totalAmount,
-          dueDate: schema.invoice.dueDate,
-          createdAt: schema.invoice.createdAt,
-          contractId: schema.invoice.contractId
-        })
-        .from(schema.invoice)
-        .where(
-          and(
-            inArray(schema.invoice.contractId, contractIds),
-            eq(schema.invoice.status, InvoiceStatus.UNPAID)
+    const [unpaidInvoices, overdueInvoices, pendingPayments, maintenanceRows, upcomingContracts] =
+      await Promise.all([
+        db
+          .select({
+            id: schema.invoice.id,
+            period: schema.invoice.period,
+            totalAmount: schema.invoice.totalAmount,
+            dueDate: schema.invoice.dueDate,
+            createdAt: schema.invoice.createdAt,
+            contractId: schema.invoice.contractId,
+          })
+          .from(schema.invoice)
+          .where(
+            and(
+              inArray(schema.invoice.contractId, contractIds),
+              eq(schema.invoice.status, InvoiceStatus.UNPAID),
+            ),
           )
-        )
-        .orderBy(schema.invoice.dueDate)
-        .limit(10),
-      db
-        .select({
-          id: schema.invoice.id,
-          period: schema.invoice.period,
-          totalAmount: schema.invoice.totalAmount,
-          dueDate: schema.invoice.dueDate,
-          createdAt: schema.invoice.createdAt,
-          contractId: schema.invoice.contractId
-        })
-        .from(schema.invoice)
-        .where(
-          and(
-            inArray(schema.invoice.contractId, contractIds),
-            eq(schema.invoice.status, InvoiceStatus.OVERDUE)
+          .orderBy(schema.invoice.dueDate)
+          .limit(10),
+        db
+          .select({
+            id: schema.invoice.id,
+            period: schema.invoice.period,
+            totalAmount: schema.invoice.totalAmount,
+            dueDate: schema.invoice.dueDate,
+            createdAt: schema.invoice.createdAt,
+            contractId: schema.invoice.contractId,
+          })
+          .from(schema.invoice)
+          .where(
+            and(
+              inArray(schema.invoice.contractId, contractIds),
+              eq(schema.invoice.status, InvoiceStatus.OVERDUE),
+            ),
           )
-        )
-        .orderBy(schema.invoice.dueDate)
-        .limit(10),
-      db
-        .select({
-          id: schema.payment.id,
-          amount: schema.payment.amount,
-          createdAt: schema.payment.createdAt,
-          invoiceId: schema.payment.invoiceId
-        })
-        .from(schema.payment)
-        .innerJoin(schema.invoice, eq(schema.invoice.id, schema.payment.invoiceId))
-        .where(
-          and(
-            inArray(schema.invoice.contractId, contractIds),
-            eq(schema.payment.status, 'PENDING')
+          .orderBy(schema.invoice.dueDate)
+          .limit(10),
+        db
+          .select({
+            id: schema.payment.id,
+            amount: schema.payment.amount,
+            createdAt: schema.payment.createdAt,
+            invoiceId: schema.payment.invoiceId,
+          })
+          .from(schema.payment)
+          .innerJoin(schema.invoice, eq(schema.invoice.id, schema.payment.invoiceId))
+          .where(
+            and(
+              inArray(schema.invoice.contractId, contractIds),
+              eq(schema.payment.status, 'PENDING'),
+            ),
           )
-        )
-        .orderBy(desc(schema.payment.createdAt))
-        .limit(10),
-      db
-        .select({
-          id: schema.maintenanceRequest.id,
-          title: schema.maintenanceRequest.title,
-          status: schema.maintenanceRequest.status,
-          priority: schema.maintenanceRequest.priority,
-          updatedAt: schema.maintenanceRequest.updatedAt,
-          roomId: schema.maintenanceRequest.roomId
-        })
-        .from(schema.maintenanceRequest)
-        .where(
-          and(
-            inArray(schema.maintenanceRequest.reportedByContractId, contractIds),
-            inArray(schema.maintenanceRequest.status, [MaintenanceStatus.PENDING, MaintenanceStatus.IN_PROGRESS])
+          .orderBy(desc(schema.payment.createdAt))
+          .limit(10),
+        db
+          .select({
+            id: schema.maintenanceRequest.id,
+            title: schema.maintenanceRequest.title,
+            status: schema.maintenanceRequest.status,
+            priority: schema.maintenanceRequest.priority,
+            updatedAt: schema.maintenanceRequest.updatedAt,
+            roomId: schema.maintenanceRequest.roomId,
+          })
+          .from(schema.maintenanceRequest)
+          .where(
+            and(
+              inArray(schema.maintenanceRequest.reportedByContractId, contractIds),
+              inArray(schema.maintenanceRequest.status, [
+                MaintenanceStatus.PENDING,
+                MaintenanceStatus.IN_PROGRESS,
+              ]),
+            ),
           )
-        )
-        .orderBy(desc(schema.maintenanceRequest.updatedAt))
-        .limit(10),
-      db
-        .select({
-          id: schema.contract.id,
-          endDate: schema.contract.endDate,
-          roomId: schema.contract.roomId
-        })
-        .from(schema.contract)
-        .where(
-          and(
-            inArray(schema.contract.id, contractIds),
-            eq(schema.contract.status, ContractStatus.ACTIVE),
-            lte(schema.contract.endDate, sixtyDaysFromNow),
-            gte(schema.contract.endDate, now)
+          .orderBy(desc(schema.maintenanceRequest.updatedAt))
+          .limit(10),
+        db
+          .select({
+            id: schema.contract.id,
+            endDate: schema.contract.endDate,
+            roomId: schema.contract.roomId,
+          })
+          .from(schema.contract)
+          .where(
+            and(
+              inArray(schema.contract.id, contractIds),
+              eq(schema.contract.status, ContractStatus.ACTIVE),
+              lte(schema.contract.endDate, sixtyDaysFromNow),
+              gte(schema.contract.endDate, now),
+            ),
           )
-        )
-        .orderBy(schema.contract.endDate)
-        .limit(5)
-    ])
+          .orderBy(schema.contract.endDate)
+          .limit(5),
+      ])
 
     const contractRoomRows = await db
       .select({ id: schema.contract.id, roomId: schema.contract.roomId })
       .from(schema.contract)
       .where(inArray(schema.contract.id, contractIds))
-    const contractToRoomId: Record<string, string> = Object.fromEntries(contractRoomRows.map(c => [c.id, c.roomId]))
+    const contractToRoomId: Record<string, string> = Object.fromEntries(
+      contractRoomRows.map((c) => [c.id, c.roomId]),
+    )
     const roomIds = [
       ...new Set([
         ...Object.values(contractToRoomId),
-        ...maintenanceRows.map(m => m.roomId),
-        ...upcomingContracts.map(c => c.roomId)
-      ])
+        ...maintenanceRows.map((m) => m.roomId),
+        ...upcomingContracts.map((c) => c.roomId),
+      ]),
     ]
-    const roomRows = roomIds.length > 0
-      ? await db.select({ id: schema.room.id, roomNumber: schema.room.roomNumber }).from(schema.room).where(inArray(schema.room.id, roomIds))
-      : []
-    const roomMap: Record<string, { roomNumber: string }> = Object.fromEntries(roomRows.map(r => [r.id, r]))
+    const roomRows =
+      roomIds.length > 0
+        ? await db
+            .select({ id: schema.room.id, roomNumber: schema.room.roomNumber })
+            .from(schema.room)
+            .where(inArray(schema.room.id, roomIds))
+        : []
+    const roomMap: Record<string, { roomNumber: string }> = Object.fromEntries(
+      roomRows.map((r) => [r.id, r]),
+    )
 
-    const invIdsForPayments = pendingPayments.map(p => p.invoiceId)
-    const invForPayment = invIdsForPayments.length > 0
-      ? await db.select({ id: schema.invoice.id, period: schema.invoice.period, contractId: schema.invoice.contractId }).from(schema.invoice).where(inArray(schema.invoice.id, invIdsForPayments))
-      : []
-    const invPaymentMap = Object.fromEntries(invForPayment.map(i => [i.id, i]))
+    const invIdsForPayments = pendingPayments.map((p) => p.invoiceId)
+    const invForPayment =
+      invIdsForPayments.length > 0
+        ? await db
+            .select({
+              id: schema.invoice.id,
+              period: schema.invoice.period,
+              contractId: schema.invoice.contractId,
+            })
+            .from(schema.invoice)
+            .where(inArray(schema.invoice.id, invIdsForPayments))
+        : []
+    const invPaymentMap = Object.fromEntries(invForPayment.map((i) => [i.id, i]))
 
     const notifications: {
       id: string
@@ -192,10 +212,10 @@ export default defineEventHandler(async (event) => {
           period: inv.period,
           amount: inv.totalAmount,
           dueDate: inv.dueDate,
-          roomNumber
+          roomNumber,
         },
         createdAt: inv.createdAt,
-        isRead: false
+        isRead: false,
       })
     }
     for (const inv of overdueInvoices) {
@@ -211,11 +231,11 @@ export default defineEventHandler(async (event) => {
           period: inv.period,
           amount: inv.totalAmount,
           dueDate: inv.dueDate,
-          roomNumber
+          roomNumber,
         },
         createdAt: inv.createdAt,
         isRead: false,
-        priority: 'HIGH'
+        priority: 'HIGH',
       })
     }
     for (const p of pendingPayments) {
@@ -232,10 +252,10 @@ export default defineEventHandler(async (event) => {
           paymentId: p.id,
           amount: p.amount,
           period,
-          roomNumber
+          roomNumber,
         },
         createdAt: p.createdAt,
-        isRead: false
+        isRead: false,
       })
     }
     for (const m of maintenanceRows) {
@@ -251,17 +271,19 @@ export default defineEventHandler(async (event) => {
           title: m.title,
           status: m.status,
           priority: m.priority,
-          roomNumber
+          roomNumber,
         },
         createdAt: m.updatedAt,
         isRead: false,
-        priority: (m.priority as string) || 'MEDIUM'
+        priority: (m.priority as string) || 'MEDIUM',
       })
     }
     for (const c of upcomingContracts) {
       const room = roomMap[c.roomId]
       const roomNumber = room?.roomNumber ?? ''
-      const daysLeft = Math.ceil((new Date(c.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      const daysLeft = Math.ceil(
+        (new Date(c.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      )
       notifications.push({
         id: `contract-ending-${c.id}`,
         type: 'CONTRACT_ENDING_SOON',
@@ -271,11 +293,11 @@ export default defineEventHandler(async (event) => {
           contractId: c.id,
           endDate: c.endDate,
           daysLeft,
-          roomNumber
+          roomNumber,
         },
         createdAt: now,
         isRead: false,
-        priority: daysLeft <= 30 ? 'HIGH' : 'MEDIUM'
+        priority: daysLeft <= 30 ? 'HIGH' : 'MEDIUM',
       })
     }
 
@@ -290,9 +312,9 @@ export default defineEventHandler(async (event) => {
         total: notifications.length,
         page,
         limit,
-        unreadCount: notifications.filter(n => !n.isRead).length
+        unreadCount: notifications.filter((n) => !n.isRead).length,
       },
-      'ดึงข้อมูลการแจ้งเตือนสำเร็จ'
+      'ดึงข้อมูลการแจ้งเตือนสำเร็จ',
     )
   } catch (error) {
     return errorResponse(event, error)

@@ -4,7 +4,7 @@ import { eq, and, like } from 'drizzle-orm'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const updateReadingSchema = z.object({
-  readingValue: z.coerce.number().min(0)
+  readingValue: z.coerce.number().min(0),
 })
 
 export default defineEventHandler(async (event) => {
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     if (!meterReadingId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Meter Reading ID' })
     }
-    const body = await readValidatedBody(event, data => updateReadingSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateReadingSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -54,8 +54,8 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.invoice.contractId, contractRow.id),
-          eq(schema.invoice.period, previousPeriod)
-        )
+          eq(schema.invoice.period, previousPeriod),
+        ),
       )
     let oldValue = 0
     if (prevInvoices.length > 0) {
@@ -65,8 +65,8 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.meterReading.invoiceId, prevInvoices[0].id),
-            eq(schema.meterReading.utilityType, currentReading.utilityType)
-          )
+            eq(schema.meterReading.utilityType, currentReading.utilityType),
+          ),
         )
         .limit(1)
       if (prevReading) oldValue = Number(prevReading.readingValue)
@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
     if (newReadingValue < oldValue) {
       throw createError({
         statusCode: 400,
-        statusMessage: `เลขมิเตอร์ใหม่ต้องไม่น้อยกว่าครั้งก่อน (${oldValue})`
+        statusMessage: `เลขมิเตอร์ใหม่ต้องไม่น้อยกว่าครั้งก่อน (${oldValue})`,
       })
     }
 
@@ -105,15 +105,15 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.invoiceItem.invoiceId, invoiceRow.id),
-            like(schema.invoiceItem.description, prefixPattern)
-          )
+            like(schema.invoiceItem.description, prefixPattern),
+          ),
         )
       for (const item of itemsToUpdate) {
         await tx
           .update(schema.invoiceItem)
           .set({
             description: `${descriptionPrefix} (${usage} หน่วย)`,
-            amount: String(cost)
+            amount: String(cost),
           })
           .where(eq(schema.invoiceItem.id, item.id))
       }

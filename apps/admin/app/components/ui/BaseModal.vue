@@ -1,45 +1,50 @@
 <script setup>
-import { computed } from "vue";
+import { computed } from 'vue'
 
-const show = defineModel({ type: Boolean });
+const show = defineModel({ type: Boolean })
 
 const props = defineProps({
   maxWidth: {
     type: String,
-    default: "lg"
+    default: 'lg',
   },
   persistent: {
     type: Boolean,
-    default: true
-  }
-});
+    default: true,
+  },
+})
 
 const maxWidthClass = computed(() => {
   return {
-    sm: "sm:max-w-sm",
-    md: "sm:max-w-md",
-    lg: "sm:max-w-lg",
-    xl: "sm:max-w-xl",
-    "2xl": "sm:max-w-2xl"
-  }[props.maxWidth];
-});
+    sm: 'sm:max-w-sm',
+    md: 'sm:max-w-md',
+    lg: 'sm:max-w-lg',
+    xl: 'sm:max-w-xl',
+    '2xl': 'sm:max-w-2xl',
+  }[props.maxWidth]
+})
 </script>
 
 <template>
   <UModal
     :open="show"
-    @update:open="(v) => { if (!persistent || !v) show = v; }"
     :dismissible="!persistent"
     :close="!persistent"
     :ui="{
-      content: ['w-[calc(100vw-2rem)] max-h-[90vh]', maxWidthClass, 'rounded-lg shadow-lg ring ring-default flex flex-col overflow-hidden']
+      content: [
+        'w-[calc(100vw-2rem)] max-h-[90vh]',
+        maxWidthClass,
+        'rounded-lg shadow-lg ring ring-default flex flex-col overflow-hidden',
+      ],
     }"
+    @update:open="
+      (v) => {
+        if (!persistent || !v) show = v
+      }
+    "
   >
     <template #content>
-      <div
-        v-if="$slots.title"
-        class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 shrink-0"
-      >
+      <div v-if="$slots.title" class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 shrink-0">
         <h3 class="text-base font-semibold leading-6 text-gray-900">
           <slot name="title" />
         </h3>

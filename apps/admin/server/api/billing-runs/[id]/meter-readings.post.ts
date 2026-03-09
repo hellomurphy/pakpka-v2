@@ -8,10 +8,10 @@ const readingSchema = z.object({
   newElec: z.coerce.number().min(0),
   newWater: z.coerce.number().min(0),
   oldElec: z.coerce.number(),
-  oldWater: z.coerce.number()
+  oldWater: z.coerce.number(),
 })
 const saveReadingsSchema = z.object({
-  readings: z.array(readingSchema)
+  readings: z.array(readingSchema),
 })
 
 export default defineEventHandler(async (event) => {
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     if (!runId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Billing Run ID' })
     }
-    const body = await readValidatedBody(event, data => saveReadingsSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => saveReadingsSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }
@@ -57,8 +57,8 @@ export default defineEventHandler(async (event) => {
           .where(
             and(
               eq(schema.meterReading.invoiceId, reading.invoiceId),
-              eq(schema.meterReading.utilityType, 'ELECTRICITY')
-            )
+              eq(schema.meterReading.utilityType, 'ELECTRICITY'),
+            ),
           )
           .limit(1)
         const existingWater = await tx
@@ -67,8 +67,8 @@ export default defineEventHandler(async (event) => {
           .where(
             and(
               eq(schema.meterReading.invoiceId, reading.invoiceId),
-              eq(schema.meterReading.utilityType, 'WATER')
-            )
+              eq(schema.meterReading.utilityType, 'WATER'),
+            ),
           )
           .limit(1)
 
@@ -78,7 +78,7 @@ export default defineEventHandler(async (event) => {
             invoiceId: reading.invoiceId,
             utilityType: 'ELECTRICITY',
             readingValue: String(reading.newElec),
-            readingDate: new Date()
+            readingDate: new Date(),
           })
         } else {
           await tx
@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
             invoiceId: reading.invoiceId,
             utilityType: 'WATER',
             readingValue: String(reading.newWater),
-            readingDate: new Date()
+            readingDate: new Date(),
           })
         } else {
           await tx
@@ -116,13 +116,13 @@ export default defineEventHandler(async (event) => {
           id: crypto.randomUUID(),
           invoiceId: reading.invoiceId,
           description: `ค่าไฟฟ้า (${elecUsage} หน่วย)`,
-          amount: String(elecCost)
+          amount: String(elecCost),
         })
         await tx.insert(schema.invoiceItem).values({
           id: crypto.randomUUID(),
           invoiceId: reading.invoiceId,
           description: `ค่าน้ำ (${waterUsage} หน่วย)`,
-          amount: String(waterCost)
+          amount: String(waterCost),
         })
 
         const allItems = await tx
@@ -134,7 +134,7 @@ export default defineEventHandler(async (event) => {
           .update(schema.invoice)
           .set({
             totalAmount: String(totalAmount),
-            status: InvoiceStatus.UNPAID
+            status: InvoiceStatus.UNPAID,
           })
           .where(eq(schema.invoice.id, reading.invoiceId))
       }
@@ -145,8 +145,8 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.invoice.billingRunId, runId),
-            eq(schema.invoice.status, InvoiceStatus.DRAFT)
-          )
+            eq(schema.invoice.status, InvoiceStatus.DRAFT),
+          ),
         )
       if (remainingDrafts.length === 0) {
         await tx

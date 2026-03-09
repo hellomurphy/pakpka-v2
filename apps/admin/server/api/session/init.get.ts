@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
         email: schema.user.email,
         username: schema.user.username,
         name: schema.user.name,
-        image: schema.user.image
+        image: schema.user.image,
       })
       .from(schema.user)
       .where(eq(schema.user.id, userId))
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
         defaultPaymentDueDays: schema.property.defaultPaymentDueDays,
         lateFeeEnabled: schema.property.lateFeeEnabled,
         lateFeeType: schema.property.lateFeeType,
-        lateFeeValue: schema.property.lateFeeValue
+        lateFeeValue: schema.property.lateFeeValue,
       })
       .from(schema.property)
       .innerJoin(schema.propertyStaff, eq(schema.propertyStaff.propertyId, schema.property.id))
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       properties,
-      hasProperties: properties.length > 0
+      hasProperties: properties.length > 0,
     }
   } catch (error) {
     return errorResponse(event, error)

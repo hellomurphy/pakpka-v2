@@ -1,98 +1,75 @@
 <script setup>
-import { ref, watch } from "vue";
-import { storeToRefs } from "pinia";
-import { useSettingsStore } from "./settings/store/settingsStore";
-import { usePropertyStore } from "~/store/propertyStore";
-import { useLeaveConfirmation } from "~/composables/useLeaveConfirmation";
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/vue";
+import { watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useSettingsStore } from './settings/store/settingsStore'
+import { usePropertyStore } from '~/store/propertyStore'
+import { useLeaveConfirmation } from '~/composables/useLeaveConfirmation'
 import {
   BuildingOffice2Icon,
   CreditCardIcon,
   UsersIcon,
   BanknotesIcon,
-} from "@heroicons/vue/24/outline";
-import { ChevronDownIcon } from "@heroicons/vue/24/solid";
-import BaseButton from "~/components/ui/BaseButton.vue";
-import { useRoute, useRouter } from "vue-router";
+} from '@heroicons/vue/24/outline'
+import BaseButton from '~/components/ui/BaseButton.vue'
+import { useRoute } from 'vue-router'
 
-const settingsStore = useSettingsStore();
-const propertyStore = usePropertyStore();
-const router = useRouter();
-const route = useRoute();
+const settingsStore = useSettingsStore()
+const propertyStore = usePropertyStore()
+const route = useRoute()
 
-const { isSaving, isDirty, showSaveFooter } = storeToRefs(settingsStore);
-const { propertyId } = storeToRefs(propertyStore);
+const { isSaving, isDirty, showSaveFooter } = storeToRefs(settingsStore)
+const { propertyId } = storeToRefs(propertyStore)
 
 // ✨ 1. Fetch ข้อมูลครั้งเดียวที่ Component แม่
 // useAsyncData จะช่วยป้องกันการ fetch ซ้ำซ้อนเมื่อสลับไปมาระหว่างแท็บลูก
-useAsyncData("settings", () => settingsStore.fetchSettings(), {
+useAsyncData('settings', () => settingsStore.fetchSettings(), {
   watch: [propertyId],
-});
+})
 
 // ✨ 2. "ยามเฝ้าประตู" จะทำงานกับทุกหน้าย่อยใน /settings
-useLeaveConfirmation(isDirty, settingsStore.resetDirtyState);
+useLeaveConfirmation(isDirty, settingsStore.resetDirtyState)
 
 // ✨ 3. Navigation จะใช้ NuxtLink เพื่อเปลี่ยนหน้า
 const navigation = [
   {
-    id: "rooms",
-    name: "อาคารและห้องพัก",
+    id: 'rooms',
+    name: 'อาคารและห้องพัก',
     icon: BuildingOffice2Icon,
-    to: "/settings",
+    to: '/settings',
   },
   {
-    id: "finance",
-    name: "การเงินและบิล",
+    id: 'finance',
+    name: 'การเงินและบิล',
     icon: CreditCardIcon,
-    to: "/settings/finance",
+    to: '/settings/finance',
   },
   {
-    id: "payment",
-    name: "ช่องทางการชำระเงิน",
+    id: 'payment',
+    name: 'ช่องทางการชำระเงิน',
     icon: BanknotesIcon,
-    to: "/settings/payment",
+    to: '/settings/payment',
   },
-  { id: "staff", name: "ทีมงาน", icon: UsersIcon, to: "/settings/staff" },
-];
-
-// --- Logic for Mobile Dropdown ---
-const activeTabId = computed(() => {
-  // หา path ที่ตรงกันเพื่อกำหนดค่าเริ่มต้นให้ dropdown
-  const currentRoute = route.path;
-  const foundNav = navigation.find((nav) => nav.to === currentRoute);
-  return foundNav ? foundNav.id : "rooms";
-});
-
-const handleMobileNavChange = (selectedId) => {
-  const selectedNav = navigation.find((nav) => nav.id === selectedId);
-  if (selectedNav) {
-    router.push(selectedNav.to);
-  }
-};
+  { id: 'staff', name: 'ทีมงาน', icon: UsersIcon, to: '/settings/staff' },
+]
 
 const handleSave = () => {
-  settingsStore.saveSettings();
-};
+  settingsStore.saveSettings()
+}
 
-const routesWithSaveFooter = ["/settings", "/settings/finance"];
+const routesWithSaveFooter = ['/settings', '/settings/finance']
 
 watch(
   () => route.path,
   (newPath) => {
     // ตรวจสอบว่า path ใหม่ อยู่ในลิสต์ที่เรากำหนดหรือไม่
     if (routesWithSaveFooter.includes(newPath)) {
-      settingsStore.setShowSaveFooter(true);
+      settingsStore.setShowSaveFooter(true)
     } else {
-      settingsStore.setShowSaveFooter(false);
+      settingsStore.setShowSaveFooter(false)
     }
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -101,9 +78,7 @@ watch(
       class="sticky top-0 z-20 p-6 md:px-8 bg-white/80 backdrop-blur-sm border-b border-slate-200"
     >
       <div class="flex flex-col sm:flex-row sm:items-baseline sm:gap-x-4">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
-          ตั้งค่าหอพัก
-        </h1>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">ตั้งค่าหอพัก</h1>
         <p class="mt-1 sm:mt-0 text-base text-gray-500">
           จัดการข้อมูลหอพัก, ประเภทห้อง, การเงิน, และทีมงานของคุณ
         </p>
@@ -114,9 +89,7 @@ watch(
       <div class="lg:grid lg:grid-cols-12 lg:gap-x-8">
         <aside class="hidden lg:block lg:col-span-3">
           <div class="sticky top-28">
-            <nav
-              class="space-y-1 bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 p-3"
-            >
+            <nav class="space-y-1 bg-white rounded-xl shadow-sm ring-1 ring-gray-900/5 p-3">
               <NuxtLink
                 v-for="item in navigation"
                 :key="item.name"
@@ -135,7 +108,7 @@ watch(
           </div>
         </aside>
 
-        <div class="lg:hidden mb-6"></div>
+        <div class="lg:hidden mb-6" />
 
         <div class="lg:col-span-9">
           <NuxtPage />
@@ -145,17 +118,13 @@ watch(
             class="sticky bottom-0 z-10 flex justify-end gap-x-3 bg-white/80 backdrop-blur-sm py-4 mt-8 -mx-8 px-8 border-t border-slate-200"
           >
             <BaseButton
-              @click="settingsStore.revertChanges()"
               variant="secondary"
               :disabled="!isDirty"
+              @click="settingsStore.revertChanges()"
             >
               ยกเลิก
             </BaseButton>
-            <BaseButton
-              @click="handleSave"
-              :disabled="!isDirty"
-              :loading="isSaving"
-            >
+            <BaseButton :disabled="!isDirty" :loading="isSaving" @click="handleSave">
               บันทึกการเปลี่ยนแปลง
             </BaseButton>
           </div>

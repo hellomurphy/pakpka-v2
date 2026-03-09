@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm'
-import { InvoiceStatus, BillingRunStatus, BillingType, UtilityType } from '@repo/db'
+import { InvoiceStatus, BillingRunStatus, UtilityType } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
+import { isInvoiceMeterReady } from '~~/server/utils/invoice-meter-ready'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -8,7 +9,7 @@ export default defineEventHandler(async (event) => {
     if (!invoiceId) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ต้องระบุ Invoice ID'
+        statusMessage: 'ต้องระบุ Invoice ID',
       })
     }
 
@@ -25,7 +26,7 @@ export default defineEventHandler(async (event) => {
     if (invoiceRow.status !== InvoiceStatus.DRAFT) {
       throw createError({
         statusCode: 409,
-        statusMessage: 'ใบแจ้งหนี้นี้ไม่ได้อยู่ในสถานะฉบับร่าง'
+        statusMessage: 'ใบแจ้งหนี้นี้ไม่ได้อยู่ในสถานะฉบับร่าง',
       })
     }
 
@@ -42,24 +43,19 @@ export default defineEventHandler(async (event) => {
       .select({ utilityType: schema.meterReading.utilityType })
       .from(schema.meterReading)
       .where(eq(schema.meterReading.invoiceId, invoiceId))
-    let isReady = true
+    const hasElec = meterReadings.some((r) => r.utilityType === UtilityType.ELECTRICITY)
+    const hasWater = meterReadings.some((r) => r.utilityType === UtilityType.WATER)
     if (
-      contractRow.electricityBillingType === BillingType.PER_UNIT &&
-      !meterReadings.some(r => r.utilityType === UtilityType.ELECTRICITY)
+      !isInvoiceMeterReady(
+        contractRow.electricityBillingType,
+        contractRow.waterBillingType,
+        hasElec,
+        hasWater,
+      )
     ) {
-      isReady = false
-    }
-    if (
-      isReady &&
-      contractRow.waterBillingType === BillingType.PER_UNIT &&
-      !meterReadings.some(r => r.utilityType === UtilityType.WATER)
-    ) {
-      isReady = false
-    }
-    if (!isReady) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ข้อมูลมิเตอร์ไม่ครบถ้วน ไม่สามารถส่งใบแจ้งหนี้ได้'
+        statusMessage: 'ข้อมูลมิเตอร์ไม่ครบถ้วน ไม่สามารถส่งใบแจ้งหนี้ได้',
       })
     }
 
@@ -69,13 +65,14 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(schema.contractTenant.contractId, invoiceRow.contractId),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
-    const tenantIds = primaryTenants.map(pt => pt.tenantId)
-    const [primaryTenant] = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(eq(schema.tenant.id, tenantIds[0])).limit(1)
-      : [null]
+    const tenantIds = primaryTenants.map((pt) => pt.tenantId)
+    const [primaryTenant] =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(eq(schema.tenant.id, tenantIds[0])).limit(1)
+        : [null]
     const [roomRow] = await db
       .select({ roomNumber: schema.room.roomNumber })
       .from(schema.room)
@@ -95,10 +92,10 @@ export default defineEventHandler(async (event) => {
           .where(
             and(
               eq(schema.invoice.billingRunId, invoiceRow.billingRunId),
-              eq(schema.invoice.status, InvoiceStatus.DRAFT)
-            )
+              eq(schema.invoice.status, InvoiceStatus.DRAFT),
+            ),
           )
-        const count = remainingDrafts.filter(inv => inv.id !== invoiceId).length
+        const count = remainingDrafts.filter((inv) => inv.id !== invoiceId).length
         if (count === 0) {
           await tx
             .update(schema.billingRun)
@@ -119,10 +116,7 @@ export default defineEventHandler(async (event) => {
       `)
     }
 
-    return successResponse(
-      null,
-      `ส่งใบแจ้งหนี้สำหรับห้อง ${roomRow?.roomNumber ?? '-'} สำเร็จ`
-    )
+    return successResponse(null, `ส่งใบแจ้งหนี้สำหรับห้อง ${roomRow?.roomNumber ?? '-'} สำเร็จ`)
   } catch (error) {
     return errorResponse(event, error)
   }

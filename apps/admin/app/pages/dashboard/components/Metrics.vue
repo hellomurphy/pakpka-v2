@@ -1,41 +1,40 @@
 <script setup>
-import { computed } from "vue";
-import { useFormatters } from "~/composables/useFormatters";
+import { computed } from 'vue'
+import { useFormatters } from '~/composables/useFormatters'
 import {
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
   HomeModernIcon,
-  WrenchScrewdriverIcon,
-} from "@heroicons/vue/24/outline";
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   metrics: {
     type: Object,
     required: true,
   },
-});
+})
 
-const { currency } = useFormatters();
+const { currency } = useFormatters()
 
 // ✨ สร้าง Array สำหรับวนลูปสร้างการ์ด ทำให้ Template สะอาด
 const metricCards = computed(() => [
   {
-    label: "รายรับเดือนนี้",
+    label: 'รายรับเดือนนี้',
     value: currency(props.metrics.monthlyIncome),
     icon: CurrencyDollarIcon,
-    color: "green",
+    color: 'green',
   },
   {
-    label: "ยอดค้างชำระ",
+    label: 'ยอดค้างชำระ',
     value: currency(props.metrics.overdueBalance),
     icon: ExclamationTriangleIcon,
-    color: "amber",
+    color: 'amber',
   },
   {
-    label: "ห้องว่าง",
+    label: 'ห้องว่าง',
     value: `${props.metrics.availableRooms} ห้อง`,
     icon: HomeModernIcon,
-    color: "neutral",
+    color: 'neutral',
   },
   // {
   //   label: "รายการแจ้งซ่อม",
@@ -43,40 +42,40 @@ const metricCards = computed(() => [
   //   icon: WrenchScrewdriverIcon,
   //   color: "neutral",
   // },
-]);
+])
 
 const getColorClasses = (color) => {
   switch (color) {
-    case "green":
+    case 'green':
       return {
-        text: "text-green-600",
-        bg: "bg-green-100",
-        ring: "ring-gray-900/5",
-        hover: "hover:ring-green-300 hover:shadow-md",
-      };
-    case "amber":
+        text: 'text-green-600',
+        bg: 'bg-green-100',
+        ring: 'ring-gray-900/5',
+        hover: 'hover:ring-green-300 hover:shadow-md',
+      }
+    case 'amber':
       return {
-        text: "text-amber-700",
-        bg: "bg-amber-100",
-        ring: "ring-amber-500/50",
-        hover: "hover:ring-amber-300 hover:shadow-md",
-      };
+        text: 'text-amber-700',
+        bg: 'bg-amber-100',
+        ring: 'ring-amber-500/50',
+        hover: 'hover:ring-amber-300 hover:shadow-md',
+      }
     default:
       return {
-        text: "text-slate-700",
-        bg: "bg-blue-50",
-        ring: "ring-blue-900/5",
-        hover: "hover:ring-blue-300 hover:shadow-md",
-      };
+        text: 'text-slate-700',
+        bg: 'bg-blue-50',
+        ring: 'ring-blue-900/5',
+        hover: 'hover:ring-blue-300 hover:shadow-md',
+      }
   }
-};
+}
 
 // เก็บสถานะการ hover ของการ์ดแต่ละใบ
-const hoverStates = ref(metricCards.value.map(() => false));
+const hoverStates = ref(metricCards.value.map(() => false))
 
 const setHoverState = (index, isHovering) => {
-  hoverStates.value[index] = isHovering;
-};
+  hoverStates.value[index] = isHovering
+}
 </script>
 
 <template>
@@ -88,9 +87,7 @@ const setHoverState = (index, isHovering) => {
       :class="[
         getColorClasses(card.color).ring,
         getColorClasses(card.color).hover,
-        hoverStates[index]
-          ? 'animate-bounce-scale shadow-lg -translate-y-1.5'
-          : '',
+        hoverStates[index] ? 'animate-bounce-scale shadow-lg -translate-y-1.5' : '',
       ]"
       @mouseenter="setHoverState(index, true)"
       @mouseleave="setHoverState(index, false)"
@@ -98,26 +95,17 @@ const setHoverState = (index, isHovering) => {
       <div class="flex items-center gap-x-3">
         <div
           class="flex-none rounded-lg p-2 transition-all duration-300"
-          :class="[
-            getColorClasses(card.color).bg,
-            hoverStates[index] ? 'scale-110' : '',
-          ]"
+          :class="[getColorClasses(card.color).bg, hoverStates[index] ? 'scale-110' : '']"
         >
           <component
             :is="card.icon"
             class="h-6 w-6 transition-all duration-300"
-            :class="[
-              getColorClasses(card.color).text,
-              hoverStates[index] ? 'animate-pulse' : '',
-            ]"
+            :class="[getColorClasses(card.color).text, hoverStates[index] ? 'animate-pulse' : '']"
           />
         </div>
         <p
           class="text-sm font-medium transition-all duration-300"
-          :class="[
-            getColorClasses(card.color).text,
-            hoverStates[index] ? 'font-bold' : '',
-          ]"
+          :class="[getColorClasses(card.color).text, hoverStates[index] ? 'font-bold' : '']"
         >
           {{ card.label }}
         </p>

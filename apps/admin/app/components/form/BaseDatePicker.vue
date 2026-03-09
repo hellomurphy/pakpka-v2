@@ -3,6 +3,7 @@ import { computed, ref, onMounted, nextTick } from 'vue'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
+/* eslint-disable vue/require-prop-types -- model type from defineModel */
 const model = defineModel()
 const canRenderPicker = ref(false)
 
@@ -22,7 +23,7 @@ const props = defineProps({
   maxDate: { type: Date, default: null },
   rules: { type: Function, default: null },
   /** Pass "month" for month picker; otherwise single date. */
-  mode: { type: String, default: 'date' }
+  mode: { type: String, default: 'date' },
 })
 
 const format = (date) => {
@@ -61,23 +62,24 @@ const pickerModel = computed({
     return model.value
   },
   set(val) {
-    if (isMonthPicker.value && val != null && typeof val.month === 'number' && typeof val.year === 'number') {
+    if (
+      isMonthPicker.value &&
+      val != null &&
+      typeof val.month === 'number' &&
+      typeof val.year === 'number'
+    ) {
       model.value = new Date(val.year, val.month, 1)
     } else if (!isMonthPicker.value) {
       model.value = val
     }
-  }
+  },
 })
 
 const displayFormat = computed(() => (isMonthPicker.value ? formatMonth : format))
 </script>
 
 <template>
-  <UFormField
-    :label="label"
-    :error="error"
-    :required="required"
-  >
+  <UFormField :label="label" :error="error" :required="required">
     <div class="mt-2">
       <template v-if="canRenderPicker">
         <VueDatePicker

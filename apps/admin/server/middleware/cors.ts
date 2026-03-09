@@ -6,10 +6,12 @@
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event)
   const raw =
-    (config.server?.allowedOrigins as string | undefined) ??
-    (process.env.ALLOWED_ORIGINS ?? '')
+    (config.server?.allowedOrigins as string | undefined) ?? process.env.ALLOWED_ORIGINS ?? ''
   const allowlist = raw
-    ? raw.split(',').map(o => o.trim()).filter(Boolean)
+    ? raw
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
     : []
 
   if (allowlist.length === 0) return
@@ -23,11 +25,7 @@ export default defineEventHandler((event) => {
   setResponseHeader(event, 'Access-Control-Allow-Origin', origin)
   setResponseHeader(event, 'Access-Control-Allow-Credentials', 'true')
   setResponseHeader(event, 'Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  setResponseHeader(
-    event,
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, Accept'
-  )
+  setResponseHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
   setResponseHeader(event, 'Access-Control-Max-Age', '86400')
 
   if (event.method === 'OPTIONS') {

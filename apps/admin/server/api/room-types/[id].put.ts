@@ -5,7 +5,7 @@ import { requirePropertyStaff } from '~~/server/utils/auth'
 const updateRoomTypeSchema = z.object({
   name: z.string().trim().min(1).optional(),
   basePrice: z.number().positive().optional(),
-  deposit: z.number().min(0).optional()
+  deposit: z.number().min(0).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (!roomTypeId) {
       throw createError({ statusCode: 400, statusMessage: 'ต้องระบุ Room Type ID' })
     }
-    const body = await readValidatedBody(event, data => updateRoomTypeSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => updateRoomTypeSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, statusMessage: 'ข้อมูลไม่ถูกต้อง' })
     }

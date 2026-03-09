@@ -4,7 +4,7 @@ import { InvoiceStatus, BillingRunStatus } from '@repo/db'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 const bodySchema = z.object({
-  invoiceIds: z.array(z.string()).optional()
+  invoiceIds: z.array(z.string()).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -32,23 +32,20 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(schema.invoice)
       .where(
-        and(
-          eq(schema.invoice.billingRunId, runId),
-          eq(schema.invoice.status, InvoiceStatus.DRAFT)
-        )
+        and(eq(schema.invoice.billingRunId, runId), eq(schema.invoice.status, InvoiceStatus.DRAFT)),
       )
     if (invoiceIdsToSend && invoiceIdsToSend.length > 0) {
-      invoicesToSend = invoicesToSend.filter(inv => invoiceIdsToSend!.includes(inv.id))
+      invoicesToSend = invoicesToSend.filter((inv) => invoiceIdsToSend!.includes(inv.id))
     }
 
     if (invoicesToSend.length === 0) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'ไม่มีใบแจ้งหนี้ที่พร้อมส่ง'
+        statusMessage: 'ไม่มีใบแจ้งหนี้ที่พร้อมส่ง',
       })
     }
 
-    const idsToUpdate = invoicesToSend.map(inv => inv.id)
+    const idsToUpdate = invoicesToSend.map((inv) => inv.id)
     await db.transaction(async (tx) => {
       for (const id of idsToUpdate) {
         await tx
@@ -62,8 +59,8 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(schema.invoice.billingRunId, runId),
-            eq(schema.invoice.status, InvoiceStatus.DRAFT)
-          )
+            eq(schema.invoice.status, InvoiceStatus.DRAFT),
+          ),
         )
       if (remainingDrafts.length === 0) {
         await tx
@@ -73,25 +70,26 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    const contractIds = invoicesToSend.map(i => i.contractId)
+    const contractIds = invoicesToSend.map((i) => i.contractId)
     const primaryTenants = await db
       .select()
       .from(schema.contractTenant)
       .where(
         and(
           inArray(schema.contractTenant.contractId, contractIds),
-          eq(schema.contractTenant.isPrimary, true)
-        )
+          eq(schema.contractTenant.isPrimary, true),
+        ),
       )
-    const tenantIds = primaryTenants.map(pt => pt.tenantId)
-    const tenants = tenantIds.length > 0
-      ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
-      : []
-    const tenantMap = Object.fromEntries(tenants.map(t => [t.id, t]))
+    const tenantIds = primaryTenants.map((pt) => pt.tenantId)
+    const tenants =
+      tenantIds.length > 0
+        ? await db.select().from(schema.tenant).where(inArray(schema.tenant.id, tenantIds))
+        : []
+    const tenantMap = Object.fromEntries(tenants.map((t) => [t.id, t]))
 
     for (const invoice of invoicesToSend) {
-      const pt = primaryTenants.find(x => {
-        const inv = invoicesToSend.find(i => i.contractId === x.contractId)
+      const pt = primaryTenants.find((x) => {
+        const inv = invoicesToSend.find((i) => i.contractId === x.contractId)
         return inv?.id === invoice.id
       })
       const tenant = pt ? tenantMap[pt.tenantId] : null
@@ -109,7 +107,7 @@ export default defineEventHandler(async (event) => {
 
     return successResponse(
       { sentCount: invoicesToSend.length },
-      `ส่งใบแจ้งหนี้ ${invoicesToSend.length} ฉบับสำเร็จ`
+      `ส่งใบแจ้งหนี้ ${invoicesToSend.length} ฉบับสำเร็จ`,
     )
   } catch (error) {
     return errorResponse(event, error)

@@ -1,38 +1,38 @@
 <script setup>
+import { defineProps } from 'vue'
 import {
   WrenchScrewdriverIcon,
   ArrowDownOnSquareIcon,
   KeyIcon,
   DocumentTextIcon,
-} from "@heroicons/vue/24/outline";
+} from '@heroicons/vue/24/outline'
 
-const props = defineProps({
+defineProps({
   todos: {
     type: Array,
-    default: () => [],
+    required: true,
   },
-});
+})
 
 const getIconForType = (type) => {
   switch (type) {
-    case "PAYMENT":
-      return WrenchScrewdriverIcon;
-    case "CHECK_IN":
-      return ArrowDownOnSquareIcon;
-    case "CHECK_OUT":
-      return KeyIcon;
-    case "CONTRACT_ENDING":
-      return DocumentTextIcon;
+    case 'PAYMENT':
+      return WrenchScrewdriverIcon
+    case 'CHECK_IN':
+      return ArrowDownOnSquareIcon
+    case 'CHECK_OUT':
+      return KeyIcon
+    case 'CONTRACT_ENDING':
+      return DocumentTextIcon
     default:
-      return WrenchScrewdriverIcon;
+      return WrenchScrewdriverIcon
   }
-};
+}
 </script>
+
 <template>
   <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
-    <h2 class="text-base font-semibold text-gray-900">
-      สิ่งที่ต้องทำ (To-do List)
-    </h2>
+    <h2 class="text-base font-semibold text-gray-900">สิ่งที่ต้องทำ (To-do List)</h2>
 
     <div v-if="todos.length === 0" class="mt-4 text-center py-8 text-gray-500">
       <p>ไม่มีรายการที่ต้องดำเนินการในขณะนี้</p>
@@ -52,10 +52,7 @@ const getIconForType = (type) => {
           >
             <component
               :is="getIconForType(item.type)"
-              :class="[
-                item.urgent ? 'text-amber-600' : 'text-gray-600',
-                'h-5 w-5',
-              ]"
+              :class="[item.urgent ? 'text-amber-600' : 'text-gray-600', 'h-5 w-5']"
             />
           </div>
           <p class="flex-auto text-sm text-gray-800">{{ item.text }}</p>

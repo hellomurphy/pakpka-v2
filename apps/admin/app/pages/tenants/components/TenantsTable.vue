@@ -1,14 +1,14 @@
 <script setup>
-import { computed } from "vue";
-import { storeToRefs } from "pinia";
-import { useTenantsStore } from "../store/tenantsStore";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
-import { Float } from "@headlessui-float/vue";
-import { EllipsisVerticalIcon } from "@heroicons/vue/24/solid";
-import BaseTable from "~/components/ui/BaseTable.vue";
-import { useFormatters } from "~/composables/useFormatters";
-import { useWindowSize } from "@vueuse/core";
-import { useBillingStore } from "~/store/billingStore";
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useTenantsStore } from '../store/tenantsStore'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import { Float } from '@headlessui-float/vue'
+import { EllipsisVerticalIcon } from '@heroicons/vue/24/solid'
+import BaseTable from '~/components/ui/BaseTable.vue'
+import { useFormatters } from '~/composables/useFormatters'
+import { useWindowSize } from '@vueuse/core'
+import { useBillingStore } from '~/store/billingStore'
 import {
   PencilIcon,
   ArrowRightStartOnRectangleIcon,
@@ -17,120 +17,118 @@ import {
   TrashIcon,
   ArchiveBoxXMarkIcon,
   CreditCardIcon,
-} from "@heroicons/vue/24/outline";
-import { PlusCircleIcon } from "@heroicons/vue/20/solid";
+} from '@heroicons/vue/24/outline'
+import { PlusCircleIcon } from '@heroicons/vue/20/solid'
 
 // --- Props & Emits ---
 const props = defineProps({
   activeTab: { type: String, required: true },
-});
+})
 
-const { show } = useNotification();
-const router = useRouter();
+const { show } = useNotification()
+const router = useRouter()
 
 const emit = defineEmits([
-  "edit-tenant",
-  "delete-tenant",
-  "delete-permanent",
-  "view-contract",
-  "final-move-out",
-  "notice-move-out",
-  "confirm-check-in",
-  "cancel-contract",
-  "view-tenant-history",
-  "renew-contract",
-  "delete-waiting-list",
-]);
+  'add-tenant',
+  'edit-tenant',
+  'delete-tenant',
+  'delete-permanent',
+  'view-contract',
+  'final-move-out',
+  'notice-move-out',
+  'confirm-check-in',
+  'cancel-contract',
+  'view-tenant-history',
+  'renew-contract',
+  'delete-waiting-list',
+])
 
-const currentPage = defineModel("currentPage", { type: Number, default: 1 });
+const currentPage = defineModel('currentPage', { type: Number, default: 1 })
 
 // --- Store Connection ---
-const store = useTenantsStore();
-const { tenants, isLoading, totalTenants } = storeToRefs(store);
+const store = useTenantsStore()
+const { tenants, isLoading, totalTenants } = storeToRefs(store)
 
-const billingStore = useBillingStore();
+const billingStore = useBillingStore()
 
 // --- Formatters ---
-const { currency, shortDate, phoneNumber } = useFormatters();
+const { currency, shortDate, phoneNumber } = useFormatters()
 
-const { height: windowHeight } = useWindowSize();
+const { height: windowHeight } = useWindowSize()
 
 const tableHeight = computed(() => {
-  const otherElementsHeight = 290;
-  return windowHeight.value - otherElementsHeight;
-});
+  const otherElementsHeight = 290
+  return windowHeight.value - otherElementsHeight
+})
 
 // --- Column Definitions (ยังคง Dynamic เหมือนเดิม) ---
 const columns = computed(() => {
   switch (props.activeTab) {
-    case "UPCOMING":
+    case 'UPCOMING':
       return [
-        { key: "tenantInfo", label: "ผู้เช่า" },
-        { key: "checkinDate", label: "วันที่กำหนดเข้า" },
-        { key: "actions", label: "", cellClass: "text-right" },
-      ];
-    case "NOTICE_GIVEN":
+        { key: 'tenantInfo', label: 'ผู้เช่า' },
+        { key: 'checkinDate', label: 'วันที่กำหนดเข้า' },
+        { key: 'actions', label: '', cellClass: 'text-right' },
+      ]
+    case 'NOTICE_GIVEN':
       return [
-        { key: "tenantInfo", label: "ผู้เช่า / ห้อง" },
-        { key: "contractEndDate", label: "วันที่สิ้นสุดสัญญา" },
-        { key: "clearanceStatus", label: "สถานะการเคลียร์" },
-        { key: "actions", label: "", cellClass: "text-right" },
-      ];
-    case "MOVED_OUT":
+        { key: 'tenantInfo', label: 'ผู้เช่า / ห้อง' },
+        { key: 'contractEndDate', label: 'วันที่สิ้นสุดสัญญา' },
+        { key: 'clearanceStatus', label: 'สถานะการเคลียร์' },
+        { key: 'actions', label: '', cellClass: 'text-right' },
+      ]
+    case 'MOVED_OUT':
       return [
-        { key: "name", label: "ชื่อผู้เช่า" },
-        { key: "formerRoom", label: "ห้องที่เคยพัก" },
-        { key: "stayPeriod", label: "ช่วงเวลาที่เข้าพัก" },
-        { key: "actions", label: "", cellClass: "text-right" },
-      ];
-    case "WAITING_LIST":
+        { key: 'name', label: 'ชื่อผู้เช่า' },
+        { key: 'formerRoom', label: 'ห้องที่เคยพัก' },
+        { key: 'stayPeriod', label: 'ช่วงเวลาที่เข้าพัก' },
+        { key: 'actions', label: '', cellClass: 'text-right' },
+      ]
+    case 'WAITING_LIST':
       return [
-        { key: "name", label: "ชื่อผู้ที่สนใจ" },
-        { key: "phone", label: "เบอร์โทรติดต่อ" },
+        { key: 'name', label: 'ชื่อผู้ที่สนใจ' },
+        { key: 'phone', label: 'เบอร์โทรติดต่อ' },
         // { key: "roomType", label: "ประเภทห้องที่สนใจ" },
-        { key: "actions", label: "", cellClass: "text-right" },
-      ];
-    case "ACTIVE":
+        { key: 'actions', label: '', cellClass: 'text-right' },
+      ]
+    case 'ACTIVE':
     default:
       return [
-        { key: "tenantInfo", label: "ผู้เช่า / ห้อง" },
-        { key: "phone", label: "เบอร์โทรศัพท์" },
-        { key: "rentAmount", label: "ค่าเช่า" },
-        { key: "contractEndDate", label: "สิ้นสุดสัญญา" },
-        { key: "actions", label: "", cellClass: "text-right" },
-      ];
+        { key: 'tenantInfo', label: 'ผู้เช่า / ห้อง' },
+        { key: 'phone', label: 'เบอร์โทรศัพท์' },
+        { key: 'rentAmount', label: 'ค่าเช่า' },
+        { key: 'contractEndDate', label: 'สิ้นสุดสัญญา' },
+        { key: 'actions', label: '', cellClass: 'text-right' },
+      ]
   }
-});
+})
 
 // --- Event Handlers for Actions ---
 // ✨ ทำให้ฟังก์ชันกระชับขึ้นโดย emit event โดยตรง
-const handleEdit = (item) => emit("edit-tenant", item);
-const handleDelete = (item) => emit("delete-tenant", item);
-const handleDeletePermanent = (item) => emit("delete-permanent", item);
+const handleEdit = (item) => emit('edit-tenant', item)
+const handleDeletePermanent = (item) => emit('delete-permanent', item)
 
 const handleManageBills = async (tenant) => {
-  const latestRunId = await billingStore.findLatestRunId();
+  const latestRunId = await billingStore.findLatestRunId()
 
   if (latestRunId) {
-    router.push(
-      `/billing/run/${latestRunId}/review?q=${encodeURIComponent(tenant.name)}`
-    );
+    router.push(`/billing/run/${latestRunId}/review?q=${encodeURIComponent(tenant.name)}`)
   } else {
     show({
-      type: "info",
-      message: "ยังไม่มีการสร้างรอบบิล กรุณาสร้างรอบบิลก่อน",
-    });
+      type: 'info',
+      message: 'ยังไม่มีการสร้างรอบบิล กรุณาสร้างรอบบิลก่อน',
+    })
   }
-};
+}
 </script>
 
 <template>
   <div class="mt-6">
     <BaseTable
+      v-model:current-page="currentPage"
       :columns="columns"
       :items="tenants"
       :loading="isLoading"
-      v-model:currentPage="currentPage"
       :items-per-page="store.itemsPerPage"
       :total-items="totalTenants"
       :height="tableHeight"
@@ -165,7 +163,7 @@ const handleManageBills = async (tenant) => {
             portal
             :size="{
               apply({ availableWidth, elements }) {
-                elements.floating.style.maxWidth = `${availableWidth}px`;
+                elements.floating.style.maxWidth = `${availableWidth}px`
               },
             }"
           >
@@ -190,13 +188,11 @@ const handleManageBills = async (tenant) => {
                   <template v-if="activeTab === 'ACTIVE'">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('notice-move-out', item)"
                         :class="[
-                          active
-                            ? 'bg-amber-50 text-amber-800'
-                            : 'text-amber-700',
+                          active ? 'bg-amber-50 text-amber-800' : 'text-amber-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click="$emit('notice-move-out', item)"
                       >
                         <ArrowRightStartOnRectangleIcon class="mr-3 h-5 w-5" />
                         แจ้งย้ายออก
@@ -204,13 +200,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('view-contract', item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click="$emit('view-contract', item)"
                       >
                         <DocumentMagnifyingGlassIcon class="mr-3 h-5 w-5" />
                         ดู/แก้ไขสัญญา
@@ -218,13 +212,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click.prevent="handleEdit(item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click.prevent="handleEdit(item)"
                       >
                         <PencilIcon class="mr-3 h-5 w-5" />
                         แก้ไขข้อมูลผู้เช่า
@@ -232,13 +224,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="handleManageBills(item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click="handleManageBills(item)"
                       >
                         <CreditCardIcon class="mr-3 h-5 w-5" />
                         จัดการบิล
@@ -249,11 +239,11 @@ const handleManageBills = async (tenant) => {
                   <template v-if="activeTab === 'UPCOMING'">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('confirm-check-in', item)"
                         :class="[
                           active ? 'bg-blue-50 text-blue-800' : 'text-blue-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm font-semibold cursor-pointer',
                         ]"
+                        @click="$emit('confirm-check-in', item)"
                       >
                         <CheckBadgeIcon class="mr-3 h-5 w-5" />
                         ยืนยันการย้ายเข้า
@@ -261,13 +251,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('view-contract', item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click="$emit('view-contract', item)"
                       >
                         <DocumentMagnifyingGlassIcon class="mr-3 h-5 w-5" />
                         ดู/แก้ไขสัญญา
@@ -275,11 +263,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('cancel-contract', item)"
                         :class="[
                           active ? 'bg-red-50 text-red-800' : 'text-red-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click="$emit('cancel-contract', item)"
                       >
                         <ArchiveBoxXMarkIcon class="mr-3 h-5 w-5" />
                         ยกเลิกสัญญา
@@ -290,13 +278,11 @@ const handleManageBills = async (tenant) => {
                   <template v-if="activeTab === 'NOTICE_GIVEN'">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click.prevent="emit('final-move-out', item)"
                         :class="[
-                          active
-                            ? 'bg-amber-50 text-amber-800'
-                            : 'text-amber-700',
+                          active ? 'bg-amber-50 text-amber-800' : 'text-amber-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm font-semibold cursor-pointer',
                         ]"
+                        @click.prevent="emit('final-move-out', item)"
                       >
                         <ArrowRightStartOnRectangleIcon class="mr-3 h-5 w-5" />
                         จัดการการย้ายออก
@@ -305,13 +291,11 @@ const handleManageBills = async (tenant) => {
 
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click.prevent="emit('renew-contract', item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click.prevent="emit('renew-contract', item)"
                       >
                         <PlusCircleIcon class="mr-3 h-5 w-5" />
                         ขยาย/ต่อสัญญา
@@ -322,24 +306,22 @@ const handleManageBills = async (tenant) => {
                   <template v-if="activeTab === 'WAITING_LIST'">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('add-tenant', item)"
                         :class="[
                           active ? 'bg-blue-50 text-blue-800' : 'text-blue-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm font-semibold cursor-pointer',
                         ]"
+                        @click="$emit('add-tenant', item)"
                       >
                         สร้างสัญญา / กำหนดห้อง
                       </button>
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click.prevent="handleEdit(item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click.prevent="handleEdit(item)"
                       >
                         <PencilIcon class="mr-3 h-5 w-5" />
                         แก้ไขข้อมูล
@@ -347,11 +329,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('delete-waiting-list', item)"
                         :class="[
                           active ? 'bg-red-50 text-red-800' : 'text-red-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm',
                         ]"
+                        @click="$emit('delete-waiting-list', item)"
                       >
                         ลบออกจากลิสต์
                       </button>
@@ -361,13 +343,11 @@ const handleManageBills = async (tenant) => {
                   <template v-if="activeTab === 'MOVED_OUT'">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="$emit('view-tenant-history', item)"
                         :class="[
-                          active
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'text-gray-700',
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click="$emit('view-tenant-history', item)"
                       >
                         <DocumentMagnifyingGlassIcon class="mr-3 h-5 w-5" />
                         ดูประวัติ
@@ -375,11 +355,11 @@ const handleManageBills = async (tenant) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click.prevent="handleDeletePermanent(item)"
                         :class="[
                           active ? 'bg-red-50 text-red-800' : 'text-red-700',
                           'group flex w-full items-center rounded-md px-4 py-2 text-sm cursor-pointer',
                         ]"
+                        @click.prevent="handleDeletePermanent(item)"
                       >
                         <TrashIcon class="mr-3 h-5 w-5" />
                         ลบข้อมูลถาวร

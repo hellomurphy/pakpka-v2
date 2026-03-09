@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     if (roomsUsing.length > 0) {
       throw createError({
         statusCode: 409,
-        statusMessage: 'ไม่สามารถลบได้ เนื่องจากยังมีห้องพักใช้ประเภทนี้อยู่'
+        statusMessage: 'ไม่สามารถลบได้ เนื่องจากยังมีห้องพักใช้ประเภทนี้อยู่',
       })
     }
 

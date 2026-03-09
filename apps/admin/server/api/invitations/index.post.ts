@@ -6,13 +6,13 @@ import { requirePropertyStaff, requireSession } from '~~/server/utils/auth'
 const inviteSchema = z.object({
   propertyId: z.string().min(1),
   nameForReference: z.string().min(1),
-  role: z.enum([Role.ADMIN, Role.STAFF])
+  role: z.enum([Role.ADMIN, Role.STAFF]),
 })
 
 export default defineEventHandler(async (event) => {
   try {
     const session = await requireSession(event)
-    const body = await readValidatedBody(event, data => inviteSchema.safeParse(data))
+    const body = await readValidatedBody(event, (data) => inviteSchema.safeParse(data))
     if (!body.success) {
       throw createError({ statusCode: 400, data: body.error.flatten() })
     }
@@ -27,10 +27,11 @@ export default defineEventHandler(async (event) => {
         nameForReference: body.data.nameForReference,
         role: body.data.role,
         invitedById: session.id,
-        expiresAt: dayjs().add(7, 'day').toDate()
+        expiresAt: dayjs().add(7, 'day').toDate(),
       })
       .returning()
-    if (!newInvitation) throw createError({ statusCode: 500, statusMessage: 'สร้างคำเชิญไม่สำเร็จ' })
+    if (!newInvitation)
+      throw createError({ statusCode: 500, statusMessage: 'สร้างคำเชิญไม่สำเร็จ' })
 
     return successResponse(newInvitation, 'สร้างคำเชิญสำเร็จ')
   } catch (error) {

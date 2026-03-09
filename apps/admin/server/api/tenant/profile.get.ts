@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (!tenantRow) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'ไม่พบข้อมูลผู้เช่า'
+        statusMessage: 'ไม่พบข้อมูลผู้เช่า',
       })
     }
 
@@ -24,10 +24,14 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.property.id, tenantRow.propertyId))
       .limit(1)
 
-    let desiredRoomTypeRow: { id: string, name: string, basePrice: string } | null = null
+    let desiredRoomTypeRow: { id: string; name: string; basePrice: string } | null = null
     if (tenantRow.desiredRoomTypeId) {
       const [rt] = await db
-        .select({ id: schema.roomType.id, name: schema.roomType.name, basePrice: schema.roomType.basePrice })
+        .select({
+          id: schema.roomType.id,
+          name: schema.roomType.name,
+          basePrice: schema.roomType.basePrice,
+        })
         .from(schema.roomType)
         .where(eq(schema.roomType.id, tenantRow.desiredRoomTypeId))
         .limit(1)
@@ -44,7 +48,7 @@ export default defineEventHandler(async (event) => {
       desiredRoomTypeId: tenantRow.desiredRoomTypeId,
       desiredRoomType: desiredRoomTypeRow,
       createdAt: tenantRow.createdAt,
-      updatedAt: tenantRow.updatedAt
+      updatedAt: tenantRow.updatedAt,
     }
 
     return successResponse(tenant, 'ดึงข้อมูลโปรไฟล์สำเร็จ')

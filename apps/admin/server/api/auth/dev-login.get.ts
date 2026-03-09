@@ -10,14 +10,22 @@ export default defineEventHandler(async (event) => {
   if (!isDev) {
     throw createError({
       statusCode: 403,
-      statusMessage: 'Dev login is only available in development'
+      statusMessage: 'Dev login is only available in development',
     })
   }
 
   const config = useRuntimeConfig(event)
 
   const devUserId = config.server?.devUserId as string | undefined
-  let userRow: { id: string, name: string | null, email: string | null, image: string | null, avatarUrl: string | null } | undefined
+  let userRow:
+    | {
+        id: string
+        name: string | null
+        email: string | null
+        image: string | null
+        avatarUrl: string | null
+      }
+    | undefined
 
   if (devUserId) {
     const [u] = await db
@@ -26,7 +34,7 @@ export default defineEventHandler(async (event) => {
         name: schema.user.name,
         email: schema.user.email,
         image: schema.user.image,
-        avatarUrl: schema.user.avatarUrl
+        avatarUrl: schema.user.avatarUrl,
       })
       .from(schema.user)
       .where(eq(schema.user.id, devUserId))
@@ -41,7 +49,7 @@ export default defineEventHandler(async (event) => {
         name: schema.user.name,
         email: schema.user.email,
         image: schema.user.image,
-        avatarUrl: schema.user.avatarUrl
+        avatarUrl: schema.user.avatarUrl,
       })
       .from(schema.user)
       .limit(1)
@@ -51,7 +59,7 @@ export default defineEventHandler(async (event) => {
   if (!userRow) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'No user found. Seed a user in the database first.'
+      statusMessage: 'No user found. Seed a user in the database first.',
     })
   }
 
@@ -64,7 +72,7 @@ export default defineEventHandler(async (event) => {
     id: sessionId,
     sessionToken,
     userId: userRow.id,
-    expires
+    expires,
   })
 
   setCookie(event, SESSION_COOKIE_NAME, sessionToken, {
@@ -72,14 +80,14 @@ export default defineEventHandler(async (event) => {
     secure: false,
     sameSite: 'lax',
     maxAge: SESSION_MAX_AGE_DAYS * 24 * 60 * 60,
-    path: '/'
+    path: '/',
   })
 
   const userPayload = {
     id: userRow.id,
     name: userRow.name ?? undefined,
     email: userRow.email ?? undefined,
-    image: userRow.image ?? userRow.avatarUrl ?? undefined
+    image: userRow.image ?? userRow.avatarUrl ?? undefined,
   }
   await setUserSession(event, { user: userPayload })
 
