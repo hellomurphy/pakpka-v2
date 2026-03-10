@@ -1,5 +1,6 @@
 import { eq, and, inArray } from 'drizzle-orm'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -95,13 +96,17 @@ export default defineEventHandler(async (event) => {
     const invoice = {
       id: invoiceRow.id,
       period: invoiceRow.period,
-      totalAmount: invoiceRow.totalAmount,
+      totalAmount: toDecimalNumber(invoiceRow.totalAmount),
       dueDate: invoiceRow.dueDate,
       status: invoiceRow.status,
       contractId: invoiceRow.contractId,
       billingRunId: invoiceRow.billingRunId,
       propertyId: invoiceRow.propertyId,
-      items: items.map((it) => ({ id: it.id, description: it.description, amount: it.amount })),
+      items: items.map((it) => ({
+        id: it.id,
+        description: it.description,
+        amount: toDecimalNumber(it.amount),
+      })),
       contract:
         contractRow && roomRow
           ? {

@@ -1,6 +1,15 @@
 import type { H3Event } from 'h3'
 
 /**
+ * แปลงค่าจำนวนเงินจาก DB (string จาก decimal) เป็น number สำหรับ API response
+ */
+export function toDecimalNumber(x: string | number | null | undefined): number {
+  if (x == null || x === '') return 0
+  const n = Number(x)
+  return Number.isFinite(n) ? n : 0
+}
+
+/**
  * สร้าง Response สำหรับกรณีสำเร็จ
  */
 export function successResponse(data: unknown, message = 'Success') {

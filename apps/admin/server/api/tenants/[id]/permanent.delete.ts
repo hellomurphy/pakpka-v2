@@ -1,4 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
+import { blob } from '@nuxthub/blob'
 import { requirePropertyStaff } from '~~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -55,6 +56,19 @@ export default defineEventHandler(async (event) => {
             .where(inArray(schema.invoice.contractId, toDelete))
           const invoiceIds = invoicesToDelete.map((i: { id: string }) => i.id)
           if (invoiceIds.length > 0) {
+            const paymentsWithSlips = await tx
+              .select({ slipKey: schema.payment.slipKey })
+              .from(schema.payment)
+              .where(inArray(schema.payment.invoiceId, invoiceIds))
+            for (const p of paymentsWithSlips) {
+              if (p.slipKey) {
+                try {
+                  await blob.del(p.slipKey)
+                } catch {
+                  // ignore
+                }
+              }
+            }
             await tx.delete(schema.payment).where(inArray(schema.payment.invoiceId, invoiceIds))
             await tx
               .delete(schema.invoiceItem)

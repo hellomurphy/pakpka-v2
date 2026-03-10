@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { eq, inArray, and, desc, sql, like } from 'drizzle-orm'
 import { InvoiceStatus } from '@repo/db'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 const querySchema = z.object({
   year: z.coerce.number().int().min(2020).optional(),
@@ -87,7 +88,11 @@ export default defineEventHandler(async (event) => {
     const itemsByInv: Record<string, { id: string; description: string; amount: string }[]> = {}
     for (const it of itemRows) {
       if (!itemsByInv[it.invoiceId]) itemsByInv[it.invoiceId] = []
-      itemsByInv[it.invoiceId].push({ id: it.id, description: it.description, amount: it.amount })
+      itemsByInv[it.invoiceId].push({
+        id: it.id,
+        description: it.description,
+        amount: toDecimalNumber(it.amount),
+      })
     }
 
     const meterRows = await db
@@ -126,7 +131,7 @@ export default defineEventHandler(async (event) => {
       if (!paymentsByInv[p.invoiceId]) paymentsByInv[p.invoiceId] = []
       paymentsByInv[p.invoiceId].push({
         id: p.id,
-        amount: p.amount,
+        amount: toDecimalNumber(p.amount),
         paymentDate: p.paymentDate,
         status: p.status,
         paymentMethod: p.paymentMethod,
@@ -140,7 +145,7 @@ export default defineEventHandler(async (event) => {
       return {
         id: inv.id,
         period: inv.period,
-        totalAmount: inv.totalAmount,
+        totalAmount: toDecimalNumber(inv.totalAmount),
         dueDate: inv.dueDate,
         status: inv.status,
         createdAt: inv.createdAt,

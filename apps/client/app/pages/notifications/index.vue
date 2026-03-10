@@ -1,14 +1,8 @@
 <template>
   <div class="bg-slate-50">
     <!-- Loading State -->
-    <div
-      v-if="isLoading"
-      class="flex items-center justify-center min-h-screen"
-    >
-      <Icon
-        name="ph:spinner-duotone"
-        class="text-4xl animate-spin text-indigo-600"
-      />
+    <div v-if="isLoading" class="flex items-center justify-center min-h-screen">
+      <Icon name="ph:spinner-duotone" class="text-4xl animate-spin text-indigo-600" />
     </div>
 
     <!-- Main Content -->
@@ -73,10 +67,7 @@
         </div>
 
         <div v-else class="text-center pt-24 px-6">
-          <Icon
-            name="ph:bell-slash-duotone"
-            class="text-7xl text-slate-300 mb-4"
-          />
+          <Icon name="ph:bell-slash-duotone" class="text-7xl text-slate-300 mb-4" />
           <h3 class="text-lg font-semibold text-slate-700">ไม่มีการแจ้งเตือน</h3>
           <p class="text-slate-500">เมื่อมีการอัปเดตใหม่ๆ จะปรากฏที่นี่</p>
         </div>
@@ -86,128 +77,125 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from "vue";
-import type { Notification, NotificationType } from "~/types";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/th";
+import { ref, computed, onMounted } from 'vue'
+import type { Notification, NotificationType } from '@repo/db'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/th'
 
-dayjs.extend(relativeTime);
-dayjs.locale("th");
+dayjs.extend(relativeTime)
+dayjs.locale('th')
 
 definePageMeta({
-  title: "การแจ้งเตือน",
-  headerVariant: "page",
-});
+  title: 'การแจ้งเตือน',
+  headerVariant: 'page',
+})
 
 // Stores
-const notificationsStore = useNotificationsStore();
+const notificationsStore = useNotificationsStore()
 
 // State
-const activeFilter = ref<NotificationType | "all">("all");
+const activeFilter = ref<NotificationType | 'all'>('all')
 
 // Computed
-const isLoading = computed(() => notificationsStore.isLoading);
-const notifications = computed(() => notificationsStore.notifications);
+const isLoading = computed(() => notificationsStore.isLoading)
+const notifications = computed(() => notificationsStore.notifications)
 
 // Filter options
 const filters = [
-  { id: "all", name: "ทั้งหมด" },
-  { id: "system", name: "ระบบ" },
-  { id: "dorm", name: "หอพัก" },
-  { id: "announcement", name: "ประกาศ" },
-  { id: "repair", name: "ซ่อม" },
-];
+  { id: 'all', name: 'ทั้งหมด' },
+  { id: 'system', name: 'ระบบ' },
+  { id: 'dorm', name: 'หอพัก' },
+  { id: 'announcement', name: 'ประกาศ' },
+  { id: 'repair', name: 'ซ่อม' },
+]
 
 // Computed: filtered notifications
 const filteredNotifications = computed(() => {
-  if (activeFilter.value === "all") {
-    return notifications.value;
+  if (activeFilter.value === 'all') {
+    return notifications.value
   }
-  return notifications.value.filter((n) => n.type === activeFilter.value);
-});
+  return notifications.value.filter((n) => n.type === activeFilter.value)
+})
 
 // Helper: format timestamp
 const formatTimestamp = (timestamp: string): string => {
-  return dayjs(timestamp).fromNow();
-};
+  return dayjs(timestamp).fromNow()
+}
 
 // Helper: get icon info based on notification type
 const getIconInfo = (type: NotificationType) => {
-  const iconMap: Record<
-    NotificationType,
-    { icon: string; bgColor: string; iconColor: string }
-  > = {
+  const iconMap: Record<NotificationType, { icon: string; bgColor: string; iconColor: string }> = {
     system: {
-      icon: "ph:gear-duotone",
-      bgColor: "bg-slate-200",
-      iconColor: "text-slate-600",
+      icon: 'ph:gear-duotone',
+      bgColor: 'bg-slate-200',
+      iconColor: 'text-slate-600',
     },
     dorm: {
-      icon: "ph:house-duotone",
-      bgColor: "bg-sky-100",
-      iconColor: "text-sky-600",
+      icon: 'ph:house-duotone',
+      bgColor: 'bg-sky-100',
+      iconColor: 'text-sky-600',
     },
     announcement: {
-      icon: "ph:megaphone-duotone",
-      bgColor: "bg-amber-100",
-      iconColor: "text-amber-600",
+      icon: 'ph:megaphone-duotone',
+      bgColor: 'bg-amber-100',
+      iconColor: 'text-amber-600',
     },
     repair: {
-      icon: "ph:wrench-duotone",
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-600",
+      icon: 'ph:wrench-duotone',
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
     },
-  };
+  }
 
   return (
     iconMap[type] || {
-      icon: "ph:bell-duotone",
-      bgColor: "bg-gray-200",
-      iconColor: "text-gray-600",
+      icon: 'ph:bell-duotone',
+      bgColor: 'bg-gray-200',
+      iconColor: 'text-gray-600',
     }
-  );
-};
+  )
+}
 
 // Get notification link based on subtype
 const getNotificationLink = (notification: Notification): string | null => {
   if (!notification.relatedId) {
-    return null;
+    return null
   }
 
   switch (notification.subtype) {
-    case "repair":
-      return "/history/repairs";
-    case "bill":
-      return `/invoice/${notification.relatedId}`;
-    case "parcel":
-      return `/parcels/${notification.relatedId}`;
-    case "announcement":
-    case "system":
-      return `/announcements/${notification.relatedId}`;
+    case 'repair':
+      return '/history/repairs'
+    case 'bill':
+      return `/payment/${notification.relatedId}`
+    case 'parcel':
+      return `/parcels/${notification.relatedId}`
+    case 'announcement':
+    case 'system':
+      return `/announcements/${notification.relatedId}`
     default:
-      return null;
+      return null
   }
-};
+}
 
 // Handle notification click
 const handleNotificationClick = async (notification: Notification) => {
   // Mark as read
   if (!notification.isRead) {
-    await notificationsStore.markAsRead(notification.id);
+    await notificationsStore.markAsRead(notification.id)
   }
 
   // Navigate if there's a related link
-  const link = getNotificationLink(notification);
+  const link = getNotificationLink(notification)
   if (link) {
-    await navigateTo(link);
+    await navigateTo(link)
   }
-};
+}
 
 // Lifecycle
 onMounted(async () => {
-  await notificationsStore.fetchNotifications();
-});
+  await notificationsStore.fetchNotifications()
+})
 </script>
 
 <style scoped>

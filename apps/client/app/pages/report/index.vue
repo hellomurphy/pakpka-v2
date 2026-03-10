@@ -2,14 +2,9 @@
   <div class="bg-slate-50">
     <main class="p-4 max-w-2xl mx-auto">
       <div v-if="userRooms.length === 0" class="text-center pt-16 px-6">
-        <Icon
-          name="solar:home-remove-bold-duotone"
-          class="text-8xl text-amber-500 mb-4"
-        />
+        <Icon name="solar:home-remove-bold-duotone" class="text-8xl text-amber-500 mb-4" />
         <h2 class="text-2xl font-bold text-slate-800">คุณยังไม่มีห้องพัก</h2>
-        <p class="text-slate-500 mt-2 mb-6">
-          กรุณาเพิ่มห้องพักของคุณก่อน จึงจะสามารถแจ้งปัญหาได้
-        </p>
+        <p class="text-slate-500 mt-2 mb-6">กรุณาเพิ่มห้องพักของคุณก่อน จึงจะสามารถแจ้งปัญหาได้</p>
         <NuxtLink
           to="/dashboard"
           class="w-full max-w-xs mx-auto bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center space-x-2"
@@ -23,10 +18,7 @@
         <div v-if="step === 'select_room'">
           <section class="space-y-3">
             <div class="text-center mb-6">
-              <Icon
-                name="solar:home-bold-duotone"
-                class="text-5xl text-indigo-500 mb-2"
-              />
+              <Icon name="solar:home-bold-duotone" class="text-5xl text-indigo-500 mb-2" />
               <h1 class="text-xl font-bold text-slate-800">แจ้งปัญหา</h1>
               <p class="text-slate-500">กรุณาเลือกห้องที่ต้องการแจ้งปัญหา</p>
             </div>
@@ -46,10 +38,7 @@
                   <p class="font-bold text-slate-800">{{ room.roomNumber }}</p>
                   <p class="text-sm text-slate-500">{{ room.name }}</p>
                 </div>
-                <Icon
-                  name="solar:alt-arrow-right-linear"
-                  class="text-slate-400 text-xl"
-                />
+                <Icon name="solar:alt-arrow-right-linear" class="text-slate-400 text-xl" />
               </button>
             </div>
           </section>
@@ -98,16 +87,8 @@
                 </div>
                 <div class="text-2xl">
                   <Icon
-                    :name="
-                      selectedType === t.value
-                        ? 'ph:radio-button-fill'
-                        : 'ph:circle-duotone'
-                    "
-                    :class="
-                      selectedType === t.value
-                        ? 'text-indigo-600'
-                        : 'text-slate-300'
-                    "
+                    :name="selectedType === t.value ? 'ph:radio-button-fill' : 'ph:circle-duotone'"
+                    :class="selectedType === t.value ? 'text-indigo-600' : 'text-slate-300'"
                   />
                 </div>
               </button>
@@ -175,20 +156,13 @@
             </div>
           </section>
 
-          <section
-            v-if="selectedType && selectedType !== 'emergency'"
-            class="space-y-3"
-          >
+          <section v-if="selectedType && selectedType !== 'emergency'" class="space-y-3">
             <div class="flex items-center gap-3">
               <div class="step-circle">{{ stepNumberForPhotos }}</div>
               <h2 class="step-title">แนบรูปภาพ (ถ้ามี)</h2>
             </div>
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              <div
-                v-for="(image, index) in imagePreviews"
-                :key="index"
-                class="relative"
-              >
+              <div v-for="(image, index) in imagePreviews" :key="index" class="relative">
                 <img
                   :src="image"
                   alt="Preview"
@@ -231,11 +205,7 @@
                   : 'bg-indigo-600 shadow-indigo-500/30'
               "
             >
-              <Icon
-                v-if="isSubmitting"
-                name="ph:spinner-duotone"
-                class="animate-spin h-5 w-5"
-              />
+              <Icon v-if="isSubmitting" name="ph:spinner-duotone" class="animate-spin h-5 w-5" />
               <span>{{ submitButtonText }}</span>
             </button>
           </div>
@@ -246,184 +216,192 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import VueDatePicker from "@vuepic/vue-datepicker";
-import "@vuepic/vue-datepicker/dist/main.css";
+import { ref, computed, onMounted } from 'vue'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 definePageMeta({
-  title: "แจ้งปัญหา",
-  headerVariant: "page",
+  title: 'แจ้งปัญหา',
+  headerVariant: 'page',
   showFooter: false,
-});
+})
+
+const roomsStore = useRoomsStore()
+const api = useApi()
 
 // --- STATE MANAGEMENT FOR THE FLOW ---
-const step = ref("");
-const selectedRoom = ref(null);
-const selectedType = ref(null);
+const step = ref('')
+const selectedRoom = ref<{
+  id: string
+  contractId: string
+  roomNumber: string
+  name: string
+  imageUrl: string
+} | null>(null)
+const selectedType = ref<string | null>(null)
 const form = ref({
-  detail: "",
-  preferredDate: null,
-  preferredTime: "",
-});
-const imagePreviews = ref<string[]>([]);
-const isSubmitting = ref(false);
+  detail: '',
+  preferredDate: null as Date | null,
+  preferredTime: '',
+})
+const imagePreviews = ref<string[]>([])
+const isSubmitting = ref(false)
 
-// --- MOCK DATA ---
-const userRooms = ref([
-  {
-    id: "r-1",
-    imageUrl:
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop",
-    name: "The Modern Property",
-    roomNumber: "ห้อง A203",
-  },
-  {
-    id: "r-2",
-    imageUrl:
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop",
-    name: "The Modern Property",
-    roomNumber: "ห้อง A203",
-  },
-]);
+// --- ROOMS FROM STORE (tenant's rooms with contractId for API) ---
+const userRooms = computed(() =>
+  roomsStore.rooms.map(
+    (room: { id: string; contractId: string; roomNumber: string; name: string }) => ({
+      id: room.id,
+      contractId: room.contractId,
+      roomNumber: `ห้อง ${room.roomNumber}`,
+      name: room.name,
+      imageUrl:
+        'https://placehold.co/400x240/EEF2FF/818CF8?text=' + encodeURIComponent(room.roomNumber),
+    }),
+  ),
+)
 
 const types = ref([
   {
-    value: "repair",
-    label: "ซ่อมแซม",
-    icon: "ph:wrench-duotone",
-    description: "อุปกรณ์ในห้องชำรุด เช่น แอร์, ไฟ, ท่อประปา",
+    value: 'repair',
+    label: 'ซ่อมแซม',
+    icon: 'ph:wrench-duotone',
+    description: 'อุปกรณ์ในห้องชำรุด เช่น แอร์, ไฟ, ท่อประปา',
   },
   {
-    value: "cleaning",
-    label: "ทำความสะอาด",
-    icon: "ph:broom-duotone",
-    description: "ขอรับบริการทำความสะอาดห้องพัก",
+    value: 'cleaning',
+    label: 'ทำความสะอาด',
+    icon: 'ph:broom-duotone',
+    description: 'ขอรับบริการทำความสะอาดห้องพัก',
   },
   {
-    value: "emergency",
-    label: "เหตุฉุกเฉิน",
-    icon: "ph:siren-duotone",
-    description: "เช่น ไฟฟ้าดับ, น้ำไม่ไหล, เหตุเร่งด่วน",
+    value: 'emergency',
+    label: 'เหตุฉุกเฉิน',
+    icon: 'ph:siren-duotone',
+    description: 'เช่น ไฟฟ้าดับ, น้ำไม่ไหล, เหตุเร่งด่วน',
   },
   {
-    value: "etc",
-    label: "เรื่องอื่นๆ",
-    icon: "ph:dots-three-outline-fill",
-    description: "ปัญหาอื่นๆ ที่ไม่เข้าพวก",
+    value: 'etc',
+    label: 'เรื่องอื่นๆ',
+    icon: 'ph:dots-three-outline-fill',
+    description: 'ปัญหาอื่นๆ ที่ไม่เข้าพวก',
   },
-]);
+])
 
-// --- SMART FLOW LOGIC ---
-if (userRooms.value.length === 1) {
-  selectedRoom.value = userRooms.value[0];
-  step.value = "fill_form";
-} else if (userRooms.value.length > 1) {
-  step.value = "select_room";
-}
+// --- FLOW: set step when rooms are ready (in onMounted) ---
 
 // --- COMPUTED PROPERTIES ---
 const isFormValid = computed(() => {
-  if (!selectedType.value) return false;
-  if (selectedType.value === "emergency") return form.value.detail.length > 0;
-  if (selectedType.value === "cleaning") {
+  if (!selectedType.value) return false
+  if (selectedType.value === 'emergency') return form.value.detail.length > 0
+  if (selectedType.value === 'cleaning') {
     return (
-      form.value.detail.length > 0 &&
-      form.value.preferredDate &&
-      form.value.preferredTime !== ""
-    );
+      form.value.detail.length > 0 && form.value.preferredDate && form.value.preferredTime !== ''
+    )
   }
-  return form.value.detail.length > 0;
-});
-const stepNumberForDetails = computed(() =>
-  selectedType.value === "cleaning" ? 3 : 2
-);
-const stepNumberForPhotos = computed(() =>
-  selectedType.value === "cleaning" ? 4 : 3
-);
+  return form.value.detail.length > 0
+})
+const stepNumberForDetails = computed(() => (selectedType.value === 'cleaning' ? 3 : 2))
+const stepNumberForPhotos = computed(() => (selectedType.value === 'cleaning' ? 4 : 3))
 const submitButtonText = computed(() => {
-  if (isSubmitting.value) return "กำลังส่งข้อมูล...";
+  if (isSubmitting.value) return 'กำลังส่งข้อมูล...'
   switch (selectedType.value) {
-    case "emergency":
-      return "ส่งเรื่องฉุกเฉินทันที";
-    case "cleaning":
-      return "ส่งคำขอทำความสะอาด";
+    case 'emergency':
+      return 'ส่งเรื่องฉุกเฉินทันที'
+    case 'cleaning':
+      return 'ส่งคำขอทำความสะอาด'
     default:
-      return "ส่งเรื่องแจ้งปัญหา";
+      return 'ส่งเรื่องแจ้งปัญหา'
   }
-});
+})
 
 // --- FUNCTIONS ---
 function selectRoom(room: any) {
-  selectedRoom.value = room;
-  step.value = "fill_form";
+  selectedRoom.value = room
+  step.value = 'fill_form'
   if (process.client) {
-    document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+    document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 function resetToRoomSelection() {
-  selectedRoom.value = null;
-  selectedType.value = null;
-  form.value = { detail: "", preferredDate: null, preferredTime: "" };
-  imagePreviews.value = [];
+  selectedRoom.value = null
+  selectedType.value = null
+  form.value = { detail: '', preferredDate: null, preferredTime: '' }
+  imagePreviews.value = []
   if (userRooms.value.length > 1) {
-    step.value = "select_room";
+    step.value = 'select_room'
   }
 }
 
 function handleTypeSelect(type: string) {
-  selectedType.value = type;
+  selectedType.value = type
   // ไม่ reset form ในตอนเลือกประเภท เพื่อให้ผู้ใช้สามารถเปลี่ยนประเภทไปมาได้โดยข้อมูลไม่หาย
 }
 
 // --- ✨ แก้ไข: เพิ่มโค้ดที่ถูกต้องและสมบูรณ์ในฟังก์ชันนี้ ---
 function handleImageUpload(event: Event) {
-  const target = event.target as HTMLInputElement;
-  if (!target.files) return;
+  const target = event.target as HTMLInputElement
+  if (!target.files) return
 
-  const maxFiles = 5 - imagePreviews.value.length;
+  const maxFiles = 5 - imagePreviews.value.length
   // วนลูปตามจำนวนไฟล์ที่เลือก แต่ไม่เกินจำนวนสูงสุดที่รับได้
   for (let i = 0; i < Math.min(target.files.length, maxFiles); i++) {
-    const file = target.files[i];
+    const file = target.files[i]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       // เมื่อ reader อ่านไฟล์เสร็จ
       reader.onload = (e) => {
         // นำผลลัพธ์ (Base64 string) ไปใส่ใน array เพื่อแสดงผล preview
         if (e.target?.result) {
-          imagePreviews.value.push(e.target.result as string);
+          imagePreviews.value.push(e.target.result as string)
         }
-      };
+      }
       // สั่งให้ reader เริ่มอ่านไฟล์
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file)
     }
   }
   // เคลียร์ค่าใน input เพื่อให้สามารถเลือกไฟล์เดิมซ้ำได้
-  target.value = "";
+  target.value = ''
 }
 
 // --- ✨ แก้ไข: เพิ่มโค้ดที่ถูกต้องและสมบูรณ์ในฟังก์ชันนี้ ---
 function removeImage(index: number) {
-  imagePreviews.value.splice(index, 1);
+  imagePreviews.value.splice(index, 1)
 }
 
-function submit() {
-  if (!isFormValid.value) return;
-  isSubmitting.value = true;
-  console.log({
-    roomId: selectedRoom.value?.id,
-    type: selectedType.value,
-    detail: form.value.detail,
-    preferredDate: form.value.preferredDate,
-    preferredTime: form.value.preferredTime,
-    imagesCount: imagePreviews.value.length,
-  });
-  setTimeout(() => {
-    isSubmitting.value = false;
-    alert("ส่งเรื่องแจ้งปัญหาสำเร็จ!");
-    // TODO: อาจจะ redirect ไปหน้า history
-  }, 2000);
+async function submit() {
+  if (!isFormValid.value || !selectedRoom.value) return
+  isSubmitting.value = true
+  try {
+    const typeLabel =
+      types.value.find((t) => t.value === selectedType.value)?.label ?? selectedType.value
+    const title = `${typeLabel}: ${form.value.detail.slice(0, 80) || 'แจ้งปัญหา'}`
+    await api.maintenance.create({
+      contractId: selectedRoom.value.contractId,
+      roomId: selectedRoom.value.id,
+      title,
+      description: form.value.detail || undefined,
+    })
+    alert('ส่งเรื่องแจ้งปัญหาสำเร็จ!')
+    await navigateTo('/history/repairs')
+  } catch (e: unknown) {
+    const msg = (e as { data?: { message?: string } })?.data?.message ?? 'ส่งข้อมูลไม่สำเร็จ'
+    alert(msg)
+  } finally {
+    isSubmitting.value = false
+  }
 }
+
+onMounted(async () => {
+  if (roomsStore.rooms.length === 0) await roomsStore.fetchMyRooms()
+  if (userRooms.value.length === 1) {
+    selectedRoom.value = userRooms.value[0]
+    step.value = 'fill_form'
+  } else if (userRooms.value.length > 1) {
+    step.value = 'select_room'
+  }
+})
 </script>
 
 <style>

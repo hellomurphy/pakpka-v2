@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { eq, and } from 'drizzle-orm'
-import { PaymentMethod } from '@repo/db'
+import { PaymentMethod, SlipStatus } from '@repo/db'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 const paymentSchema = z.object({
   invoiceId: z.string().min(1, 'รหัสใบแจ้งหนี้ไม่ถูกต้อง'),
@@ -9,7 +10,6 @@ const paymentSchema = z.object({
   paymentDate: z.iso.datetime({ message: 'รูปแบบวันที่ไม่ถูกต้อง' }),
   paymentMethod: z.enum(Object.values(PaymentMethod) as [string, ...string[]]),
   receivingAccountId: z.string().optional(),
-  slipUrl: z.string().url('URL ของสลิปไม่ถูกต้อง').optional(),
   notes: z.string().optional(),
 })
 
@@ -25,8 +25,7 @@ export default defineEventHandler(async (event) => {
         data: body.error.errors,
       })
     }
-    const { invoiceId, amount, paymentDate, paymentMethod, receivingAccountId, slipUrl, notes } =
-      body.data
+    const { invoiceId, amount, paymentDate, paymentMethod, receivingAccountId, notes } = body.data
 
     const [tenantRow] = await db
       .select({ id: schema.tenant.id })
@@ -112,7 +111,8 @@ export default defineEventHandler(async (event) => {
       paymentDate: new Date(paymentDate),
       paymentMethod,
       receivingAccountId: receivingAccountId ?? null,
-      slipUrl: slipUrl ?? null,
+      slipKey: null,
+      slipStatus: SlipStatus.NONE,
       notes: notes ?? null,
       status: 'PENDING',
     })
@@ -126,17 +126,18 @@ export default defineEventHandler(async (event) => {
 
     const payment = {
       id: paymentId,
-      amount,
+      amount: toDecimalNumber(amount),
       paymentDate: new Date(paymentDate),
       paymentMethod,
       status: 'PENDING',
-      slipUrl: slipUrl ?? null,
+      slipKey: null,
+      slipStatus: SlipStatus.NONE,
       notes: notes ?? null,
       createdAt: new Date(),
       invoice: {
         id: invoiceRow.id,
         period: invoiceRow.period,
-        totalAmount: invoiceRow.totalAmount,
+        totalAmount: toDecimalNumber(invoiceRow.totalAmount),
         dueDate: invoiceRow.dueDate,
         status: invoiceRow.status,
         contract: {

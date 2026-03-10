@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { eq, inArray, and, desc } from 'drizzle-orm'
 import { ContractStatus, ContractServiceStatus } from '@repo/db'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 const querySchema = z.object({
   status: z.enum(Object.values(ContractStatus) as [string, ...string[]]).optional(),
@@ -112,8 +113,8 @@ export default defineEventHandler(async (event) => {
         id: string
         startDate: Date
         endDate: Date | null
-        customPrice: string | null
-        service: { id: string; name: string; defaultPrice: string; billingCycle: string }
+        customPrice: number | null
+        service: { id: string; name: string; defaultPrice: number; billingCycle: string }
       }[]
     > = {}
     for (const cs of contractServiceRows) {
@@ -124,11 +125,11 @@ export default defineEventHandler(async (event) => {
         id: cs.id,
         startDate: cs.startDate,
         endDate: cs.endDate,
-        customPrice: cs.customPrice,
+        customPrice: cs.customPrice != null ? toDecimalNumber(cs.customPrice) : null,
         service: {
           id: s.id,
           name: s.name,
-          defaultPrice: s.defaultPrice,
+          defaultPrice: toDecimalNumber(s.defaultPrice),
           billingCycle: s.billingCycle,
         },
       })
@@ -142,10 +143,10 @@ export default defineEventHandler(async (event) => {
       string,
       {
         id: string
-        amount: string
+        amount: number
         receivedDate: Date
         refundedDate: Date | null
-        deductions: string | null
+        deductions: number | null
         deductionNotes: string | null
         clearanceStatus: string | null
       }
@@ -153,10 +154,10 @@ export default defineEventHandler(async (event) => {
     for (const d of depositRows) {
       depositByContract[d.contractId] = {
         id: d.id,
-        amount: d.amount,
+        amount: toDecimalNumber(d.amount),
         receivedDate: d.receivedDate,
         refundedDate: d.refundedDate,
-        deductions: d.deductions,
+        deductions: d.deductions != null ? toDecimalNumber(d.deductions) : null,
         deductionNotes: d.deductionNotes,
         clearanceStatus: d.clearanceStatus,
       }
@@ -188,13 +189,13 @@ export default defineEventHandler(async (event) => {
         startDate: c.startDate,
         endDate: c.endDate,
         status: c.status,
-        rentAmount: c.rentAmount,
+        rentAmount: toDecimalNumber(c.rentAmount),
         waterBillingType: c.waterBillingType,
-        waterRate: c.waterRate,
-        waterMinimumCharge: c.waterMinimumCharge,
+        waterRate: toDecimalNumber(c.waterRate),
+        waterMinimumCharge: toDecimalNumber(c.waterMinimumCharge),
         electricityBillingType: c.electricityBillingType,
-        electricityRate: c.electricityRate,
-        electricityMinimumCharge: c.electricityMinimumCharge,
+        electricityRate: toDecimalNumber(c.electricityRate),
+        electricityMinimumCharge: toDecimalNumber(c.electricityMinimumCharge),
         room: room
           ? {
               id: room.id,
@@ -204,8 +205,8 @@ export default defineEventHandler(async (event) => {
                 ? {
                     id: roomType.id,
                     name: roomType.name,
-                    basePrice: roomType.basePrice,
-                    deposit: roomType.deposit,
+                    basePrice: toDecimalNumber(roomType.basePrice),
+                    deposit: toDecimalNumber(roomType.deposit),
                   }
                 : null,
               floor: floor

@@ -1,14 +1,15 @@
 // stores/ui.ts
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
+import { toast } from 'vue-sonner'
 
-type NotificationType = "success" | "error" | "info";
+type NotificationType = 'success' | 'error' | 'info'
 
 interface Notification {
-  message: string;
-  type: NotificationType;
+  message: string
+  type: NotificationType
 }
 
-export const useUiStore = defineStore("ui", {
+export const useUiStore = defineStore('ui', {
   state: () => ({
     isGlobalLoading: false,
     notification: null as Notification | null,
@@ -16,28 +17,27 @@ export const useUiStore = defineStore("ui", {
 
   actions: {
     setGlobalLoading(isLoading: boolean) {
-      this.isGlobalLoading = isLoading;
+      this.isGlobalLoading = isLoading
     },
 
     /**
-     * แสดง Notification และจะหายไปเองใน 3 วินาที
+     * แสดง toast (vue-sonner) และอัปเดต state สำหรับ component ที่ยังใช้ notification
      */
-    showNotification(payload: {
-      message: string;
-      type: NotificationType;
-      duration?: number;
-    }) {
-      const { message, type, duration = 3000 } = payload;
-      this.notification = { message, type };
-
-      // ตั้งเวลาเพื่อซ่อน notification
+    showNotification(payload: { message: string; type: NotificationType; duration?: number }) {
+      const { message, type, duration = 3000 } = payload
+      this.notification = { message, type }
+      if (import.meta.client) {
+        if (type === 'success') toast.success(message, { duration })
+        else if (type === 'error') toast.error(message, { duration })
+        else toast.info(message, { duration })
+      }
       setTimeout(() => {
-        this.notification = null;
-      }, duration);
+        this.notification = null
+      }, duration)
     },
 
     hideNotification() {
-      this.notification = null;
+      this.notification = null
     },
   },
-});
+})

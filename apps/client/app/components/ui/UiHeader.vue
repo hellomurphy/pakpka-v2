@@ -15,10 +15,7 @@
       </div>
 
       <div class="w-1/3 text-center">
-        <div
-          v-if="variant === 'dashboard'"
-          class="flex items-center justify-center gap-2"
-        >
+        <div v-if="variant === 'dashboard'" class="flex items-center justify-center gap-2">
           <!-- <img src="/logo.svg" alt="Pakpak Logo" class="w-7 h-7" /> -->
           <span class="text-xl font-bold text-slate-800">PakPak</span>
         </div>
@@ -51,30 +48,30 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { useRouter } from 'vue-router'
 
 // รับ props เพื่อกำหนดการแสดงผล
 defineProps({
   title: {
     type: String,
-    default: "",
+    default: '',
   },
   variant: {
-    type: String as () => "dashboard" | "page",
-    default: "page",
+    type: String as () => 'dashboard' | 'page',
+    default: 'page',
   },
-});
+})
 
-const router = useRouter();
+const router = useRouter()
 
 // ข้อมูลผู้ใช้ตัวอย่าง (ในแอปจริงควรดึงมาจาก State กลาง)
 const user = {
-  displayName: "Suwit Jaidee",
-  pictureUrl: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-};
+  displayName: 'Suwit Jaidee',
+  pictureUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+}
 
 // แก้ไข Logic การย้อนกลับให้ถูกต้อง
 const goBack = () => {
-  router.back();
-};
+  router.back()
+}
 </script>

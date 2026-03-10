@@ -1,67 +1,65 @@
-import { defineStore } from "pinia";
-import type { Notification, NotificationType } from "~/types";
+import { defineStore } from 'pinia'
+import type { Notification, NotificationType } from '@repo/db'
 
 interface NotificationsState {
-  notifications: Notification[];
-  isLoading: boolean;
+  notifications: Notification[]
+  isLoading: boolean
 }
 
-export const useNotificationsStore = defineStore("notifications", {
+export const useNotificationsStore = defineStore('notifications', {
   state: (): NotificationsState => ({
     notifications: [],
     isLoading: false,
   }),
 
   getters: {
-    unreadCount: (state) =>
-      state.notifications.filter((n) => !n.isRead).length,
+    unreadCount: (state) => state.notifications.filter((n) => !n.isRead).length,
 
-    hasUnread: (state) =>
-      state.notifications.some((n) => !n.isRead),
+    hasUnread: (state) => state.notifications.some((n) => !n.isRead),
 
-    byType: (state) => (type: NotificationType | "all") => {
-      if (type === "all") return state.notifications;
-      return state.notifications.filter((n) => n.type === type);
+    byType: (state) => (type: NotificationType | 'all') => {
+      if (type === 'all') return state.notifications
+      return state.notifications.filter((n) => n.type === type)
     },
   },
 
   actions: {
     async fetchNotifications(params?: { type?: string; page?: number; limit?: number }) {
-      this.isLoading = true;
+      this.isLoading = true
       try {
-        const api = useApi();
-        const response = await api.notifications.list(params);
+        const api = useApi()
+        const response = await api.notifications.list(params)
 
         if (response.data) {
-          this.notifications = response.data;
+          this.notifications = response.data
         }
       } catch (error) {
-        console.error("Failed to fetch notifications:", error);
+        console.error('Failed to fetch notifications:', error)
         // Set empty array on error instead of throwing
-        this.notifications = [];
+        this.notifications = []
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
     },
 
     async markAsRead(notificationId: string) {
       try {
-        const api = useApi();
-        await api.notifications.markAsRead(notificationId);
+        const api = useApi()
+        await api.notifications.markAsRead(notificationId)
 
         // Update local state
-        const notification = this.notifications.find((n) => n.id === notificationId);
+        const notification = this.notifications.find((n) => n.id === notificationId)
         if (notification) {
-          notification.isRead = true;
+          notification.isRead = true
         }
       } catch (error) {
-        console.error("Failed to mark notification as read:", error);
+        console.error('Failed to mark notification as read:', error)
       }
     },
 
     clearNotifications() {
-      this.notifications = [];
-      this.isLoading = false;
+      this.notifications = []
+      this.isLoading = false
     },
   },
-});
+})

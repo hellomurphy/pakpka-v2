@@ -10,16 +10,11 @@
   >
     <div class="flex items-center gap-4">
       <div class="flex-shrink-0 w-12 h-8 flex items-center justify-center">
-        <Icon
-          :name="getCardLogo(card.brand)"
-          class="text-4xl max-w-full max-h-full"
-        />
+        <Icon :name="getCardLogo(card.brand)" class="text-4xl max-w-full max-h-full" />
       </div>
 
       <div class="flex-grow">
-        <p class="font-bold text-slate-800">
-          {{ card.brand }} •••• {{ card.last4 }}
-        </p>
+        <p class="font-bold text-slate-800">{{ card.brand }} •••• {{ card.last4 }}</p>
         <p class="text-sm text-slate-500">
           หมดอายุ {{ card.exp_month }}/{{ card.exp_year.toString().slice(-2) }}
         </p>
@@ -40,32 +35,32 @@
 // Component นี้รับข้อมูลบัตร (card) และสถานะว่าถูกเลือกอยู่หรือไม่ (isActive)
 const props = defineProps<{
   card: {
-    id: string; // ID ของบัตรจาก Omise (card_...)
-    brand: string;
-    last4: string;
-    exp_month: number;
-    exp_year: number;
-  };
-  isActive: boolean;
-}>();
+    id: string // ID ของบัตรจาก Omise (card_...)
+    brand: string
+    last4: string
+    exp_month: number
+    exp_year: number
+  }
+  isActive: boolean
+}>()
 
 // เมื่อมีการกด จะส่ง event 'select' กลับไปหา Component แม่ พร้อมกับ ID ของบัตร
-defineEmits(["select"]);
+defineEmits(['select'])
 
 // --- HELPER FUNCTIONS ---
 // ฟังก์ชันสำหรับเปลี่ยนชื่อ brand ของบัตรเป็นชื่อไอคอน
 function getCardLogo(brand: string): string {
-  if (!brand) return "ph:credit-card-fill";
+  if (!brand) return 'ph:credit-card-fill'
 
-  const b = brand.toLowerCase();
+  const b = brand.toLowerCase()
 
-  if (b === "visa") return "logos:visa";
-  if (b === "mastercard") return "logos:mastercard";
-  if (b === "jcb") return "logos:jcb";
-  if (b === "american express") return "logos:amex";
-  if (b === "unionpay") return "logos:unionpay";
+  if (b === 'visa') return 'logos:visa'
+  if (b === 'mastercard') return 'logos:mastercard'
+  if (b === 'jcb') return 'logos:jcb'
+  if (b === 'american express') return 'logos:amex'
+  if (b === 'unionpay') return 'logos:unionpay'
 
-  return "ph:credit-card-fill"; // ไอคอนพื้นฐาน
+  return 'ph:credit-card-fill' // ไอคอนพื้นฐาน
 }
 </script>
 

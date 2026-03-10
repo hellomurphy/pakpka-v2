@@ -7,26 +7,20 @@
           alt="Property Cover Image"
           class="w-full h-64 object-cover"
         />
-        <div
-          class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"
-        ></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
         <div class="absolute bottom-4 right-4">
           <button
             @click="openGallery"
             class="bg-white/80 backdrop-blur-sm text-slate-800 font-bold text-sm py-2.5 px-4 rounded-lg flex items-center gap-2 shadow-md hover:bg-white transition-all active:scale-95"
           >
             <Icon name="solar:gallery-wide-bold-duotone" />
-            <span
-              >ดูรูปภาพทั้งหมด ({{ propertyData.galleryImages.length }})</span
-            >
+            <span>ดูรูปภาพทั้งหมด ({{ propertyData.galleryImages.length }})</span>
           </button>
         </div>
       </section>
 
       <div class="p-4 md:p-6 space-y-6 max-w-4xl mx-auto mt-1">
-        <div
-          class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden"
-        >
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
           <div class="p-5">
             <h1 class="text-2xl font-bold text-slate-800">
               {{ propertyData.name }}
@@ -41,16 +35,12 @@
               <span>ดูบนแผนที่</span>
             </a>
           </div>
-          <div
-            class="p-5 border-t border-slate-100 text-slate-700 leading-relaxed text-sm"
-          >
+          <div class="p-5 border-t border-slate-100 text-slate-700 leading-relaxed text-sm">
             {{ propertyData.description }}
           </div>
         </div>
 
-        <section
-          class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden"
-        >
+        <section class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden">
           <h2 class="section-title">สิ่งอำนวยความสะดวก</h2>
           <div class="p-5 grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-2">
             <div
@@ -61,16 +51,10 @@
               <Icon
                 :name="facility.icon"
                 class="text-xl"
-                :class="
-                  facility.available ? 'text-green-600' : 'text-slate-400'
-                "
+                :class="facility.available ? 'text-green-600' : 'text-slate-400'"
               />
               <span
-                :class="
-                  facility.available
-                    ? 'text-slate-700'
-                    : 'text-slate-400 line-through'
-                "
+                :class="facility.available ? 'text-slate-700' : 'text-slate-400 line-through'"
                 >{{ facility.name }}</span
               >
             </div>
@@ -108,9 +92,7 @@
             class="bg-white rounded-2xl shadow-lg border border-slate-200/80 overflow-hidden"
           >
             <h2 class="section-title">กฎระเบียบเบื้องต้น</h2>
-            <ul
-              class="p-5 space-y-2 list-disc list-inside text-sm text-slate-700"
-            >
+            <ul class="p-5 space-y-2 list-disc list-inside text-sm text-slate-700">
               <li v-for="rule in propertyData.rules" :key="rule">{{ rule }}</li>
             </ul>
           </section>
@@ -132,9 +114,7 @@
           class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col"
           @keydown.esc="closeGallery"
         >
-          <div
-            class="flex-shrink-0 p-4 flex justify-between items-center text-white"
-          >
+          <div class="flex-shrink-0 p-4 flex justify-between items-center text-white">
             <h3 class="font-semibold">
               รูปภาพโครงการ ({{ currentGalleryIndex + 1 }} /
               {{ propertyData.galleryImages.length }})
@@ -144,16 +124,12 @@
             </button>
           </div>
 
-          <div
-            class="flex-grow flex items-center justify-center relative overflow-hidden h-full"
-          >
+          <div class="flex-grow flex items-center justify-center relative overflow-hidden h-full">
             <div
               v-if="isImageLoading"
               class="w-full h-full max-w-lg max-h-full p-4 flex items-center justify-center"
             >
-              <div
-                class="w-full h-full bg-slate-700/50 rounded-lg animate-pulse"
-              ></div>
+              <div class="w-full h-full bg-slate-700/50 rounded-lg animate-pulse"></div>
             </div>
             <img
               v-show="!isImageLoading"
@@ -166,9 +142,7 @@
 
           <div class="flex-shrink-0 p-4 w-full">
             <div class="flex justify-center">
-              <div
-                class="flex gap-3 overflow-x-auto no-scrollbar p-2 bg-black/20 rounded-xl"
-              >
+              <div class="flex gap-3 overflow-x-auto no-scrollbar p-2 bg-black/20 rounded-xl">
                 <button
                   v-for="(imgUrl, index) in propertyData.galleryImages"
                   :key="index"
@@ -192,70 +166,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch } from 'vue'
 
 definePageMeta({
-  title: "ข้อมูลโครงการ",
-  headerVariant: "page",
+  title: 'ข้อมูลโครงการ',
+  headerVariant: 'page',
   showFooter: false,
-});
+})
 
 // --- MOCK DATA ---
 const propertyData = ref({
-  name: "The Modern Property",
-  slug: "the-modern-property",
-  coverImage: "https://picsum.photos/seed/property-cover/1280/720",
-  address: "123 ถ.สุขุมวิท, แขวงคลองเตย, เขตคลองเตย, กรุงเทพมหานคร 10110",
-  googleMapsUrl: "https://maps.app.goo.gl/example",
+  name: 'The Modern Property',
+  slug: 'the-modern-property',
+  coverImage: 'https://picsum.photos/seed/property-cover/1280/720',
+  address: '123 ถ.สุขุมวิท, แขวงคลองเตย, เขตคลองเตย, กรุงเทพมหานคร 10110',
+  googleMapsUrl: 'https://maps.app.goo.gl/example',
   description:
-    "ที่พักสไตล์โมเดิร์นใจกลางเมือง พร้อมสิ่งอำนวยความสะดวกครบครัน ตอบโจทย์ไลฟ์สไตล์คนรุ่นใหม่ เดินทางสะดวกสบายใกล้รถไฟฟ้า BTS และศูนย์การค้าชั้นนำ",
+    'ที่พักสไตล์โมเดิร์นใจกลางเมือง พร้อมสิ่งอำนวยความสะดวกครบครัน ตอบโจทย์ไลฟ์สไตล์คนรุ่นใหม่ เดินทางสะดวกสบายใกล้รถไฟฟ้า BTS และศูนย์การค้าชั้นนำ',
   facilities: [
-    { name: "อินเทอร์เน็ต Wi-Fi", icon: "solar:wifi-bold", available: true },
-    { name: "ที่จอดรถยนต์", icon: "solar:car-bold", available: true },
-    { name: "ฟิตเนส", icon: "solar:barbell-bold", available: true },
-    { name: "อนุญาตให้เลี้ยงสัตว์", icon: "solar:cat-bold", available: false },
-    { name: "สระว่ายน้ำ", icon: "solar:waves-bold", available: false },
+    { name: 'อินเทอร์เน็ต Wi-Fi', icon: 'solar:wifi-bold', available: true },
+    { name: 'ที่จอดรถยนต์', icon: 'solar:car-bold', available: true },
+    { name: 'ฟิตเนส', icon: 'solar:barbell-bold', available: true },
+    { name: 'อนุญาตให้เลี้ยงสัตว์', icon: 'solar:cat-bold', available: false },
+    { name: 'สระว่ายน้ำ', icon: 'solar:waves-bold', available: false },
     {
-      name: "เครื่องซักผ้าหยอดเหรียญ",
-      icon: "solar:washing-machine-bold",
+      name: 'เครื่องซักผ้าหยอดเหรียญ',
+      icon: 'solar:washing-machine-bold',
       available: true,
     },
   ],
-  rates: { electricity: "8", water: "18", internet: "300" },
+  rates: { electricity: '8', water: '18', internet: '300' },
   rules: [
-    "ห้ามส่งเสียงดังหลังเวลา 22:00 น.",
-    "ไม่อนุญาตให้เลี้ยงสัตว์ทุกชนิดภายในห้องพัก",
-    "กรุณาทิ้งขยะในบริเวณที่จัดเตรียมไว้เท่านั้น",
+    'ห้ามส่งเสียงดังหลังเวลา 22:00 น.',
+    'ไม่อนุญาตให้เลี้ยงสัตว์ทุกชนิดภายในห้องพัก',
+    'กรุณาทิ้งขยะในบริเวณที่จัดเตรียมไว้เท่านั้น',
   ],
   galleryImages: [
-    "https://picsum.photos/seed/property1/800/600",
-    "https://picsum.photos/seed/property2/800/600",
-    "https://picsum.photos/seed/property3/800/600",
-    "https://picsum.photos/seed/property4/800/600",
-    "https://picsum.photos/seed/property5/800/600",
+    'https://picsum.photos/seed/property1/800/600',
+    'https://picsum.photos/seed/property2/800/600',
+    'https://picsum.photos/seed/property3/800/600',
+    'https://picsum.photos/seed/property4/800/600',
+    'https://picsum.photos/seed/property5/800/600',
   ],
-});
+})
 
 // --- Gallery Modal State & Functions ---
-const isGalleryOpen = ref(false);
-const currentGalleryIndex = ref(0);
-const isImageLoading = ref(false);
+const isGalleryOpen = ref(false)
+const currentGalleryIndex = ref(0)
+const isImageLoading = ref(false)
 
 const openGallery = () => {
-  isGalleryOpen.value = true;
-  currentGalleryIndex.value = 0;
-  isImageLoading.value = true;
-};
+  isGalleryOpen.value = true
+  currentGalleryIndex.value = 0
+  isImageLoading.value = true
+}
 const closeGallery = () => {
-  isGalleryOpen.value = false;
-};
+  isGalleryOpen.value = false
+}
 const selectPage = (index: number) => {
-  currentGalleryIndex.value = index;
-};
+  currentGalleryIndex.value = index
+}
 
 watch(currentGalleryIndex, () => {
-  isImageLoading.value = true;
-});
+  isImageLoading.value = true
+})
 </script>
 
 <style scoped>

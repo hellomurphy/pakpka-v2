@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { eq, inArray, and, lte, gte, desc } from 'drizzle-orm'
 import { InvoiceStatus, MaintenanceStatus, ContractStatus } from '@repo/db'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -210,7 +211,7 @@ export default defineEventHandler(async (event) => {
         data: {
           invoiceId: inv.id,
           period: inv.period,
-          amount: inv.totalAmount,
+          amount: toDecimalNumber(inv.totalAmount),
           dueDate: inv.dueDate,
           roomNumber,
         },
@@ -229,7 +230,7 @@ export default defineEventHandler(async (event) => {
         data: {
           invoiceId: inv.id,
           period: inv.period,
-          amount: inv.totalAmount,
+          amount: toDecimalNumber(inv.totalAmount),
           dueDate: inv.dueDate,
           roomNumber,
         },
@@ -250,7 +251,7 @@ export default defineEventHandler(async (event) => {
         message: `การชำระเงินห้อง ${roomNumber} ประจำเดือน ${period} อยู่ระหว่างการตรวจสอบ`,
         data: {
           paymentId: p.id,
-          amount: p.amount,
+          amount: toDecimalNumber(p.amount),
           period,
           roomNumber,
         },

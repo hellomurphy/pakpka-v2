@@ -3,16 +3,21 @@
     <main class="py-6 px-4">
       <div class="max-w-3xl mx-auto">
         <div v-if="isLoading" class="text-center pt-20">
-          <Icon
-            name="ph:spinner-duotone"
-            class="text-4xl animate-spin text-slate-400"
-          />
+          <Icon name="ph:spinner-duotone" class="text-4xl animate-spin text-slate-400" />
         </div>
 
-        <div
-          v-else-if="contract"
-          class="bg-white rounded-2xl shadow-sm border border-slate-200"
-        >
+        <div v-else-if="loadError" class="text-center pt-20 px-4">
+          <Icon name="ph:warning-circle-duotone" class="text-5xl text-amber-500 mb-3" />
+          <p class="text-slate-700 font-semibold">{{ loadError }}</p>
+          <NuxtLink
+            to="/my-rooms"
+            class="inline-block mt-4 text-indigo-600 font-medium hover:underline"
+          >
+            กลับไปห้องของฉัน
+          </NuxtLink>
+        </div>
+
+        <div v-else-if="contract" class="bg-white rounded-2xl shadow-sm border border-slate-200">
           <div class="p-4 md:p-6 border-b border-slate-100">
             <h1 class="text-xl font-bold text-slate-800">
               สัญญาเช่าห้อง {{ contract.roomNumber }}
@@ -49,13 +54,8 @@
             </article>
           </div>
 
-          <div
-            v-else-if="contract.type === 'file'"
-            class="p-4 md:p-6 space-y-4"
-          >
-            <p class="text-sm text-slate-600 text-center">
-              สัญญานี้ถูกอัปโหลดเป็นไฟล์เอกสาร
-            </p>
+          <div v-else-if="contract.type === 'file'" class="p-4 md:p-6 space-y-4">
+            <p class="text-sm text-slate-600 text-center">สัญญานี้ถูกอัปโหลดเป็นไฟล์เอกสาร</p>
             <div class="border rounded-lg overflow-hidden h-80 bg-slate-100">
               <img
                 :src="contract.fileUrls[0]"
@@ -63,15 +63,11 @@
                 class="w-full h-full object-cover object-top"
               />
             </div>
-            <div
-              class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100"
-            >
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
               <button @click="openViewer" class="action-button-primary w-full">
                 <template v-if="contract.fileUrls.length > 1">
                   <Icon name="solar:gallery-wide-bold-duotone" />
-                  <span
-                    >ดูเอกสารทั้งหมด ({{ contract.fileUrls.length }} หน้า)</span
-                  >
+                  <span>ดูเอกสารทั้งหมด ({{ contract.fileUrls.length }} หน้า)</span>
                 </template>
                 <template v-else>
                   <Icon name="solar:eye-bold-duotone" />
@@ -90,14 +86,9 @@
           </div>
 
           <div v-else class="p-10 text-center">
-            <Icon
-              name="solar:file-not-found-bold-duotone"
-              class="text-6xl text-slate-300 mb-2"
-            />
+            <Icon name="solar:file-not-found-bold-duotone" class="text-6xl text-slate-300 mb-2" />
             <p class="font-semibold text-slate-600">ยังไม่มีการอัปโหลดสัญญา</p>
-            <p class="text-sm text-slate-400">
-              กรุณาติดต่อผู้จัดการที่พักเพื่อดำเนินการ
-            </p>
+            <p class="text-sm text-slate-400">กรุณาติดต่อผู้จัดการที่พักเพื่อดำเนินการ</p>
           </div>
         </div>
       </div>
@@ -117,28 +108,21 @@
           class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col"
           @keydown.esc="closeViewer"
         >
-          <div
-            class="flex-shrink-0 p-4 flex justify-between items-center text-white"
-          >
+          <div class="flex-shrink-0 p-4 flex justify-between items-center text-white">
             <h3 class="font-semibold">
-              สัญญาเช่า (หน้า {{ currentPage + 1 }} /
-              {{ contract.fileUrls.length }})
+              สัญญาเช่า (หน้า {{ currentPage + 1 }} / {{ contract.fileUrls.length }})
             </h3>
             <button @click="closeViewer" class="p-2 -m-2">
               <Icon name="ph:x-bold" class="text-2xl" />
             </button>
           </div>
 
-          <div
-            class="flex-grow flex items-center justify-center relative overflow-hidden h-full"
-          >
+          <div class="flex-grow flex items-center justify-center relative overflow-hidden h-full">
             <div
               v-if="isImageLoading"
               class="w-full h-full max-w-lg max-h-full p-4 flex items-center justify-center"
             >
-              <div
-                class="w-full h-full bg-slate-700/50 rounded-lg animate-pulse"
-              ></div>
+              <div class="w-full h-full bg-slate-700/50 rounded-lg animate-pulse"></div>
             </div>
             <img
               v-show="!isImageLoading"
@@ -151,9 +135,7 @@
 
           <div class="flex-shrink-0 p-4 w-full">
             <div class="flex justify-center">
-              <div
-                class="flex gap-3 overflow-x-auto no-scrollbar p-2 bg-black/20 rounded-xl"
-              >
+              <div class="flex gap-3 overflow-x-auto no-scrollbar p-2 bg-black/20 rounded-xl">
                 <button
                   v-for="(imgUrl, index) in contract.fileUrls"
                   :key="index"
@@ -177,83 +159,120 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch } from 'vue'
 
 definePageMeta({
-  title: "รายละเอียดสัญญาเช่า",
-  headerVariant: "page",
+  title: 'รายละเอียดสัญญาเช่า',
+  headerVariant: 'page',
   showFooter: false,
-});
+})
 
-const { formatNumber } = useNumberFormat();
-const isLoading = ref(true);
-const contract = ref<any>(null);
+const route = useRoute()
+const { formatNumber } = useNumberFormat()
+const api = useApi()
+const isLoading = ref(true)
+const contract = ref<any>(null)
+const loadError = ref<string | null>(null)
 
 // --- Viewer State ---
-const isViewerOpen = ref(false);
-const currentPage = ref(0);
-const isImageLoading = ref(false);
+const isViewerOpen = ref(false)
+const currentPage = ref(0)
+const isImageLoading = ref(false)
 
-// --- Mock Data: 3 types for testing ---
-const digitalContract = {
-  id: "c-001",
-  type: "digital" as const,
-  roomNumber: "A203",
-  propertyName: "The Modern Property",
-  details: {
-    startDate: "1 มิ.ย. 2568",
-    endDate: "31 พ.ค. 2569",
-    rentAmount: 5500,
-    clauses:
-      "ข้อความในสัญญาฉบับเต็ม... ผู้เช่าตกลงที่จะไม่ส่งเสียงดังหลังเวลา 22:00น. และรักษาสภาพห้องให้เรียบร้อยอยู่เสมอ...",
-  },
-};
-const fileContract = {
-  id: "c-002",
-  type: "file" as const,
-  roomNumber: "B501",
-  propertyName: "บ้านสวย อพาร์ทเมนท์",
-  // ใช้ picsum.photos ซึ่งเป็นบริการที่เสถียรมาก
-  fileUrls: [
-    "https://picsum.photos/seed/contract1/800/1131",
-    "https://picsum.photos/seed/contract2/800/1131",
-    "https://picsum.photos/seed/contract3/800/1131",
-  ],
-  pdfUrl: "#",
-};
-const noContract = {
-  id: "c-003",
-  type: "none" as const,
-  roomNumber: "C707",
-  propertyName: "สบายดี เรสซิเดนซ์",
-};
+function formatContractDate(d: Date | string) {
+  const date = typeof d === 'string' ? new Date(d) : d
+  return date.toLocaleDateString('th-TH', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
 
 // --- Viewer Functions ---
 function openViewer() {
-  currentPage.value = 0;
-  isImageLoading.value = true;
-  isViewerOpen.value = true;
+  currentPage.value = 0
+  isImageLoading.value = true
+  isViewerOpen.value = true
 }
 function closeViewer() {
-  isViewerOpen.value = false;
+  isViewerOpen.value = false
 }
 function selectPage(index: number) {
-  currentPage.value = index;
+  currentPage.value = index
 }
 
 watch(currentPage, () => {
-  isImageLoading.value = true;
-});
+  isImageLoading.value = true
+})
 
-onMounted(() => {
-  // --- วิธีทดสอบ: ลองสลับคอมเมนต์ระหว่าง 3 บรรทัดนี้ ---
-  setTimeout(() => {
-    // contract.value = digitalContract;
-    contract.value = fileContract;
-    // contract.value = noContract;
-    isLoading.value = false;
-  }, 500);
-});
+onMounted(async () => {
+  const id = route.params.id as string
+  if (!id) {
+    loadError.value = 'ไม่พบรหัสสัญญา'
+    isLoading.value = false
+    return
+  }
+  try {
+    const res = await api.contracts.getMyById(id)
+    const raw = res.data as {
+      id: string
+      startDate: string | Date
+      endDate: string | Date
+      rentAmount: string | number
+      propertyName?: string | null
+      room?: { roomNumber: string } | null
+      contractFile?: string
+      contractImages?: string[]
+    } | null
+    if (!raw) {
+      loadError.value = 'ไม่พบข้อมูลสัญญา'
+      isLoading.value = false
+      return
+    }
+    const roomNumber = raw.room?.roomNumber ?? '—'
+    const propertyName = raw.propertyName ?? '—'
+    const rentAmount = typeof raw.rentAmount === 'string' ? Number(raw.rentAmount) : raw.rentAmount
+    const fileUrls = (raw as { contractImages?: string[] }).contractImages ?? []
+    const pdfUrl = (raw as { contractFile?: string }).contractFile ?? ''
+    const hasFile = fileUrls.length > 0 || !!pdfUrl
+
+    if (hasFile && fileUrls.length > 0) {
+      contract.value = {
+        id: raw.id,
+        type: 'file' as const,
+        roomNumber,
+        propertyName,
+        fileUrls,
+        pdfUrl: pdfUrl || fileUrls[0] || '#',
+      }
+    } else if (raw.id && roomNumber && propertyName) {
+      contract.value = {
+        id: raw.id,
+        type: 'digital' as const,
+        roomNumber,
+        propertyName,
+        details: {
+          startDate: formatContractDate(raw.startDate),
+          endDate: formatContractDate(raw.endDate),
+          rentAmount,
+          clauses:
+            'ข้อความในสัญญาตามที่ตกลงกับทางหอพัก กรุณาติดต่อผู้จัดการสำหรับรายละเอียดฉบับเต็ม',
+        },
+      }
+    } else {
+      contract.value = {
+        id: raw.id,
+        type: 'none' as const,
+        roomNumber,
+        propertyName,
+      }
+    }
+  } catch (e: unknown) {
+    loadError.value = (e as { data?: { message?: string } })?.data?.message ?? 'โหลดสัญญาไม่สำเร็จ'
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
 
 <style scoped>

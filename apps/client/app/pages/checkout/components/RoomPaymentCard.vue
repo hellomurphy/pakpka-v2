@@ -1,20 +1,14 @@
 <template>
   <div
     class="bg-white rounded-2xl shadow-sm transition-all duration-300 border-2 overflow-hidden"
-    :class="
-      isSelected
-        ? 'border-indigo-500 shadow-lg shadow-indigo-500/10'
-        : 'border-transparent'
-    "
+    :class="isSelected ? 'border-indigo-500 shadow-lg shadow-indigo-500/10' : 'border-transparent'"
   >
     <div class="bg-stone-50">
       <div class="p-5 flex justify-between items-start gap-3">
         <div class="flex-grow">
           <h2 class="font-bold text-slate-800 text-lg">{{ dorm.name }}</h2>
           <p class="font-semibold text-slate-600">ห้อง {{ dorm.room }}</p>
-          <p class="text-xs text-slate-500 mt-1">
-            รอบบิล: {{ dorm.billingCycle }}
-          </p>
+          <p class="text-xs text-slate-500 mt-1">รอบบิล: {{ dorm.billingCycle }}</p>
         </div>
 
         <div class="flex-shrink-0 pt-1">
@@ -60,9 +54,7 @@
           >
             <span>{{ statusInfo.text }}</span>
           </div>
-          <p class="text-xs text-slate-400 mt-1">
-            ครบกำหนด: {{ dorm.dueDate }}
-          </p>
+          <p class="text-xs text-slate-400 mt-1">ครบกำหนด: {{ dorm.dueDate }}</p>
         </div>
 
         <div class="text-right">
@@ -77,30 +69,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const props = defineProps<{
-  dorm: any;
-  isSelected: boolean;
-}>();
+  dorm: any
+  isSelected: boolean
+}>()
 
-defineEmits(["select"]);
+defineEmits(['select'])
 
-const { formatNumber } = useNumberFormat();
+const { formatNumber } = useNumberFormat()
 
 const statusInfo = computed(() => {
   switch (props.dorm.status) {
-    case "overdue":
+    case 'overdue':
       return {
-        text: "เกินกำหนด",
-        style: "bg-red-50 text-red-700 border-red-300",
-      };
-    case "pending":
+        text: 'เกินกำหนด',
+        style: 'bg-red-50 text-red-700 border-red-300',
+      }
+    case 'pending':
     default:
       return {
-        text: "รอชำระ",
-        style: "bg-slate-100 text-slate-600 border-slate-300",
-      };
+        text: 'รอชำระ',
+        style: 'bg-slate-100 text-slate-600 border-slate-300',
+      }
   }
-});
+})
 </script>

@@ -19,164 +19,141 @@
         </div>
       </div>
 
-      <div v-if="filteredTickets.length > 0" class="space-y-4">
-        <RepairHistoryCard
-          v-for="ticket in filteredTickets"
-          :key="ticket.id"
-          :ticket="ticket"
-        />
+      <div v-if="isLoading" class="text-center pt-24">
+        <Icon name="ph:spinner-duotone" class="text-5xl animate-spin text-indigo-500 mb-3" />
+        <p class="text-slate-500">กำลังโหลดรายการแจ้งซ่อม...</p>
+      </div>
+
+      <div v-else-if="filteredTickets.length > 0" class="space-y-4">
+        <RepairHistoryCard v-for="ticket in filteredTickets" :key="ticket.id" :ticket="ticket" />
       </div>
 
       <div v-else class="text-center pt-24 px-6">
         <Icon name="ph:wrench-duotone" class="text-7xl text-slate-300 mb-4" />
-        <h3 class="text-lg font-semibold text-slate-700">
-          ไม่พบรายการแจ้งซ่อม
-        </h3>
-        <p class="text-slate-500">
-          ประวัติการแจ้งซ่อมของคุณที่ตรงกับตัวกรองจะปรากฏที่นี่
-        </p>
+        <h3 class="text-lg font-semibold text-slate-700">ไม่พบรายการแจ้งซ่อม</h3>
+        <p class="text-slate-500">ประวัติการแจ้งซ่อมของคุณที่ตรงกับตัวกรองจะปรากฏที่นี่</p>
       </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-// ตรวจสอบให้แน่ใจว่าได้สร้าง Component นี้ไว้แล้ว
-import RepairHistoryCard from "./components/RepairCard.vue";
+import { ref, computed, onMounted } from 'vue'
+import RepairHistoryCard from './components/RepairCard.vue'
 
-// กำหนด Title ของหน้าสำหรับ Header
 definePageMeta({
-  title: "รายการแจ้งซ่อม",
-  headerVariant: "page",
+  title: 'รายการแจ้งซ่อม',
+  headerVariant: 'page',
   showFooter: false,
-});
+})
 
-// --- STATE MANAGEMENT ---
-const activeFilter = ref("all");
+const api = useApi()
+const activeFilter = ref('all')
+const isLoading = ref(true)
 
-// --- STATIC DATA ---
 const filters = [
-  { id: "all", name: "ทั้งหมด" },
-  { id: "in_progress", name: "กำลังดำเนินการ" },
-  { id: "completed", name: "เสร็จสิ้นแล้ว" },
-  { id: "cancelled", name: "ยกเลิก" },
-];
+  { id: 'all', name: 'ทั้งหมด' },
+  { id: 'in_progress', name: 'กำลังดำเนินการ' },
+  { id: 'completed', name: 'เสร็จสิ้นแล้ว' },
+  { id: 'cancelled', name: 'ยกเลิก' },
+]
 
-// --- MOCK DATA ---
-const repairTickets = ref([
-  {
-    id: "RP-2506-001",
-    title: "แอร์ในห้องนอนไม่เย็น",
-    roomNumber: "A203",
-    timeline: [
-      {
-        status: "submitted",
-        name: "แจ้งเรื่องแล้ว",
-        timestamp: "10 มิ.ย. 2568, 14:30น.",
-      },
-      {
-        status: "acknowledged",
-        name: "เจ้าหน้าที่รับเรื่องแล้ว",
-        timestamp: "10 มิ.ย. 2568, 14:35น.",
-      },
-      {
-        status: "in_progress",
-        name: "กำลังดำเนินการ",
-        timestamp: "11 มิ.ย. 2568, 09:00น.",
-      },
-    ],
-  },
-  {
-    id: "RP-2506-002",
-    title: "หลอดไฟห้องน้ำขาด",
-    roomNumber: "B501",
-    timeline: [
-      {
-        status: "submitted",
-        name: "แจ้งเรื่องแล้ว",
-        timestamp: "05 มิ.ย. 2568, 18:00น.",
-      },
-      {
-        status: "acknowledged",
-        name: "เจ้าหน้าที่รับเรื่องแล้ว",
-        timestamp: "05 มิ.ย. 2568, 18:10น.",
-      },
-      {
-        status: "in_progress",
-        name: "กำลังดำเนินการ",
-        timestamp: "06 มิ.ย. 2568, 10:00น.",
-      },
-      {
-        status: "completed",
-        name: "ดำเนินการเสร็จสิ้น",
-        timestamp: "06 มิ.ย. 2568, 10:45น.",
-      },
-    ],
-  },
-  {
-    id: "RP-2506-003",
-    title: "ขอทำความสะอาดพื้นที่ส่วนกลาง",
-    roomNumber: "A203",
-    timeline: [
-      {
-        status: "submitted",
-        name: "ส่งคำขอแล้ว",
-        timestamp: "08 มิ.ย. 2568, 11:00น.",
-      },
-      {
-        status: "acknowledged",
-        name: "เจ้าหน้าที่รับเรื่อง",
-        timestamp: "08 มิ.ย. 2568, 11:05น.",
-      },
-      {
-        status: "completed",
-        name: "ทำความสะอาดเรียบร้อย",
-        timestamp: "09 มิ.ย. 2568, 15:00น.",
-      },
-    ],
-  },
-  {
-    id: "RP-2506-004",
-    title: "แจ้งย้ายออกสิ้นเดือน",
-    roomNumber: "B501",
-    timeline: [
-      {
-        status: "submitted",
-        name: "แจ้งเรื่องแล้ว",
-        timestamp: "01 มิ.ย. 2568, 09:20น.",
-      },
-      {
-        status: "cancelled",
-        name: "รายการถูกยกเลิก",
-        timestamp: "02 มิ.ย. 2568, 13:00น.",
-        reason: "ผู้เช่าเปลี่ยนใจ ขอยกเลิกการย้ายออก",
-      },
-    ],
-  },
-]);
+const repairTickets = ref<
+  Array<{
+    id: string
+    title: string
+    roomNumber: string
+    timeline: Array<{ status: string; name: string; timestamp: string; reason?: string }>
+  }>
+>([])
 
-// --- COMPUTED PROPERTIES ---
-const filteredTickets = computed(() => {
-  if (activeFilter.value === "all") {
-    return repairTickets.value;
+function formatTimelineDate(d: string | Date) {
+  const date = typeof d === 'string' ? new Date(d) : d
+  return date.toLocaleString('th-TH', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function statusToTimelineItem(
+  status: string,
+  createdAt: string | Date,
+  updatedAt?: string | Date,
+): { status: string; name: string; timestamp: string } {
+  const ts = formatTimelineDate(updatedAt ?? createdAt)
+  const map: Record<string, string> = {
+    PENDING: 'แจ้งเรื่องแล้ว',
+    IN_PROGRESS: 'กำลังดำเนินการ',
+    COMPLETED: 'เสร็จสิ้นแล้ว',
+    CANCELLED: 'ยกเลิก',
   }
+  const statusKey =
+    status === 'PENDING'
+      ? 'submitted'
+      : status === 'IN_PROGRESS'
+        ? 'in_progress'
+        : status === 'COMPLETED'
+          ? 'completed'
+          : 'cancelled'
+  return { status: statusKey, name: map[status] ?? status, timestamp: ts }
+}
+
+function mapApiToTicket(raw: {
+  id: string
+  title: string
+  description?: string
+  status: string
+  room?: { roomNumber: string } | null
+  createdAt: string | Date
+  updatedAt?: string | Date
+}) {
+  const roomNumber = raw.room?.roomNumber ?? '—'
+  const status = raw.status as string
+  const timeline = [statusToTimelineItem(status, raw.createdAt, raw.updatedAt)]
+  return {
+    id: raw.id,
+    title: raw.title || raw.description || 'แจ้งซ่อม',
+    roomNumber,
+    timeline,
+  }
+}
+
+const filteredTickets = computed(() => {
+  if (activeFilter.value === 'all') return repairTickets.value
   return repairTickets.value.filter((ticket) => {
-    // หาสถานะล่าสุดจาก timeline
-    const currentStatus = ticket.timeline[ticket.timeline.length - 1].status;
-
-    // เงื่อนไขพิเศษสำหรับฟิลเตอร์ "กำลังดำเนินการ"
-    if (activeFilter.value === "in_progress") {
-      // ให้รวมสถานะที่ยังไม่เสร็จทั้งหมด
-      return ["submitted", "acknowledged", "in_progress"].includes(
-        currentStatus
-      );
+    const currentStatus = ticket.timeline[ticket.timeline.length - 1]?.status
+    if (activeFilter.value === 'in_progress') {
+      return ['submitted', 'in_progress'].includes(currentStatus)
     }
+    return currentStatus === activeFilter.value
+  })
+})
 
-    // กรองตามสถานะอื่นๆ ตรงๆ
-    return currentStatus === activeFilter.value;
-  });
-});
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await api.maintenance.list()
+    const list = (res.data as { maintenanceRequests?: unknown[] })?.maintenanceRequests ?? []
+    repairTickets.value = list.map((item: Record<string, unknown>) =>
+      mapApiToTicket({
+        id: String(item.id),
+        title: String(item.title ?? ''),
+        description: item.description as string | undefined,
+        status: String(item.status ?? 'PENDING'),
+        room: item.room as { roomNumber: string } | null,
+        createdAt: item.createdAt as string,
+        updatedAt: item.updatedAt as string | undefined,
+      }),
+    )
+  } catch {
+    repairTickets.value = []
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
 
 <style scoped>

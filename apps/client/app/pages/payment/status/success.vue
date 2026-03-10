@@ -3,17 +3,16 @@
     <div class="max-w-md">
       <!-- Success Icon -->
       <div class="mb-6">
-        <Icon name="ph:check-circle-duotone" class="text-8xl text-green-500 mx-auto animate-bounce" />
+        <Icon
+          name="ph:check-circle-duotone"
+          class="text-8xl text-green-500 mx-auto animate-bounce"
+        />
       </div>
 
       <!-- Success Message -->
       <h1 class="text-3xl font-bold text-slate-800 mb-3">ส่งหลักฐานเรียบร้อย!</h1>
-      <p class="text-slate-600 mb-2">
-        เราได้รับหลักฐานการชำระเงินของคุณแล้ว
-      </p>
-      <p class="text-sm text-slate-500 mb-8">
-        ระบบจะตรวจสอบและยืนยันการชำระภายใน 24 ชั่วโมง
-      </p>
+      <p class="text-slate-600 mb-2">เราได้รับหลักฐานการชำระเงินของคุณแล้ว</p>
+      <p class="text-sm text-slate-500 mb-8">ระบบจะตรวจสอบและยืนยันการชำระภายใน 24 ชั่วโมง</p>
 
       <!-- Status Badge -->
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
@@ -50,7 +49,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: "splash",
-  title: "ส่งหลักฐานสำเร็จ",
-});
+  layout: 'splash',
+  title: 'ส่งหลักฐานสำเร็จ',
+})
 </script>

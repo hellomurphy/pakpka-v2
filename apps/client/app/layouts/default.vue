@@ -14,23 +14,23 @@
 </template>
 
 <script lang="ts" setup>
-import UiHeader from "~/components/ui/UiHeader.vue";
-import UiFooter from "~/components/ui/UiFooter.vue";
+import UiHeader from '~/components/ui/UiHeader.vue'
+import UiFooter from '~/components/ui/UiFooter.vue'
 
-const route = useRoute();
+const route = useRoute()
 
-const showFooter = computed(() => route.meta.showFooter !== false);
+const showFooter = computed(() => route.meta.showFooter !== false)
 
-const router = useRouter();
+const router = useRouter()
 
 router.afterEach(() => {
   nextTick(() => {
-    const mainContent = document.getElementById("mainContent");
+    const mainContent = document.getElementById('mainContent')
     if (mainContent) {
-      mainContent.scrollTo(0, 0);
+      mainContent.scrollTo(0, 0)
     }
-  });
-});
+  })
+})
 </script>
 
 <style>

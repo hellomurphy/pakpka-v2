@@ -5,27 +5,34 @@
  */
 
 export const useApi = () => {
-  const httpClient = useHttpClient();
+  const httpClient = useHttpClient()
 
   return {
     // ============================
-    // Authentication APIs
+    // Authentication APIs (admin: cookie-based session)
     // ============================
     auth: {
       /**
-       * ดึงข้อมูล session ของผู้ใช้
+       * Staff session init (properties list). Tenant app uses profile.get() for session state.
        * GET /api/session/init
        */
-      getSession: () => httpClient<any>("/session/init"),
+      getSession: () => httpClient<any>('/session/init'),
 
       /**
-       * Login ด้วย credentials (username/password)
-       * POST /api/auth/signin/credentials
+       * Login with credentials. Admin: POST /api/auth/credentials
        */
       login: (credentials: { login: string; password: string }) =>
-        httpClient<any>("/auth/signin/credentials", {
-          method: "POST",
+        httpClient<any>('/auth/credentials', {
+          method: 'POST',
           body: credentials,
+        }),
+
+      /**
+       * Logout. Admin: POST /api/auth/logout
+       */
+      logout: () =>
+        httpClient<any>('/auth/logout', {
+          method: 'POST',
         }),
     },
 
@@ -38,7 +45,7 @@ export const useApi = () => {
        * GET /api/dashboard
        */
       get: (propertyId: string) =>
-        httpClient<any>("/dashboard", {
+        httpClient<any>('/dashboard', {
           query: { propertyId },
         }),
 
@@ -58,15 +65,15 @@ export const useApi = () => {
        * ดึงข้อมูลโปรไฟล์ของผู้ใช้
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
-      get: () => httpClient<any>("/tenant/profile"),
+      get: () => httpClient<any>('/tenant/profile'),
 
       /**
        * อัปเดตโปรไฟล์ผู้ใช้
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
       update: (data: any) =>
-        httpClient<any>("/tenant/profile", {
-          method: "PUT",
+        httpClient<any>('/tenant/profile', {
+          method: 'PUT',
           body: data,
         }),
     },
@@ -80,13 +87,13 @@ export const useApi = () => {
        * GET /api/contracts
        */
       list: (params: {
-        propertyId: string;
-        page?: number;
-        limit?: number;
-        q?: string;
-        filter?: string;
+        propertyId: string
+        page?: number
+        limit?: number
+        q?: string
+        filter?: string
       }) =>
-        httpClient<any>("/contracts", {
+        httpClient<any>('/contracts', {
           query: params,
         }),
 
@@ -98,9 +105,13 @@ export const useApi = () => {
 
       /**
        * ดึงสัญญาของ tenant ที่ล็อกอินอยู่
-       * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
-      getMy: () => httpClient<any>("/tenant/contracts"),
+      getMy: () => httpClient<any>('/tenant/contracts'),
+
+      /**
+       * ดึงสัญญาเฉพาะ ID (สำหรับ tenant ที่เป็นเจ้าของสัญญา)
+       */
+      getMyById: (id: string) => httpClient<any>(`/tenant/contracts/${id}`),
     },
 
     // ============================
@@ -112,7 +123,7 @@ export const useApi = () => {
        * GET /api/rooms
        */
       list: (floorId: string) =>
-        httpClient<any>("/rooms", {
+        httpClient<any>('/rooms', {
           query: { floorId },
         }),
 
@@ -126,7 +137,7 @@ export const useApi = () => {
        * ดึงห้องที่ user เป็นผู้เช่า
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
-      getMy: () => httpClient<any>("/tenant/rooms"),
+      getMy: () => httpClient<any>('/tenant/rooms'),
     },
 
     // ============================
@@ -144,7 +155,7 @@ export const useApi = () => {
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
       getMy: (params?: { year?: string; status?: string }) =>
-        httpClient<any>("/tenant/invoices", {
+        httpClient<any>('/tenant/invoices', {
           query: params,
         }),
 
@@ -152,7 +163,7 @@ export const useApi = () => {
        * ดึงใบแจ้งหนี้ปัจจุบันที่ค้างชำระ
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
-      getCurrent: () => httpClient<any>("/tenant/invoices/current"),
+      getCurrent: () => httpClient<any>('/tenant/invoices/current'),
     },
 
     // ============================
@@ -163,32 +174,48 @@ export const useApi = () => {
        * ดึงรายการการชำระเงิน
        * GET /api/payments
        */
-      list: (params: {
-        propertyId: string;
-        status?: string;
-        page?: number;
-        limit?: number;
-      }) =>
-        httpClient<any>("/payments", {
+      list: (params: { propertyId: string; status?: string; page?: number; limit?: number }) =>
+        httpClient<any>('/payments', {
           query: params,
         }),
 
       /**
-       * ส่งหลักฐานการชำระเงิน (สลิป)
-       * (ยังไม่มีใน backend - ต้องสร้างใหม่)
+       * สร้างรายการชำระเงิน (ยังไม่มีสลิป) แล้วอัปโหลดสลิปแยก
        */
-      submit: (data: { invoiceId: string; amount: number; slipUrl: string }) =>
-        httpClient<any>("/tenant/payments", {
-          method: "POST",
+      create: (data: {
+        invoiceId: string
+        amount: number
+        paymentDate: string
+        paymentMethod: string
+        receivingAccountId?: string
+        notes?: string
+      }) =>
+        httpClient<any>('/tenant/payments', {
+          method: 'POST',
           body: data,
         }),
+
+      /**
+       * อัปโหลดสลิปสำหรับ payment ที่สร้างแล้ว
+       */
+      uploadSlip: (paymentId: string, file: File) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        return httpClient<{ success: boolean; data: { slipKey: string; slipUrl: string } }>(
+          `/tenant/payments/${paymentId}/slip`,
+          {
+            method: 'POST',
+            body: formData,
+          },
+        )
+      },
 
       /**
        * ดึงประวัติการชำระเงิน
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
       getHistory: (params?: { year?: string; status?: string }) =>
-        httpClient<any>("/tenant/payments/history", {
+        httpClient<any>('/tenant/payments/history', {
           query: params,
         }),
     },
@@ -202,7 +229,7 @@ export const useApi = () => {
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
       list: (params?: { type?: string; page?: number; limit?: number }) =>
-        httpClient<any>("/tenant/notifications", {
+        httpClient<any>('/tenant/notifications', {
           query: params,
         }),
 
@@ -212,7 +239,7 @@ export const useApi = () => {
        */
       markAsRead: (id: string) =>
         httpClient<any>(`/tenant/notifications/${id}/read`, {
-          method: "POST",
+          method: 'POST',
         }),
     },
 
@@ -236,7 +263,7 @@ export const useApi = () => {
        * GET /api/room-types
        */
       list: (propertyId: string) =>
-        httpClient<any>("/room-types", {
+        httpClient<any>('/room-types', {
           query: { propertyId },
         }),
     },
@@ -250,7 +277,7 @@ export const useApi = () => {
        * GET /api/services
        */
       list: (propertyId: string) =>
-        httpClient<any>("/services", {
+        httpClient<any>('/services', {
           query: { propertyId },
         }),
     },
@@ -264,7 +291,7 @@ export const useApi = () => {
        * GET /api/billing-runs
        */
       list: (propertyId: string) =>
-        httpClient<any>("/billing-runs", {
+        httpClient<any>('/billing-runs', {
           query: { propertyId },
         }),
 
@@ -273,7 +300,7 @@ export const useApi = () => {
        * GET /api/billing-runs/latest
        */
       getLatest: (propertyId: string) =>
-        httpClient<any>("/billing-runs/latest", {
+        httpClient<any>('/billing-runs/latest', {
           query: { propertyId },
         }),
     },
@@ -287,21 +314,23 @@ export const useApi = () => {
        * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
       list: (params?: { status?: string }) =>
-        httpClient<any>("/tenant/maintenance", {
+        httpClient<any>('/tenant/maintenance', {
           query: params,
         }),
 
       /**
        * สร้างคำขอแจ้งซ่อม
-       * (ยังไม่มีใน backend - ต้องสร้างใหม่)
        */
       create: (data: {
-        roomId: string;
-        description: string;
-        images?: string[];
+        contractId: string
+        roomId: string
+        title: string
+        description?: string
+        priority?: string
+        dueDate?: string
       }) =>
-        httpClient<any>("/tenant/maintenance", {
-          method: "POST",
+        httpClient<any>('/tenant/maintenance', {
+          method: 'POST',
           body: data,
         }),
 
@@ -311,5 +340,5 @@ export const useApi = () => {
        */
       get: (id: string) => httpClient<any>(`/tenant/maintenance/${id}`),
     },
-  };
-};
+  }
+}

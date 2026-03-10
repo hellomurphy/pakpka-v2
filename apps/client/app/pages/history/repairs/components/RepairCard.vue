@@ -14,19 +14,14 @@
     >
       <div class="flex-grow pr-4">
         <p class="font-bold text-slate-800">{{ ticket.title }}</p>
-        <p class="text-xs text-slate-500">
-          เรื่อง #{{ ticket.id }} • ห้อง {{ ticket.roomNumber }}
-        </p>
+        <p class="text-xs text-slate-500">เรื่อง #{{ ticket.id }} • ห้อง {{ ticket.roomNumber }}</p>
       </div>
       <div class="flex items-center gap-3 flex-shrink-0">
-        <div
-          class="text-xs font-bold px-2 py-1 rounded-full"
-          :class="currentStatus.colorClass"
-        >
+        <div class="text-xs font-bold px-2 py-1 rounded-full" :class="currentStatus.colorClass">
           {{ currentStatus.text }}
         </div>
-        <Icon 
-          name="solar:alt-arrow-down-linear" 
+        <Icon
+          name="solar:alt-arrow-down-linear"
           class="text-slate-400 text-xl transition-transform duration-300 ease-in-out"
           :class="{ '-rotate-180': isExpanded }"
         />
@@ -35,18 +30,12 @@
 
     <div
       class="transition-all duration-300 ease-in-out grid"
-      :class="
-        isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-      "
+      :class="isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
     >
       <div class="overflow-hidden">
         <div class="border-t border-slate-200 px-4 pt-4">
           <ul>
-            <li
-              v-for="(status, index) in ticket.timeline"
-              :key="index"
-              class="flex gap-3"
-            >
+            <li v-for="(status, index) in ticket.timeline" :key="index" class="flex gap-3">
               <div class="flex flex-col items-center">
                 <div
                   class="w-4 h-4 rounded-full flex items-center justify-center ring-4"
@@ -98,55 +87,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed } from 'vue'
 
 // --- State for expand/collapse ---
-const isExpanded = ref(false);
+const isExpanded = ref(false)
 
-const props = defineProps<{ ticket: any }>();
+const props = defineProps<{ ticket: any }>()
 
 const statusMap = {
   submitted: {
-    text: "แจ้งเรื่องแล้ว",
-    icon: "ph:paper-plane-tilt-fill",
-    colorClass: "bg-slate-100 text-slate-600",
-    ringColorClass: "bg-slate-400 ring-slate-100",
-    textColorClass: "text-slate-700",
+    text: 'แจ้งเรื่องแล้ว',
+    icon: 'ph:paper-plane-tilt-fill',
+    colorClass: 'bg-slate-100 text-slate-600',
+    ringColorClass: 'bg-slate-400 ring-slate-100',
+    textColorClass: 'text-slate-700',
   },
   acknowledged: {
-    text: "รับเรื่องแล้ว",
-    icon: "ph:eye-fill",
-    colorClass: "bg-blue-100 text-blue-600",
-    ringColorClass: "bg-blue-500 ring-blue-100",
-    textColorClass: "text-blue-700",
+    text: 'รับเรื่องแล้ว',
+    icon: 'ph:eye-fill',
+    colorClass: 'bg-blue-100 text-blue-600',
+    ringColorClass: 'bg-blue-500 ring-blue-100',
+    textColorClass: 'text-blue-700',
   },
   in_progress: {
-    text: "กำลังดำเนินการ",
-    icon: "ph:wrench-fill",
-    colorClass: "bg-amber-100 text-amber-600",
-    ringColorClass: "bg-amber-500 ring-amber-100",
-    textColorClass: "text-amber-700",
+    text: 'กำลังดำเนินการ',
+    icon: 'ph:wrench-fill',
+    colorClass: 'bg-amber-100 text-amber-600',
+    ringColorClass: 'bg-amber-500 ring-amber-100',
+    textColorClass: 'text-amber-700',
   },
   completed: {
-    text: "เสร็จสิ้น",
-    icon: "ph:check-circle-fill",
-    colorClass: "bg-green-100 text-green-600",
-    ringColorClass: "bg-green-500 ring-green-100",
-    textColorClass: "text-green-700",
+    text: 'เสร็จสิ้น',
+    icon: 'ph:check-circle-fill',
+    colorClass: 'bg-green-100 text-green-600',
+    ringColorClass: 'bg-green-500 ring-green-100',
+    textColorClass: 'text-green-700',
   },
   cancelled: {
-    text: "ยกเลิก",
-    icon: "ph:x-circle-fill",
-    colorClass: "bg-red-100 text-red-600",
-    ringColorClass: "bg-red-500 ring-red-100",
-    textColorClass: "text-red-700",
+    text: 'ยกเลิก',
+    icon: 'ph:x-circle-fill',
+    colorClass: 'bg-red-100 text-red-600',
+    ringColorClass: 'bg-red-500 ring-red-100',
+    textColorClass: 'text-red-700',
   },
-};
+}
 
 const currentStatus = computed(() => {
-  const lastStatus = props.ticket.timeline[props.ticket.timeline.length - 1];
-  return statusMap[lastStatus.status] || statusMap.submitted;
-});
+  const lastStatus = props.ticket.timeline[props.ticket.timeline.length - 1]
+  return statusMap[lastStatus.status] || statusMap.submitted
+})
 </script>
 
 <style scoped>

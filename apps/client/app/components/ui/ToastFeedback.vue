@@ -26,25 +26,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const props = defineProps<{
   toast: {
-    show: boolean;
-    message: string;
-    type: "success" | "error" | "loading";
-  };
-}>();
+    show: boolean
+    message: string
+    type: 'success' | 'error' | 'loading'
+  }
+}>()
 
 const toastStyle = computed(() => {
   switch (props.toast.type) {
-    case "success":
-      return { bg: "bg-green-500", icon: "ph:check-circle-fill" };
-    case "error":
-      return { bg: "bg-red-500", icon: "ph:x-circle-fill" };
-    case "loading":
+    case 'success':
+      return { bg: 'bg-green-500', icon: 'ph:check-circle-fill' }
+    case 'error':
+      return { bg: 'bg-red-500', icon: 'ph:x-circle-fill' }
+    case 'loading':
     default:
-      return { bg: "bg-slate-700", icon: "ph:spinner-duotone" };
+      return { bg: 'bg-slate-700', icon: 'ph:spinner-duotone' }
   }
-});
+})
 </script>

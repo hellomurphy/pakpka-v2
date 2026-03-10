@@ -1,6 +1,7 @@
 import { eq, and, inArray } from 'drizzle-orm'
 import { InvoiceStatus, PaymentStatus } from '@repo/db'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -105,6 +106,7 @@ export default defineEventHandler(async (event) => {
             )
         : []
 
+    const baseUrl = getRequestURL(event).origin
     const currentInvoices = invoices.map((inv) => {
       const contract = contractMap[inv.contractId]
       const room = contract ? roomMap[contract.roomId] : null
@@ -117,7 +119,7 @@ export default defineEventHandler(async (event) => {
       return {
         id: inv.id,
         period: inv.period,
-        totalAmount: inv.totalAmount,
+        totalAmount: toDecimalNumber(inv.totalAmount),
         dueDate: inv.dueDate,
         status: inv.status,
         createdAt: inv.createdAt,
@@ -133,15 +135,41 @@ export default defineEventHandler(async (event) => {
                 : null,
             }
           : null,
-        items: items.filter((it) => it.invoiceId === inv.id),
+        items: items
+          .filter((it) => it.invoiceId === inv.id)
+          .map((it) => ({
+            id: it.id,
+            invoiceId: it.invoiceId,
+            description: it.description,
+            amount: toDecimalNumber(it.amount),
+          })),
         meterReadings: meterReadings.filter((mr) => mr.invoiceId === inv.id),
-        payments: invPayments,
+        payments: invPayments.map((p) => {
+          const slipUrl = p.slipKey
+            ? `${baseUrl}/api/slips/${encodeURIComponent(p.slipKey)}`
+            : p.slipUrl
+          return {
+            id: p.id,
+            invoiceId: p.invoiceId,
+            amount: toDecimalNumber(p.amount),
+            paymentDate: p.paymentDate,
+            status: p.status,
+            paymentMethod: p.paymentMethod,
+            slipKey: p.slipKey ?? null,
+            slipStatus: p.slipStatus ?? null,
+            slipUrl,
+            notes: p.notes,
+            receivingAccountId: p.receivingAccountId,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
+          }
+        }),
         property: prop ? { id: prop.id, name: prop.name, receivingAccounts: accounts } : null,
       }
     })
 
     const totalUnpaid = currentInvoices.reduce(
-      (sum: number, inv: { totalAmount: string | null }) => sum + Number(inv.totalAmount ?? 0),
+      (sum: number, inv: { totalAmount: number }) => sum + inv.totalAmount,
       0,
     )
 

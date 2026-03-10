@@ -1,5 +1,5 @@
 // src/composables/useThaiYearConverter.js
-import dayjs from 'dayjs'; // Assuming dayjs is installed for getting the current year
+import dayjs from 'dayjs' // Assuming dayjs is installed for getting the current year
 
 /**
  * A Vue composable for converting between Gregorian (A.D.) and Thai Buddhist (B.E.) years.
@@ -7,7 +7,7 @@ import dayjs from 'dayjs'; // Assuming dayjs is installed for getting the curren
  */
 export function useThaiYearConverter() {
   // Define the constant offset for Gregorian to Buddhist Era conversion
-  const AD_TO_BE_OFFSET = 543;
+  const AD_TO_BE_OFFSET = 543
 
   /**
    * Converts a Gregorian year (A.D.) to a Thai Buddhist year (B.E.).
@@ -17,16 +17,16 @@ export function useThaiYearConverter() {
    */
   const convertADtoBE = (adYear: string) => {
     if (typeof adYear === 'string' && adYear.toLowerCase() === 'all') {
-      return 'ทุกปี';
+      return 'ทุกปี'
     }
-    const year = parseInt(adYear, 10);
+    const year = parseInt(adYear, 10)
     // Ensure the year is a valid number before conversion
     if (isNaN(year)) {
-      console.warn(`Invalid Gregorian year provided to convertADtoBE: ${adYear}`);
-      return ''; // Or handle error appropriately
+      console.warn(`Invalid Gregorian year provided to convertADtoBE: ${adYear}`)
+      return '' // Or handle error appropriately
     }
-    return String(year + AD_TO_BE_OFFSET);
-  };
+    return String(year + AD_TO_BE_OFFSET)
+  }
 
   /**
    * Converts a Thai Buddhist year (B.E.) to a Gregorian year (A.D.).
@@ -38,15 +38,15 @@ export function useThaiYearConverter() {
    */
   const convertBEtoAD = (beYear: string) => {
     if (typeof beYear === 'string' && beYear.toLowerCase() === 'ทุกปี') {
-      return 'all';
+      return 'all'
     }
-    const year = parseInt(beYear, 10);
+    const year = parseInt(beYear, 10)
     if (isNaN(year)) {
-      console.warn(`Invalid Buddhist year provided to convertBEtoAD: ${beYear}`);
-      return ''; // Or handle error appropriately
+      console.warn(`Invalid Buddhist year provided to convertBEtoAD: ${beYear}`)
+      return '' // Or handle error appropriately
     }
-    return String(year - AD_TO_BE_OFFSET);
-  };
+    return String(year - AD_TO_BE_OFFSET)
+  }
 
   /**
    * Generates a dynamic list of year options for a <select> element.
@@ -56,27 +56,27 @@ export function useThaiYearConverter() {
    * @returns {Array<{ value: string, label: string }>} An array of year options.
    */
   const generateYearOptions = (fixedStartGregorianYear = 2020) => {
-    const currentGregorianYear = dayjs().year(); // Get current year (e.g., 2025)
-    const options = [{ value: "all", label: "ทุกปี" }];
+    const currentGregorianYear = dayjs().year() // Get current year (e.g., 2025)
+    const options = [{ value: 'all', label: 'ทุกปี' }]
 
     // Loop from the fixed start year up to the current year (inclusive)
     for (let adYear = fixedStartGregorianYear; adYear <= currentGregorianYear; adYear++) {
-      const beYear = adYear + AD_TO_BE_OFFSET; // Convert to Buddhist Era for display
+      const beYear = adYear + AD_TO_BE_OFFSET // Convert to Buddhist Era for display
       options.push({
         value: String(adYear), // The actual value will be Gregorian (A.D.)
-        label: String(beYear)  // The displayed label will be Buddhist (B.E.)
-      });
+        label: String(beYear), // The displayed label will be Buddhist (B.E.)
+      })
     }
     // Optionally reverse the order if you want the most recent year first in the dropdown
-    options.reverse();
-    return options;
-  };
+    options.reverse()
+    return options
+  }
 
   // Return the functions that will be exposed when using this composable
   return {
     convertADtoBE,
     convertBEtoAD, // Useful if you ever need to convert user B.E. input to A.D.
     generateYearOptions,
-    AD_TO_BE_OFFSET // Expose the offset constant if it might be useful elsewhere
-  };
+    AD_TO_BE_OFFSET, // Expose the offset constant if it might be useful elsewhere
+  }
 }

@@ -1,8 +1,6 @@
 <template>
   <div class="p-4 max-w-md mx-auto space-y-4 pb-8">
-    <h1 class="text-2xl font-bold text-slate-800 text-center">
-      ช่องทางการชำระเงิน
-    </h1>
+    <h1 class="text-2xl font-bold text-slate-800 text-center">ช่องทางการชำระเงิน</h1>
 
     <div v-if="isLoading" class="bg-white rounded-xl p-4 space-y-3 border">
       <div class="h-16 bg-slate-200 rounded-lg animate-pulse"></div>
@@ -20,11 +18,7 @@
             @click="toggleAccordion(method.id)"
             class="w-full text-left flex items-center p-4"
           >
-            <Icon
-              :name="method.icon"
-              class="text-3xl"
-              :class="method.iconColor"
-            />
+            <Icon :name="method.icon" class="text-3xl" :class="method.iconColor" />
             <div class="ml-4 flex-grow">
               <p class="font-semibold text-slate-700">{{ method.name }}</p>
             </div>
@@ -78,11 +72,7 @@
             @click="toggleAccordion(method.id)"
             class="w-full text-left flex items-center p-4"
           >
-            <Icon
-              :name="method.icon"
-              class="text-3xl"
-              :class="method.iconColor"
-            />
+            <Icon :name="method.icon" class="text-3xl" :class="method.iconColor" />
             <div class="ml-4 flex-grow">
               <p class="font-semibold text-slate-700">{{ method.name }}</p>
             </div>
@@ -106,7 +96,7 @@
                   v-for="bank in method.children"
                   :key="bank.id"
                   @click="selectPayment(method.id, bank.id)"
-                  :disabled="!bankStatus[bank.omiseId]"
+                  :disabled="bankStatus[bank.omiseId] === false"
                   class="w-full flex items-center p-3 rounded-lg border transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50"
                   :class="
                     isSelected(method.id, bank.id)
@@ -118,7 +108,7 @@
                   <div class="ml-3 font-medium text-slate-700 flex-grow">
                     <span>{{ bank.name }}</span>
                     <p
-                      v-if="!bankStatus[bank.omiseId]"
+                      v-if="bankStatus[bank.omiseId] === false"
                       class="text-xs text-red-500 font-normal"
                     >
                       ปิดปรับปรุงชั่วคราว
@@ -145,11 +135,7 @@
               : 'hover:bg-slate-50 border-slate-200'
           "
         >
-          <Icon
-            :name="method.icon"
-            class="text-3xl"
-            :class="method.iconColor"
-          />
+          <Icon :name="method.icon" class="text-3xl" :class="method.iconColor" />
           <div class="ml-4 flex-grow">
             <p class="font-semibold text-slate-700">{{ method.name }}</p>
             <p v-if="method.subtitle" class="text-xs text-slate-500">
@@ -165,10 +151,8 @@
       </div>
     </div>
 
-    <div
-      class="flex items-center justify-center pt-8 space-x-2 text-sm text-slate-400"
-    >
-      <Icon name="heroicons:lock-closed" />
+    <div class="flex items-center justify-center pt-8 space-x-2 text-sm text-slate-400">
+      <UIcon name="i-lucide-lock" class="size-4" />
       <span>Secure Payments Powered by</span>
       <Icon name="simple-icons:omise" class="text-slate-600 text-lg" />
     </div>
@@ -176,146 +160,136 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import SavedCard from "./SavedCard.vue";
+import { ref, computed, onMounted } from 'vue'
+import SavedCard from './SavedCard.vue'
 
-const emit = defineEmits(["select"]);
+const emit = defineEmits(['select'])
 
 // --- STATE MANAGEMENT ---
-const openAccordion = ref<string | null>("credit-card");
-const selectedPayment = ref<{ method: string; provider: string | null } | null>(
-  null
-);
-const bankStatus = ref<Record<string, boolean>>({});
-const isLoading = ref(true);
-const savedCards = ref<any[]>([]);
+const openAccordion = ref<string | null>('credit-card')
+const selectedPayment = ref<{ method: string; provider: string | null } | null>(null)
+const bankStatus = ref<Record<string, boolean>>({})
+const isLoading = ref(true)
+const savedCards = ref<any[]>([])
 
 // --- DATA ---
 const paymentMethods = ref([
   {
-    id: "credit-card",
-    name: "บัตรเครดิต / เดบิต",
-    icon: "ph:credit-card-duotone",
-    iconColor: "text-indigo-500",
+    id: 'credit-card',
+    name: 'บัตรเครดิต / เดบิต',
+    icon: 'ph:credit-card-duotone',
+    iconColor: 'text-indigo-500',
   },
   {
-    id: "promptpay",
-    name: "QR พร้อมเพย์",
-    subtitle: "สแกนจ่ายผ่านแอปธนาคาร",
-    icon: "ph:qr-code-duotone",
-    iconColor: "text-cyan-600",
+    id: 'promptpay',
+    name: 'QR พร้อมเพย์',
+    subtitle: 'สแกนจ่ายผ่านแอปธนาคาร',
+    icon: 'ph:qr-code-duotone',
+    iconColor: 'text-cyan-600',
   },
   {
-    id: "mobile-banking",
-    name: "จ่ายผ่านแอปธนาคารโดยตรง",
-    icon: "ph:device-mobile-speaker-duotone",
-    iconColor: "text-emerald-500",
+    id: 'mobile-banking',
+    name: 'จ่ายผ่านแอปธนาคารโดยตรง',
+    icon: 'ph:device-mobile-speaker-duotone',
+    iconColor: 'text-emerald-500',
     children: [
       {
-        id: "kbank",
-        name: "K Plus",
-        logo: "cib:kakaotalk",
-        omiseId: "internet_banking_kbank",
+        id: 'kbank',
+        name: 'K Plus',
+        logo: 'cib:kakaotalk',
+        omiseId: 'internet_banking_kbank',
       },
       {
-        id: "scb",
-        name: "SCB Easy",
-        logo: "ph:bank-duotone",
-        omiseId: "internet_banking_scb",
+        id: 'scb',
+        name: 'SCB Easy',
+        logo: 'ph:bank-duotone',
+        omiseId: 'internet_banking_scb',
       },
       {
-        id: "ktb",
-        name: "Krungthai NEXT",
-        logo: "ph:bird-duotone",
-        omiseId: "internet_banking_ktb",
+        id: 'ktb',
+        name: 'Krungthai NEXT',
+        logo: 'ph:bird-duotone',
+        omiseId: 'internet_banking_ktb',
       },
     ],
   },
   {
-    id: "truemoney",
-    name: "TrueMoney Wallet",
-    icon: "simple-icons:truemoney",
-    iconColor: "text-orange-500",
+    id: 'truemoney',
+    name: 'TrueMoney Wallet',
+    icon: 'simple-icons:truemoney',
+    iconColor: 'text-orange-500',
   },
-]);
+])
 
 // --- LIFECYCLE HOOK ---
 onMounted(() => {
   // จำลองการดึงข้อมูลพร้อมกัน
   Promise.all([fetchBankStatus(), fetchSavedCards()]).finally(() => {
-    isLoading.value = false;
-  });
-});
+    isLoading.value = false
+  })
+})
 
-// --- ASYNC FUNCTIONS ---
+// --- ASYNC FUNCTIONS (mock: no client server route for payment-status) ---
 async function fetchBankStatus() {
-  try {
-    const status = await $fetch("/api/payment-status");
-    bankStatus.value = status;
-  } catch (error) {
-    console.error("Failed to fetch bank status:", error);
-    // Fallback
-  }
+  // Placeholder: all banks enabled. Replace with admin API when backend provides status.
+  bankStatus.value = {} as Record<string, boolean>
 }
 
 async function fetchSavedCards() {
   // จำลองการดึงข้อมูลบัตร
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  await new Promise((resolve) => setTimeout(resolve, 800))
   const cardsFromApi = [
     {
-      id: "card_test_1",
-      brand: "Visa",
-      last4: "4242",
+      id: 'card_test_1',
+      brand: 'Visa',
+      last4: '4242',
       exp_month: 12,
       exp_year: 2028,
     },
     {
-      id: "card_test_2",
-      brand: "Mastercard",
-      last4: "5555",
+      id: 'card_test_2',
+      brand: 'Mastercard',
+      last4: '5555',
       exp_month: 8,
       exp_year: 2026,
     },
     {
-      id: "card_test_3",
-      brand: "JCB",
-      last4: "5555",
+      id: 'card_test_3',
+      brand: 'JCB',
+      last4: '5555',
       exp_month: 9,
       exp_year: 2026,
     },
-  ];
-  savedCards.value = cardsFromApi;
+  ]
+  savedCards.value = cardsFromApi
 
   // เลือกบัตรใบแรกเป็นค่าเริ่มต้นถ้ามี
   if (cardsFromApi.length > 0) {
-    selectPayment("credit-card", cardsFromApi[0].id);
+    selectPayment('credit-card', cardsFromApi[0].id)
   }
 }
 
 // --- HELPER FUNCTIONS ---
 const toggleAccordion = (id: string) => {
-  openAccordion.value = openAccordion.value === id ? null : id;
-};
+  openAccordion.value = openAccordion.value === id ? null : id
+}
 
 const selectPayment = (methodId: string, providerId: string | null = null) => {
-  if (methodId === "mobile-banking" && providerId) {
+  if (methodId === 'mobile-banking' && providerId) {
     const bank = paymentMethods.value
-      .find((m) => m.id === "mobile-banking")
-      ?.children.find((b) => b.id === providerId);
-    if (bank && bankStatus.value[bank.omiseId] === false) return;
+      .find((m) => m.id === 'mobile-banking')
+      ?.children.find((b) => b.id === providerId)
+    if (bank && bankStatus.value[bank.omiseId] === false) return
   }
-  const selection = { method: methodId, provider: providerId };
-  selectedPayment.value = selection;
-  emit("select", selection);
-};
+  const selection = { method: methodId, provider: providerId }
+  selectedPayment.value = selection
+  emit('select', selection)
+}
 
 const isSelected = (methodId: string, providerId: string | null = null) => {
-  if (!selectedPayment.value) return false;
-  return (
-    selectedPayment.value.method === methodId &&
-    selectedPayment.value.provider === providerId
-  );
-};
+  if (!selectedPayment.value) return false
+  return selectedPayment.value.method === methodId && selectedPayment.value.provider === providerId
+}
 </script>
 
 <style scoped>

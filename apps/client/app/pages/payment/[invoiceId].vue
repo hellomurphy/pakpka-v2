@@ -3,10 +3,7 @@
     <!-- Loading State -->
     <div v-if="isLoadingInvoice" class="flex items-center justify-center pt-20">
       <div class="text-center">
-        <Icon
-          name="ph:spinner-duotone"
-          class="text-4xl text-slate-400 animate-spin mb-3"
-        />
+        <Icon name="ph:spinner-duotone" class="text-4xl text-slate-400 animate-spin mb-3" />
         <p class="text-slate-500">กำลังโหลดข้อมูล...</p>
       </div>
     </div>
@@ -88,13 +85,9 @@
           "
           @click="submitPayment"
         >
-          <Icon
-            v-if="isSubmitting"
-            name="ph:spinner-duotone"
-            class="animate-spin h-5 w-5"
-          />
+          <Icon v-if="isSubmitting" name="ph:spinner-duotone" class="animate-spin h-5 w-5" />
           <template v-else>
-            <Icon name="heroicons:lock-closed-20-solid" class="h-5 w-5" />
+            <UIcon name="i-lucide-lock" class="h-5 w-5" />
             <span>ยืนยันการชำระเงิน {{ formatNumber(invoice.totalAmount) }} บาท</span>
           </template>
         </button>
@@ -104,123 +97,111 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import FileUpload from "~/components/FileUpload.vue";
+import { ref, computed, onMounted } from 'vue'
+import FileUpload from '~/components/FileUpload.vue'
 
 definePageMeta({
-  title: "ชำระเงิน",
-  headerVariant: "page",
+  title: 'ชำระเงิน',
+  headerVariant: 'page',
   showFooter: false,
-});
+})
 
 // --- Route & API ---
-const route = useRoute();
-const router = useRouter();
-const api = useApi();
-const invoiceId = route.params.invoiceId as string;
+const route = useRoute()
+const router = useRouter()
+const api = useApi()
+const invoiceId = route.params.invoiceId as string
 
 // --- States ---
-const invoice = ref<any>(null);
-const slipUrl = ref<string>("");
-const uploadedFile = ref<File | null>(null);
-const isLoadingInvoice = ref(true);
-const isSubmitting = ref(false);
-const error = ref<string>("");
+const invoice = ref<any>(null)
+const slipUrl = ref<string>('')
+const uploadedFile = ref<File | null>(null)
+const isLoadingInvoice = ref(true)
+const isSubmitting = ref(false)
+const error = ref<string>('')
 
 // --- Utils ---
-const { formatNumber } = useNumberFormat();
+const { formatNumber } = useNumberFormat()
 
 // --- Computed ---
 const canSubmit = computed(() => {
-  return !!slipUrl.value;
-});
+  return !!slipUrl.value
+})
 
 // --- Methods ---
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-};
+  const date = new Date(dateString)
+  return date.toLocaleDateString('th-TH', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
 
 const handleFileSelected = (file: File | null) => {
-  uploadedFile.value = file;
-  console.log("File selected:", file?.name);
-};
+  uploadedFile.value = file
+  console.log('File selected:', file?.name)
+}
 
 const submitPayment = async () => {
-  if (!canSubmit.value) return;
+  if (!canSubmit.value || !uploadedFile.value) return
 
-  isSubmitting.value = true;
+  isSubmitting.value = true
+  error.value = ''
 
   try {
-    // Simulate upload (in real app, upload to cloud storage first)
-    let finalSlipUrl = slipUrl.value;
-
-    if (uploadedFile.value) {
-      // In a real app, upload to cloud storage (Cloudinary, S3, etc.)
-      // For now, we'll use a placeholder URL
-      finalSlipUrl = `https://example.com/slips/${Date.now()}-${uploadedFile.value.name}`;
-      console.log("📤 Simulated upload:", finalSlipUrl);
+    const createRes = await api.payments.create({
+      invoiceId: invoice.value.id,
+      amount: Number(invoice.value.totalAmount),
+      paymentDate: new Date().toISOString(),
+      paymentMethod: 'BANK_TRANSFER',
+      notes: 'ชำระผ่านการโอนเงินผ่านธนาคาร',
+    })
+    const paymentId = createRes.data?.id
+    if (!paymentId) {
+      throw new Error(createRes.message || 'สร้างรายการชำระเงินไม่สำเร็จ')
     }
 
-    // Prepare payment data
-    const paymentData = {
-      invoiceId: invoice.value.id,
-      amount: invoice.value.totalAmount,
-      paymentDate: new Date().toISOString(),
-      paymentMethod: "BANK_TRANSFER",
-      slipUrl: finalSlipUrl,
-      notes: "ชำระผ่านการโอนเงินผ่านธนาคาร",
-    };
+    await api.payments.uploadSlip(paymentId, uploadedFile.value)
 
-    console.log("💳 Submitting payment:", paymentData);
-
-    // Submit to backend
-    const response = await api.payments.submit(paymentData);
-
-    console.log("✅ Payment submitted successfully:", response);
-
-    // Show success and redirect
-    router.push(`/payment/status/success?invoiceId=${invoice.value.id}`);
+    router.push(`/payment/status/success?invoiceId=${invoice.value.id}`)
   } catch (err: any) {
-    console.error("❌ Payment submission failed:", err);
-    error.value = err.data?.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง";
+    console.error('Payment failed:', err)
+    error.value =
+      err?.data?.message || err?.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง'
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
-};
+}
 
 // --- Lifecycle ---
 onMounted(async () => {
   try {
-    isLoadingInvoice.value = true;
+    isLoadingInvoice.value = true
 
     // Fetch invoice details
-    const response = await api.invoices.get(invoiceId);
+    const response = await api.invoices.get(invoiceId)
 
     if (response.data) {
       // Transform invoice data
       invoice.value = {
         id: response.data.id,
         totalAmount: response.data.totalAmount,
-        roomNumber: response.data.contract?.room?.roomNumber || "N/A",
+        roomNumber: response.data.contract?.room?.roomNumber || 'N/A',
         period: response.data.period,
         dueDate: response.data.dueDate,
         status: response.data.status,
-      };
+      }
 
-      console.log("📄 Loaded invoice:", invoice.value);
+      console.log('📄 Loaded invoice:', invoice.value)
     } else {
-      throw new Error("ไม่พบใบแจ้งหนี้นี้");
+      throw new Error('ไม่พบใบแจ้งหนี้นี้')
     }
   } catch (err: any) {
-    console.error("Failed to load invoice:", err);
-    error.value = err.data?.message || "ไม่สามารถโหลดข้อมูลใบแจ้งหนี้ได้";
+    console.error('Failed to load invoice:', err)
+    error.value = err.data?.message || 'ไม่สามารถโหลดข้อมูลใบแจ้งหนี้ได้'
   } finally {
-    isLoadingInvoice.value = false;
+    isLoadingInvoice.value = false
   }
-});
+})
 </script>

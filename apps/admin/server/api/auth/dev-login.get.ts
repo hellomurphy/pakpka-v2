@@ -1,9 +1,23 @@
 import { eq } from 'drizzle-orm'
-import { setCookie } from 'h3'
+import { setCookie, getHeader } from 'h3'
 import { db, schema } from '@nuxthub/db'
 
-const SESSION_COOKIE_NAME = 'session_token'
+const SESSION_COOKIE_ADMIN = 'session_token'
+const SESSION_COOKIE_CLIENT = 'session_token_client'
 const SESSION_MAX_AGE_DAYS = 30
+
+function isClientOrigin(event: { node: { req: { headers: { origin?: string } } } }): boolean {
+  const origin = getHeader(event, 'origin')
+  if (!origin) return false
+  const allowedStr =
+    process.env.ALLOWED_ORIGINS ??
+    (process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : '')
+  const allowed = allowedStr
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+  return allowed.some((o) => origin === o || origin === o.replace(/\/$/, ''))
+}
 
 export default defineEventHandler(async (event) => {
   const isDev = process.env.NODE_ENV === 'development'
@@ -14,8 +28,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const config = useRuntimeConfig(event)
+  const fromClient = isClientOrigin(event)
+  const cookieName = fromClient ? SESSION_COOKIE_CLIENT : SESSION_COOKIE_ADMIN
 
+  const config = useRuntimeConfig(event)
   const devUserId = config.server?.devUserId as string | undefined
   let userRow:
     | {
@@ -40,6 +56,38 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.user.id, devUserId))
       .limit(1)
     userRow = u
+  }
+
+  if (!userRow) {
+    if (fromClient) {
+      // Client: เลือก user ที่มี tenant (ผู้เช่า)
+      const [userWithTenant] = await db
+        .select({
+          id: schema.user.id,
+          name: schema.user.name,
+          email: schema.user.email,
+          image: schema.user.image,
+          avatarUrl: schema.user.avatarUrl,
+        })
+        .from(schema.user)
+        .innerJoin(schema.tenant, eq(schema.tenant.userId, schema.user.id))
+        .limit(1)
+      userRow = userWithTenant
+    } else {
+      // Admin: เลือก user ที่มี property_staff (เจ้าหน้าที่/เจ้าของ) ก่อน ไม่งั้น user แรก
+      const [staffUser] = await db
+        .select({
+          id: schema.user.id,
+          name: schema.user.name,
+          email: schema.user.email,
+          image: schema.user.image,
+          avatarUrl: schema.user.avatarUrl,
+        })
+        .from(schema.user)
+        .innerJoin(schema.propertyStaff, eq(schema.propertyStaff.userId, schema.user.id))
+        .limit(1)
+      userRow = staffUser
+    }
   }
 
   if (!userRow) {
@@ -75,7 +123,7 @@ export default defineEventHandler(async (event) => {
     expires,
   })
 
-  setCookie(event, SESSION_COOKIE_NAME, sessionToken, {
+  setCookie(event, cookieName, sessionToken, {
     httpOnly: true,
     secure: false,
     sameSite: 'lax',
@@ -91,6 +139,5 @@ export default defineEventHandler(async (event) => {
   }
   await setUserSession(event, { user: userPayload })
 
-  // Return JSON เหมือน credentials/LINE callback flow — client รับแล้วนำทางเอง (ใช้แค่ local dev)
   return { ok: true, user: userPayload }
 })

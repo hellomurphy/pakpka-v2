@@ -2,10 +2,7 @@
   <div class="max-w-2xl mx-auto bg-slate-100">
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center min-h-screen">
-      <Icon
-        name="ph:spinner-duotone"
-        class="text-4xl animate-spin text-indigo-600"
-      />
+      <Icon name="ph:spinner-duotone" class="text-4xl animate-spin text-indigo-600" />
     </div>
 
     <!-- Main Content -->
@@ -17,9 +14,7 @@
           alt="Room Image"
           class="w-full h-full object-cover"
         />
-        <div
-          class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
-        ></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         <div class="absolute bottom-0 left-0 p-4">
           <h1 class="text-2xl font-bold leading-tight text-white shadow-lg">
             {{ room.roomNumber }}
@@ -35,30 +30,21 @@
             :to="`/contracts/${room.activeContract?.id}`"
             class="bg-white p-3 rounded-xl shadow-md flex flex-col items-center justify-center space-y-1 transition-transform active:scale-95 border border-slate-200 hover:bg-slate-50"
           >
-            <Icon
-              name="solar:document-text-bold-duotone"
-              class="text-2xl text-indigo-600"
-            />
+            <Icon name="solar:document-text-bold-duotone" class="text-2xl text-indigo-600" />
             <span class="text-xs font-semibold text-slate-700">ดูสัญญา</span>
           </NuxtLink>
           <button
             @click="fetchPropertyInfo"
             class="bg-white p-3 rounded-xl shadow-lg flex flex-col items-center justify-center space-y-1 transition-transform active:scale-95 border border-slate-200 hover:bg-slate-50"
           >
-            <Icon
-              name="solar:buildings-2-bold-duotone"
-              class="text-2xl text-indigo-600"
-            />
+            <Icon name="solar:buildings-2-bold-duotone" class="text-2xl text-indigo-600" />
             <span class="text-xs font-semibold text-slate-700">ข้อมูลหอ</span>
           </button>
           <button
             @click="isContactSheetOpen = true"
             class="bg-white p-3 rounded-xl shadow-md flex flex-col items-center justify-center space-y-1 transition-transform active:scale-95 border border-slate-200 hover:bg-slate-50"
           >
-            <Icon
-              name="solar:phone-bold-duotone"
-              class="text-2xl text-indigo-600"
-            />
+            <Icon name="solar:phone-bold-duotone" class="text-2xl text-indigo-600" />
             <span class="text-xs font-semibold text-slate-700">ติดต่อ</span>
           </button>
         </section>
@@ -73,28 +59,17 @@
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 translate-y-full"
           >
-            <div
-              v-if="isContactSheetOpen && contactInfo"
-              class="fixed inset-0 z-50 flex items-end"
-            >
+            <div v-if="isContactSheetOpen && contactInfo" class="fixed inset-0 z-50 flex items-end">
               <div
                 @click="isContactSheetOpen = false"
                 class="absolute inset-0 bg-black/40 backdrop-blur-sm"
               ></div>
 
-              <div
-                class="relative w-full bg-slate-100 rounded-t-2xl p-4 pb-6 space-y-4"
-              >
+              <div class="relative w-full bg-slate-100 rounded-t-2xl p-4 pb-6 space-y-4">
                 <div class="text-center">
-                  <div
-                    class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-3"
-                  ></div>
-                  <h3 class="text-lg font-bold text-slate-800">
-                    เลือกช่องทางการติดต่อ
-                  </h3>
-                  <p class="text-sm text-slate-500">
-                    กรุณาเลือกช่องทางที่คุณสะดวกที่สุด
-                  </p>
+                  <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-3"></div>
+                  <h3 class="text-lg font-bold text-slate-800">เลือกช่องทางการติดต่อ</h3>
+                  <p class="text-sm text-slate-500">กรุณาเลือกช่องทางที่คุณสะดวกที่สุด</p>
                 </div>
 
                 <div class="space-y-3 pt-2">
@@ -125,10 +100,7 @@
                     :href="`tel:${contactInfo.phone}`"
                     class="contact-option"
                   >
-                    <Icon
-                      name="solar:phone-calling-bold-duotone"
-                      class="text-2xl"
-                    />
+                    <Icon name="solar:phone-calling-bold-duotone" class="text-2xl" />
                     <span>โทรออก: {{ contactInfo.phone }}</span>
                   </a>
 
@@ -151,12 +123,8 @@
           <h2 class="text-base font-bold text-slate-700 mb-3">บิลปัจจุบัน</h2>
 
           <div v-if="currentInvoice">
-            <div
-              class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80"
-            >
-              <div
-                class="flex justify-between items-baseline pb-3 border-b border-slate-100"
-              >
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+              <div class="flex justify-between items-baseline pb-3 border-b border-slate-100">
                 <div>
                   <h3 class="text-base font-bold text-slate-800">
                     สรุปยอดบิล: {{ currentInvoice.period }}
@@ -173,9 +141,7 @@
                 <p class="text-sm font-medium text-slate-500">บาท</p>
               </div>
               <div class="space-y-3">
-                <p
-                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                >
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   รายละเอียดค่าใช้จ่าย
                 </p>
                 <ul class="text-sm space-y-2.5">
@@ -212,23 +178,14 @@
           </div>
 
           <div v-else>
-            <div
-              class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 text-center"
-            >
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 text-center">
               <div
                 class="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center"
               >
-                <Icon
-                  name="solar:check-circle-bold-duotone"
-                  class="text-4xl text-green-500"
-                />
+                <Icon name="solar:check-circle-bold-duotone" class="text-4xl text-green-500" />
               </div>
-              <h3 class="mt-4 text-lg font-bold text-slate-800">
-                ยอดชำระเป็นปัจจุบัน
-              </h3>
-              <p class="text-sm text-slate-500 mt-1">
-                ไม่มีบิลค้างชำระสำหรับรอบบิลนี้
-              </p>
+              <h3 class="mt-4 text-lg font-bold text-slate-800">ยอดชำระเป็นปัจจุบัน</h3>
+              <p class="text-sm text-slate-500 mt-1">ไม่มีบิลค้างชำระสำหรับรอบบิลนี้</p>
               <div class="mt-6">
                 <NuxtLink
                   to="/history/payment"
@@ -245,38 +202,24 @@
         <section v-if="invoiceHistory.length > 0" class="bg-white p-4 rounded-2xl shadow-md">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-base font-bold text-slate-800">ภาพรวมค่าใช้จ่าย</h2>
-            <div
-              class="flex gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold"
-            >
+            <div class="flex gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold">
               <button
                 @click="timeframe = 3"
-                :class="
-                  timeframe === 3
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-500'
-                "
+                :class="timeframe === 3 ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'"
                 class="px-2 py-1 rounded-md"
               >
                 3M
               </button>
               <button
                 @click="timeframe = 6"
-                :class="
-                  timeframe === 6
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-500'
-                "
+                :class="timeframe === 6 ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'"
                 class="px-2 py-1 rounded-md"
               >
                 6M
               </button>
               <button
                 @click="timeframe = 12"
-                :class="
-                  timeframe === 12
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-500'
-                "
+                :class="timeframe === 12 ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'"
                 class="px-2 py-1 rounded-md"
               >
                 1Y
@@ -284,12 +227,7 @@
             </div>
           </div>
           <ClientOnly>
-            <apexchart
-              type="area"
-              height="250"
-              :options="chartOptions"
-              :series="chartSeries"
-            />
+            <apexchart type="area" height="250" :options="chartOptions" :series="chartSeries" />
           </ClientOnly>
         </section>
 
@@ -306,24 +244,23 @@
               :class="invoice.status === 'PAID' ? 'bg-green-100' : 'bg-yellow-100'"
             >
               <Icon
-                :name="invoice.status === 'PAID' ? 'solar:check-read-line-duotone' : 'solar:document-text-bold-duotone'"
+                :name="
+                  invoice.status === 'PAID'
+                    ? 'solar:check-read-line-duotone'
+                    : 'solar:document-text-bold-duotone'
+                "
                 class="text-2xl"
                 :class="invoice.status === 'PAID' ? 'text-green-600' : 'text-yellow-600'"
               />
             </div>
             <div class="flex-grow">
-              <p class="font-bold text-slate-700">
-                บิลประจำเดือน {{ invoice.period }}
-              </p>
+              <p class="font-bold text-slate-700">บิลประจำเดือน {{ invoice.period }}</p>
               <p class="text-sm text-slate-500">
                 ยอดรวม {{ formatNumber(invoice.totalAmount) }} บาท
               </p>
             </div>
             <NuxtLink :to="`/payment/${invoice.id}`" class="p-2">
-              <Icon
-                name="solar:alt-arrow-right-linear"
-                class="text-slate-400 text-xl"
-              />
+              <Icon name="solar:alt-arrow-right-linear" class="text-slate-400 text-xl" />
             </NuxtLink>
           </div>
           <div v-if="invoiceHistory.length > 3" class="pt-2">
@@ -340,10 +277,7 @@
 
     <!-- Error State -->
     <div v-else class="text-center pt-20 px-6">
-      <Icon
-        name="solar:home-cross-bold-duotone"
-        class="text-8xl text-slate-300 mb-4"
-      />
+      <Icon name="solar:home-cross-bold-duotone" class="text-8xl text-slate-300 mb-4" />
       <h3 class="text-lg font-semibold text-slate-700">ไม่พบข้อมูลห้อง</h3>
       <p class="text-slate-500">กรุณาลองใหม่อีกครั้ง</p>
       <NuxtLink
@@ -357,117 +291,117 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from "vue";
-import dayjs from "dayjs";
-import type { Room, Invoice } from "~/types";
+import { ref, computed, onMounted } from 'vue'
+import dayjs from 'dayjs'
+import type { Room, Invoice } from '@repo/db'
 
 definePageMeta({
-  title: "รายละเอียดห้อง",
+  title: 'รายละเอียดห้อง',
   showFooter: false,
-  headerVariant: "page",
-});
+  headerVariant: 'page',
+})
 
 // Route & Stores
-const route = useRoute();
-const roomsStore = useRoomsStore();
-const invoicesStore = useInvoicesStore();
-const api = useApi();
+const route = useRoute()
+const roomsStore = useRoomsStore()
+const invoicesStore = useInvoicesStore()
+const api = useApi()
 
 // Utils
-const { formatNumber } = useNumberFormat();
+const { formatNumber } = useNumberFormat()
 
 // State
-const roomId = route.params.id as string;
-const room = ref<Room | null>(null);
-const currentInvoice = ref<Invoice | null>(null);
-const invoiceHistory = ref<Invoice[]>([]);
-const contactInfo = ref<any>(null);
-const isContactSheetOpen = ref(false);
-const isLoading = ref(true);
-const timeframe = ref(6);
+const roomId = route.params.id as string
+const room = ref<Room | null>(null)
+const currentInvoice = ref<Invoice | null>(null)
+const invoiceHistory = ref<Invoice[]>([])
+const contactInfo = ref<any>(null)
+const isContactSheetOpen = ref(false)
+const isLoading = ref(true)
+const timeframe = ref(6)
 
 // Default image
 const defaultImage =
-  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop";
+  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop'
 
 // Helper functions
 const formatDate = (date: string) => {
-  return dayjs(date).format("D MMM BBBB");
-};
+  return dayjs(date).format('D MMM BBBB')
+}
 
 const getItemIcon = (type?: string) => {
   switch (type) {
-    case "RENT":
-      return "solar:home-smile-angle-bold-duotone";
-    case "WATER":
-      return "solar:droplet-bold-duotone";
-    case "ELECTRICITY":
-      return "solar:bolt-bold-duotone";
-    case "SERVICE":
-      return "solar:settings-bold-duotone";
-    case "LATE_FEE":
-      return "solar:danger-bold-duotone";
+    case 'RENT':
+      return 'solar:home-smile-angle-bold-duotone'
+    case 'WATER':
+      return 'solar:droplet-bold-duotone'
+    case 'ELECTRICITY':
+      return 'solar:bolt-bold-duotone'
+    case 'SERVICE':
+      return 'solar:settings-bold-duotone'
+    case 'LATE_FEE':
+      return 'solar:danger-bold-duotone'
     default:
-      return "solar:document-text-bold-duotone";
+      return 'solar:document-text-bold-duotone'
   }
-};
+}
 
 const getItemIconColor = (type?: string) => {
   switch (type) {
-    case "RENT":
-      return "text-indigo-500";
-    case "WATER":
-      return "text-sky-500";
-    case "ELECTRICITY":
-      return "text-amber-500";
-    case "SERVICE":
-      return "text-purple-500";
-    case "LATE_FEE":
-      return "text-red-500";
+    case 'RENT':
+      return 'text-indigo-500'
+    case 'WATER':
+      return 'text-sky-500'
+    case 'ELECTRICITY':
+      return 'text-amber-500'
+    case 'SERVICE':
+      return 'text-purple-500'
+    case 'LATE_FEE':
+      return 'text-red-500'
     default:
-      return "text-slate-500";
+      return 'text-slate-500'
   }
-};
+}
 
 // Fetch property contact info
 const fetchPropertyInfo = async () => {
-  if (!room.value?.property?.id) return;
+  if (!room.value?.property?.id) return
 
   try {
-    const response = await api.properties.get(room.value.property.id);
-    contactInfo.value = response.data?.contactInfo;
-    isContactSheetOpen.value = true;
+    const response = await api.properties.get(room.value.property.id)
+    contactInfo.value = response.data?.contactInfo
+    isContactSheetOpen.value = true
   } catch (error) {
-    console.error("Failed to fetch property info:", error);
+    console.error('Failed to fetch property info:', error)
   }
-};
+}
 
 // Chart data
 const chartData = computed(() => {
   return invoiceHistory.value.slice(-timeframe.value).map((inv) => {
-    const waterItem = inv.items.find((i) => i.type === "WATER");
-    const electricItem = inv.items.find((i) => i.type === "ELECTRICITY");
+    const waterItem = inv.items.find((i) => i.type === 'WATER')
+    const electricItem = inv.items.find((i) => i.type === 'ELECTRICITY')
 
     return {
       period: inv.period,
       water: waterItem?.amount || 0,
       electric: electricItem?.amount || 0,
-    };
-  });
-});
+    }
+  })
+})
 
 const chartOptions = computed(() => ({
   chart: {
-    type: "area",
+    type: 'area',
     height: 250,
     zoom: { enabled: false },
     toolbar: { show: false },
-    fontFamily: "inherit",
+    fontFamily: 'inherit',
   },
   dataLabels: { enabled: false },
-  stroke: { curve: "smooth", width: 2 },
+  stroke: { curve: 'smooth', width: 2 },
   fill: {
-    type: "gradient",
+    type: 'gradient',
     gradient: {
       shadeIntensity: 1,
       opacityFrom: 0.7,
@@ -477,69 +411,69 @@ const chartOptions = computed(() => ({
   },
   xaxis: {
     categories: chartData.value.map((d) => d.period),
-    labels: { style: { colors: "#64748b", fontSize: "12px" } },
+    labels: { style: { colors: '#64748b', fontSize: '12px' } },
     axisBorder: { show: false },
     axisTicks: { show: false },
   },
   yaxis: {
     labels: {
-      style: { colors: "#64748b", fontSize: "12px" },
+      style: { colors: '#64748b', fontSize: '12px' },
       formatter: (val: number) => val.toFixed(0),
     },
   },
   tooltip: {
     y: { formatter: (val: number) => `฿${formatNumber(val)}` },
-    theme: "light",
+    theme: 'light',
   },
-  colors: ["#6366f1", "#3b82f6"],
+  colors: ['#6366f1', '#3b82f6'],
   grid: {
     show: true,
-    borderColor: "#e5e7eb",
+    borderColor: '#e5e7eb',
     strokeDashArray: 4,
     yaxis: { lines: { show: true } },
     xaxis: { lines: { show: false } },
   },
-  legend: { position: "top", horizontalAlign: "right" },
-}));
+  legend: { position: 'top', horizontalAlign: 'right' },
+}))
 
 const chartSeries = computed(() => [
-  { name: "ค่าไฟฟ้า", data: chartData.value.map((d) => d.electric) },
-  { name: "ค่าน้ำ", data: chartData.value.map((d) => d.water) },
-]);
+  { name: 'ค่าไฟฟ้า', data: chartData.value.map((d) => d.electric) },
+  { name: 'ค่าน้ำ', data: chartData.value.map((d) => d.water) },
+])
 
 // Lifecycle
 onMounted(async () => {
-  isLoading.value = true;
+  isLoading.value = true
 
   try {
     // Fetch room details
-    await roomsStore.fetchRoom(roomId);
-    room.value = roomsStore.currentRoom;
+    await roomsStore.fetchRoom(roomId)
+    room.value = roomsStore.currentRoom
 
     if (room.value) {
       // Fetch current invoice
       try {
-        const currentInvoiceRes = await api.invoices.getCurrent();
-        currentInvoice.value = currentInvoiceRes.data;
+        const currentInvoiceRes = await api.invoices.getCurrent()
+        currentInvoice.value = currentInvoiceRes.data
       } catch (error) {
         // No current invoice - that's okay
-        currentInvoice.value = null;
+        currentInvoice.value = null
       }
 
       // Fetch invoice history
       try {
-        const historyRes = await api.invoices.getMy();
-        invoiceHistory.value = historyRes.data || [];
+        const historyRes = await api.invoices.getMy()
+        invoiceHistory.value = historyRes.data || []
       } catch (error) {
-        invoiceHistory.value = [];
+        invoiceHistory.value = []
       }
     }
   } catch (error) {
-    console.error("Failed to load room details:", error);
+    console.error('Failed to load room details:', error)
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-});
+})
 </script>
 
 <style scoped>
