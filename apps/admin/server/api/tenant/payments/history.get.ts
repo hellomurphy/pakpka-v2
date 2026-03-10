@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { eq, inArray, and, desc, sql } from 'drizzle-orm'
 import { PaymentStatus } from '@repo/db'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 const querySchema = z.object({
   status: z.enum(Object.values(PaymentStatus) as [string, ...string[]]).optional(),
@@ -106,29 +107,39 @@ export default defineEventHandler(async (event) => {
     const itemsByInv: Record<string, { id: string; description: string; amount: string }[]> = {}
     for (const it of itemRows) {
       if (!itemsByInv[it.invoiceId]) itemsByInv[it.invoiceId] = []
-      itemsByInv[it.invoiceId].push({ id: it.id, description: it.description, amount: it.amount })
+      itemsByInv[it.invoiceId].push({
+        id: it.id,
+        description: it.description,
+        amount: toDecimalNumber(it.amount),
+      })
     }
 
+    const baseUrl = getRequestURL(event).origin
     const payments = paymentsRows.map((p) => {
       const inv = invMap[p.invoiceId]
       const contract = inv ? contractMap[inv.contractId] : null
       const room = contract ? roomMap[contract.roomId] : null
       const roomType = room ? rtMap[room.roomTypeId] : null
       const ra = p.receivingAccountId ? raMap[p.receivingAccountId] : null
+      const slipUrl = p.slipKey
+        ? `${baseUrl}/api/slips/${encodeURIComponent(p.slipKey)}`
+        : p.slipUrl
       return {
         id: p.id,
-        amount: p.amount,
+        amount: toDecimalNumber(p.amount),
         paymentDate: p.paymentDate,
         paymentMethod: p.paymentMethod,
         status: p.status,
-        slipUrl: p.slipUrl,
+        slipKey: p.slipKey ?? null,
+        slipStatus: p.slipStatus ?? null,
+        slipUrl,
         notes: p.notes,
         receivingAccount: ra ? { id: ra.id, type: ra.type, details: ra.details } : null,
         invoice: inv
           ? {
               id: inv.id,
               period: inv.period,
-              totalAmount: inv.totalAmount,
+              totalAmount: toDecimalNumber(inv.totalAmount),
               dueDate: inv.dueDate,
               status: inv.status,
               contract:

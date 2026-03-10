@@ -36,7 +36,10 @@ export default defineNuxtConfig({
     },
     server: {
       devUserId: process.env.DEV_USER_ID ?? '',
-      allowedOrigins: process.env.ALLOWED_ORIGINS ?? '',
+      // CORS: client/landing origins. Dev default so client (port 3002) can call admin without .env
+      allowedOrigins:
+        process.env.ALLOWED_ORIGINS ??
+        (process.env.NODE_ENV === 'development' ? 'http://localhost:3002' : ''),
     },
     lineChannelId: process.env.LINE_CHANNEL_ID ?? process.env.NUXT_LINE_CHANNEL_ID ?? '',
     lineChannelSecret:
@@ -66,6 +69,8 @@ export default defineNuxtConfig({
       process.env.NODE_ENV === 'development' && process.env.DATABASE_URL
         ? { dialect: 'sqlite', driver: 'libsql', connection: {} }
         : 'sqlite',
+    // Blob: DEV → fs (.data/blob), PROD → R2 (set S3_* env)
+    blob: true,
   },
 
   eslint: {

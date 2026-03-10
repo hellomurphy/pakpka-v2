@@ -27,12 +27,14 @@ export default defineEventHandler(async (event) => {
   console.log('🌱 [API] Starting comprehensive database seeding...')
 
   const config = useRuntimeConfig(event)
-  if (config.public.appMode !== 'demo') {
+  const isDemo = (config.public as { appMode?: string })?.appMode === 'demo'
+  const isDev = config.dev === true
+  if (!isDemo && !isDev) {
     return errorResponse(
       event,
       createError({
         statusCode: 403,
-        statusMessage: 'Seeding is only allowed in demo mode.',
+        statusMessage: 'Seeding is only allowed in demo mode or development.',
       }),
     )
   }
@@ -111,42 +113,42 @@ export default defineEventHandler(async (event) => {
         name: 'เจ้าของหอ (คุณอารี)',
         email: 'owner@pakpak.app',
         username: 'owner01',
-        password: null,
+        password: null as string | null,
       },
       {
         id: 'user_admin_01',
         name: 'ผู้จัดการ (สมหญิง)',
         email: 'admin@pakpak.app',
         username: 'admin01',
-        password: null,
+        password: null as string | null,
       },
       {
         id: 'user_staff_01',
         name: 'พนักงาน (จินดา)',
         email: 'staff1@pakpak.app',
         username: 'staff01',
-        password: null,
+        password: null as string | null,
       },
       {
         id: 'user_staff_02',
         name: 'พนักงาน (สมศรี)',
         email: 'staff2@pakpak.app',
         username: 'staff02',
-        password: null,
+        password: null as string | null,
       },
       {
         id: 'user_tenant_01',
         name: 'กิตติพงษ์ ชูชาติ',
         email: 'kittipong@example.com',
         username: 'kittipong',
-        password: null,
+        password: 'password',
       },
       {
         id: 'user_tenant_02',
         name: 'วิภาดา สุขสันต์',
         email: 'wipada@example.com',
         username: 'wipada',
-        password: null,
+        password: 'password',
       },
     ]
     await db.insert(schema.user).values(usersData)

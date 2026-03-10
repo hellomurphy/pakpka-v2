@@ -54,6 +54,15 @@ export const PaymentStatus = {
 } as const
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
+export const SlipStatus = {
+  NONE: 'NONE',
+  UPLOADED: 'UPLOADED',
+  VERIFYING: 'VERIFYING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+} as const
+export type SlipStatus = (typeof SlipStatus)[keyof typeof SlipStatus]
+
 export const MaintenanceStatus = {
   PENDING: 'PENDING',
   IN_PROGRESS: 'IN_PROGRESS',
@@ -81,6 +90,7 @@ export type BillingCycle = (typeof BillingCycle)[keyof typeof BillingCycle]
 export const ContractStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
+  NOTICE_GIVEN: 'NOTICE_GIVEN',
   EXPIRED: 'EXPIRED',
   TERMINATED: 'TERMINATED',
 } as const
@@ -552,6 +562,8 @@ export const payment = sqliteTable(
     paymentMethod: text('payment_method').notNull(),
     receivingAccountId: text('receiving_account_id'),
     slipUrl: text('slip_url'),
+    slipKey: text('slip_key'),
+    slipStatus: text('slip_status').default(SlipStatus.NONE),
     verifiedByUserId: text('verified_by_user_id'),
     gatewayProvider: text('gateway_provider'),
     gatewayTransactionId: text('gateway_transaction_id').unique(),

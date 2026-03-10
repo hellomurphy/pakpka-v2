@@ -3,7 +3,10 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=admin --filter=client",
+    "dev:admin": "turbo run dev --filter=admin",
+    "dev:client": "turbo run dev --filter=client",
+    "dev:landing": "turbo run dev --filter=landing",
     "test": "turbo run test",
     "test:quick": "turbo run test:quick --filter=admin",
     "test:full": "turbo run test:full --filter=admin",

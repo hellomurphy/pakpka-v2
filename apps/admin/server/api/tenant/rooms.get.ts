@@ -1,5 +1,6 @@
 import { eq, and, inArray, desc } from 'drizzle-orm'
 import { requireSession } from '~~/server/utils/auth'
+import { toDecimalNumber } from '~~/server/utils/apiResponse'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -99,7 +100,7 @@ export default defineEventHandler(async (event) => {
         contractStatus: c.status,
         startDate: c.startDate,
         endDate: c.endDate,
-        rentAmount: c.rentAmount,
+        rentAmount: toDecimalNumber(c.rentAmount),
         isPrimary,
         room: room
           ? {
@@ -113,8 +114,8 @@ export default defineEventHandler(async (event) => {
                 ? {
                     id: roomType.id,
                     name: roomType.name,
-                    basePrice: roomType.basePrice,
-                    deposit: roomType.deposit,
+                    basePrice: toDecimalNumber(roomType.basePrice),
+                    deposit: toDecimalNumber(roomType.deposit),
                     amenities: amenitiesByRoomType[roomType.id] ?? [],
                   }
                 : null,

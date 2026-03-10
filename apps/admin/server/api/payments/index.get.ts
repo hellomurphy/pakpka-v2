@@ -86,16 +86,21 @@ export default defineEventHandler(async (event) => {
       itemsByInv[it.invoiceId].push({ id: it.id, description: it.description, amount: it.amount })
     }
 
+    const baseUrl = getRequestURL(event).origin
     const formattedPayments = paymentsRows.map((p) => {
       const inv = invMap[p.invoiceId]
       const contract = inv ? contractMap[inv.contractId] : null
       const room = contract ? roomMap[contract.roomId] : null
       const pt = contract ? primaryTenants.find((x) => x.contractId === contract.id) : null
       const tenant = pt ? tenantMap[pt.tenantId] : null
+      const slipUrl = p.slipKey
+        ? `${baseUrl}/api/slips/${encodeURIComponent(p.slipKey)}`
+        : p.slipUrl
       return {
         id: p.id,
         amount: p.amount,
-        slipUrl: p.slipUrl,
+        slipKey: p.slipKey ?? null,
+        slipUrl,
         submittedAt: p.createdAt,
         tenantName: tenant?.name ?? null,
         roomNumber: room?.roomNumber ?? null,

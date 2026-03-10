@@ -11,14 +11,21 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@repo/db": "workspace:*",
+    "vue-sonner": "^2.0.9",
     "@iconify-json/lucide": "^1.2.90",
     "@iconify-json/simple-icons": "^1.2.70",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/ui": "^4.4.0",
     "@nuxthub/core": "0.10.6",
+    "@pinia/nuxt": "^0.11.3",
+    "@vuepic/vue-datepicker": "^12.1.0",
     "@vueuse/nuxt": "14.2.1",
+    "apexcharts": "^5.10.3",
+    "dayjs": "^1.11.19",
     "nuxt": "^4.3.1",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "vue3-apexcharts": "^1.11.1"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.1",
